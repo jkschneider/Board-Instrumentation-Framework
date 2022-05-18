@@ -1,0 +1,11 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intel.BoardInstrumentationBestPractices
+displayName: Best Practices for Board Instrumentation Framework
+description: These are a set of best practices we'd like to see in our codebase.
+causesAnotherCycle: true
+recipeList:
+  - org.openrewrite.java.cleanup.UseLambdaForFunctionalInterface
+  - org.openrewrite.java.cleanup.LambdaBlockToExpression
+  - org.openrewrite.java.cleanup.ReplaceLambdaWithMethodReference
+  - org.openrewrite.java.cleanup.ExplicitLambdaArgumentTypes
