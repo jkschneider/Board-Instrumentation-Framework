@@ -8,4 +8,4 @@ recipeList:
   - org.openrewrite.java.cleanup.UseLambdaForFunctionalInterface
   - org.openrewrite.java.cleanup.LambdaBlockToExpression
   - org.openrewrite.java.cleanup.ReplaceLambdaWithMethodReference
-  - org.openrewrite.java.cleanup.ExplicitLambdaArgumentTypes
+#  - org.openrewrite.java.cleanup.ExplicitLambdaArgumentTypes
