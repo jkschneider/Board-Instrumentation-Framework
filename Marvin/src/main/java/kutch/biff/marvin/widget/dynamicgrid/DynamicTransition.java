@@ -29,6 +29,8 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.beans.Observable;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
@@ -233,7 +235,7 @@ public class DynamicTransition {
             imageViewsBack.get(INDEX).setVisible(false);
         }
 
-        ROTATE.angleProperty().addListener((ov, oldAngle, newAngle) ->
+        ROTATE.angleProperty().addListener((ObservableValue ov, Number oldAngle, Number newAngle) ->
         {
             if (newAngle.doubleValue() > 360) {
                 imageViewsFront.get(INDEX).toFront();
@@ -268,7 +270,7 @@ public class DynamicTransition {
             // parts
         }
 
-        ROTATE_X.angleProperty().addListener(observable ->
+        ROTATE_X.angleProperty().addListener((Observable observable) ->
         {
             int angleX = (int) ROTATE_X.getAngle();
             int angleY = (int) ROTATE_Y.getAngle();
@@ -362,7 +364,7 @@ public class DynamicTransition {
         Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
         rotateY.setPivotX(FRONT_IMAGE.getWidth() * 0.5);
         rotateY.setPivotZ(FRONT_IMAGE.getWidth() * 0.5);
-        rotateY.angleProperty().addListener((ov, oldAngle, newAngle) ->
+        rotateY.angleProperty().addListener((ObservableValue ov, Number oldAngle, Number newAngle) ->
         {
             if (73 < newAngle.intValue()) {
                 imageViewsBack.get(0).toFront();
