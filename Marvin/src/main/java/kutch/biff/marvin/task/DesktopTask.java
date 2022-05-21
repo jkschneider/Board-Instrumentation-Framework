@@ -33,26 +33,26 @@ import java.util.logging.Logger;
  * @author Patrick
  */
 public class DesktopTask extends BaseTask {
-    private static String[] ValidActions = {"BROWSE", "MAIL", "OPEN", "EDIT", "PRINT"};
-    private static boolean DesktopSupportChecked = false;
-    private String _Action;
-    private String _Document;
+    private static String[] validActions = {"BROWSE", "MAIL", "OPEN", "EDIT", "PRINT"};
+    private static boolean desktopSupportChecked;
+    private String action;
+    private String document;
 
     public DesktopTask() {
-        _Action = null;
-        _Document = null;
+        action = null;
+        document = null;
     }
 
     boolean isValid() {
-        return _Document != null;
+        return document != null;
     }
 
     @Override
     public void PerformTask() {
         Desktop desktop = Desktop.getDesktop();
 
-        if (_Action.equalsIgnoreCase("OPEN")) {
-            File file = new File(_Document);
+        if ("OPEN".equalsIgnoreCase(action)) {
+            File file = new File(document);
             try {
                 desktop.open(file);
             } catch (IOException ex) {
@@ -60,10 +60,10 @@ public class DesktopTask extends BaseTask {
             }
             return;
         }
-        if (_Action.equalsIgnoreCase("Browse")) {
+        if ("Browse".equalsIgnoreCase(action)) {
             URI uri = null;
             try {
-                uri = new URI(_Document);
+                uri = new URI(document);
                 desktop.browse(uri);
             } catch (Exception ex) {
                 Logger.getLogger(DesktopTask.class.getName()).log(Level.SEVERE, null, ex);
@@ -76,12 +76,12 @@ public class DesktopTask extends BaseTask {
     }
 
     public boolean SetAction(String strAction) {
-        if (null != _Action) {
+        if (null != action) {
             LOGGER.severe("Action already defined for Desktop Task");
             return false;
         }
-        if (Arrays.asList(ValidActions).contains(strAction.toUpperCase())) { // should also do a Desktop.isSupported(action)
-            _Action = strAction;
+        if (Arrays.asList(validActions).contains(strAction.toUpperCase())) { // should also do a Desktop.isSupported(action)
+            action = strAction;
             return true;
         }
 
@@ -97,11 +97,11 @@ public class DesktopTask extends BaseTask {
             }
         }
 
-        if (null != _Document) {
+        if (null != document) {
             LOGGER.severe("Document already defined for Desktop Task");
             return false;
         }
-        _Document = strDocument;
+        document = strDocument;
 
         return true;
     }

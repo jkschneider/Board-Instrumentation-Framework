@@ -31,19 +31,19 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class MinionTask extends BaseTask {
-    protected final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private TaskManager TASKMAN = TaskManager.getTaskManager();
+    protected static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private TaskManager taskman = TaskManager.getTaskManager();
     private String _Namespace;
-    private String _ID;
+    private String _id;
     private Random rnd = new Random();
 
     public MinionTask() {
         _Namespace = null;
-        _ID = null;
+        _id = null;
     }
 
     public String getID() {
-        return _ID;
+        return _id;
     }
 
     @Override
@@ -87,15 +87,15 @@ public class MinionTask extends BaseTask {
 
         sendBuffer += "</Marvin>";
 
-        TASKMAN.SendToAllOscars(sendBuffer.getBytes());
+        taskman.SendToAllOscars(sendBuffer.getBytes());
         LOGGER.info("Sending Minion Task [" + getNamespace() + ":" + getID() + "] Params: " + strParamList);
     }
 
-    public void setID(String _ID) {
-        this._ID = _ID;
+    public void setID(String id) {
+        this._id = id;
     }
 
-    public void setNamespace(String _Namespace) {
-        this._Namespace = _Namespace;
+    public void setNamespace(String namespace) {
+        this._Namespace = namespace;
     }
 }

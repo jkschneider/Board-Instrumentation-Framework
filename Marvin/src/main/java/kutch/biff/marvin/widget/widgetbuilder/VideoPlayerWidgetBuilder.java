@@ -30,15 +30,15 @@ import kutch.biff.marvin.widget.VideoPlayerWidget;
 /**
  * @author Patrick Kutch
  */
-public class VideoPlayerWidgetBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class VideoPlayerWidgetBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static VideoPlayerWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         VideoPlayerWidget objWidget = new VideoPlayerWidget();
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (MediaPlayerWidgetBuilder.ParseDefinitionFile(objWidget, node)) {
 
-            } else if (node.getNodeName().equalsIgnoreCase("PreserveRatio")) {
+            } else if ("PreserveRatio".equalsIgnoreCase(node.getNodeName())) {
                 objWidget.setRetainAspectRatio(node.getBooleanValue());
             } else {
                 LOGGER.severe("Unknown Tag <" + node.GetNode() + "> in Video Player Widget definition file");
@@ -46,6 +46,9 @@ public class VideoPlayerWidgetBuilder {
             }
         }
         return objWidget;
+    }
+
+    private VideoPlayerWidgetBuilder() {
     }
 
 }

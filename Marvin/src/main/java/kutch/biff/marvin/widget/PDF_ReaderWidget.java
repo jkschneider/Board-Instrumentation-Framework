@@ -35,68 +35,66 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick
  */
 public class PDF_ReaderWidget extends BaseWidget {
-    private static int _AutoAdvancePageNumber = 0;
+    private static int autoAdvancePageNumber;
     // private final org.jpedal.PdfDecoderFX _pdf = new org.jpedal.PdfDecoderFX();
-    private Node _pdf = null;
+    private Node pdf;
     @SuppressWarnings("unused")
-    private String _SrcFile;
-    private Group _objGroup;
-    private int _CurrPage = 1;
-    private int _AutoAdvanceInterval;
+    private String srcFile;
+    private Group objGroup;
+    private int currPage = 1;
+    private int autoAdvanceInterval;
     @SuppressWarnings("unused")
-    private boolean _AutoAdvance, _AutoLoopWithAdvance;
+    private boolean autoAdvance;
+    @SuppressWarnings("unused")
+    private boolean autoLoopWithAdvance;
 
     public PDF_ReaderWidget() {
-        _AutoAdvance = false;
-        _AutoLoopWithAdvance = false;
+        autoAdvance = false;
+        autoLoopWithAdvance = false;
     }
 
     @Override
     public void ConfigureAlignment() {
         super.ConfigureAlignment();
 
-        GridPane.setValignment(_objGroup, getVerticalPosition());
-        GridPane.setHalignment(_objGroup, getHorizontalPosition());
+        GridPane.setValignment(objGroup, getVerticalPosition());
+        GridPane.setHalignment(objGroup, getHorizontalPosition());
     }
 
     @Override
     public boolean Create(GridPane pane, DataManager dataMgr) {
         SetParent(pane);
         if (setupPDF()) {
-            _objGroup = new Group();
-            _objGroup.getChildren().add(_pdf);
+            objGroup = new Group();
+            objGroup.getChildren().add(pdf);
             ConfigureAlignment();
             SetupPeekaboo(dataMgr);
             SetupTaskAction();
             ConfigureDimentions();
 
-            pane.add(_objGroup, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+            pane.add(objGroup, getColumn(), getRow(), getColumnSpan(), getRowSpan());
 
-            gotoPage(_CurrPage);
+            gotoPage(currPage);
 
-            if (_AutoAdvance) {
+            if (autoAdvance) {
                 if (null == getMinionID() || null == getNamespace()) {
-                    String ID = this.toString() + "." + Integer.toBinaryString(PDF_ReaderWidget._AutoAdvancePageNumber);
+                    String id = this.toString() + "." + Integer.toBinaryString(PDF_ReaderWidget._AutoAdvancePageNumber);
                     PDF_ReaderWidget._AutoAdvancePageNumber++;
 
                     if (null == getMinionID()) {
-                        setMinionID(ID);
+                        setMinionID(id);
                     }
                     if (null == getNamespace()) {
-                        setNamespace(ID);
+                        setNamespace(id);
                     }
                 }
                 MarvinTask mt = new MarvinTask();
                 mt.AddDataset(getMinionID(), getNamespace(), "Next");
-                TASKMAN.AddPostponedTask(mt, _AutoAdvanceInterval);
+                TASKMAN.AddPostponedTask(mt, autoAdvanceInterval);
             }
 
-            dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-                @Override
-                public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                    MyHandler(newVal);
-                }
-
+            dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+                MyHandler(newVal);
             });
             return ApplyCSS();
         }
@@ -105,7 +103,7 @@ public class PDF_ReaderWidget extends BaseWidget {
 
     @Override
     public Node getStylableObject() {
-        return _pdf;
+        return pdf;
     }
 
     @Override
@@ -140,34 +138,34 @@ public class PDF_ReaderWidget extends BaseWidget {
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode node) {
-        if (node.getNodeName().equalsIgnoreCase("Source")) {
+        if ("Source".equalsIgnoreCase(node.getNodeName())) {
             setSrcFile(node.getTextContent());
             return true;
         }
-        if (node.getNodeName().equalsIgnoreCase("AutoAdvance")) {
+        if ("AutoAdvance".equalsIgnoreCase(node.getNodeName())) {
             /*
              * <AutoAdvance Frequency='1000' Loop='False'/>
              */
             if (node.hasAttribute("Frequency")) {
-                _AutoAdvanceInterval = node.getIntegerAttribute("Frequency", -1);
-                if (_AutoAdvanceInterval < 100) {
+                autoAdvanceInterval = node.getIntegerAttribute("Frequency", -1);
+                if (autoAdvanceInterval < 100) {
                     LOGGER.severe(
                             "Frequency specified for PDF_ReaderWidget is invalid: " + node.getAttribute("Frequency"));
                     return false;
                 }
 
                 if (node.hasAttribute("Loop")) {
-                    _AutoLoopWithAdvance = node.getBooleanAttribute("Loop");
+                    autoLoopWithAdvance = node.getBooleanAttribute("Loop");
                 }
-                _AutoAdvance = true;
+                autoAdvance = true;
                 return true;
             }
 
             return false;
         }
-        if (node.getNodeName().equalsIgnoreCase("InitialPage")) {
+        if ("InitialPage".equalsIgnoreCase(node.getNodeName())) {
             try {
-                _CurrPage = Integer.parseInt(node.getTextContent());
+                currPage = Integer.parseInt(node.getTextContent());
             } catch (NumberFormatException ex) {
                 LOGGER.severe("Initial Page for PDF_ReaderWidget: " + node.getTextContent());
                 return false;
@@ -207,7 +205,7 @@ public class PDF_ReaderWidget extends BaseWidget {
     }
 
     public void setSrcFile(String strFile) {
-        _SrcFile = strFile;
+        srcFile = strFile;
     }
 
     private boolean setupPDF() {

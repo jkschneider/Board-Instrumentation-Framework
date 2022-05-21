@@ -30,43 +30,46 @@ public class WalkDataListTask extends BaseTask {
 
     private int _interval;
     private int _RepeatCount;
-    private int _currLoopCount;
-    private int _currIndex;
-    private double _fluxRangeLower, _fluxRangeUpper;
-    private double _rangeMin, _rangeMax;
-    private String[] _dataSet;
-    private String _Namespace, _ID;
-    private Random _rndObj = null;
+    private int currLoopCount;
+    private int currIndex;
+    private double fluxRangeLower;
+    private double fluxRangeUpper;
+    private double rangeMin;
+    private double rangeMax;
+    private String[] dataSet;
+    private String _Namespace;
+    private String _id;
+    private Random rndObj;
 
-    public WalkDataListTask(String Namespace, String ID, String[] dataset, int interval, int RepeatCount,
+    public WalkDataListTask(String namespace, String id, String[] dataset, int interval, int repeatCount,
                             double lowerFlux, double upperFlux) {
-        _Namespace = Namespace;
-        _ID = ID;
-        _dataSet = dataset;
+        _Namespace = namespace;
+        _id = id;
+        dataSet = dataset;
         _interval = interval;
-        _RepeatCount = RepeatCount;
-        _currLoopCount = 1;
-        _currIndex = 0;
-        _fluxRangeLower = lowerFlux;
-        _fluxRangeUpper = upperFlux;
+        _RepeatCount = repeatCount;
+        currLoopCount = 1;
+        currIndex = 0;
+        fluxRangeLower = lowerFlux;
+        fluxRangeUpper = upperFlux;
 
         boolean first = true;
 
-        if (_fluxRangeLower != _fluxRangeUpper) {
+        if (fluxRangeLower != fluxRangeUpper) {
             try {
-                for (String val : _dataSet) {
+                for (String val : dataSet) {
                     double dVal = Double.parseDouble(val);
                     if (first) {
                         first = false;
-                        _rangeMin = dVal;
-                        _rangeMax = dVal;
-                    } else if (dVal < _rangeMin) {
-                        _rangeMin = dVal;
-                    } else if (dVal > _rangeMax) {
-                        _rangeMax = dVal;
+                        rangeMin = dVal;
+                        rangeMax = dVal;
+                    } else if (dVal < rangeMin) {
+                        rangeMin = dVal;
+                    } else if (dVal > rangeMax) {
+                        rangeMax = dVal;
                     }
                 }
-                _rndObj = new Random();
+                rndObj = new Random();
             } catch (NumberFormatException ex) {
             }
         }
@@ -75,9 +78,9 @@ public class WalkDataListTask extends BaseTask {
     private String calcFluxValue(String dataPoint) {
         try {
             double dVal = Double.parseDouble(dataPoint);
-            double modifier = _rndObj.doubles(_fluxRangeLower, _fluxRangeUpper).iterator().next();
+            double modifier = rndObj.doubles(fluxRangeLower, fluxRangeUpper).iterator().next();
             dVal += modifier;
-            if (dVal < _rangeMin || dVal > _rangeMax) {
+            if (dVal < rangeMin || dVal > rangeMax) {
                 // modified value falls outside of data range, so don't modify
             } else {
                 return Double.toString(dVal);
@@ -90,18 +93,18 @@ public class WalkDataListTask extends BaseTask {
     @Override
     public void PerformTask() {
         MarvinTask mt = new MarvinTask();
-        String dataPoint = _dataSet[_currIndex];
-        if (null != _rndObj) {
+        String dataPoint = dataSet[currIndex];
+        if (null != rndObj) {
             dataPoint = calcFluxValue(dataPoint);
         }
-        mt.AddDataset(_ID, _Namespace, dataPoint);
+        mt.AddDataset(_id, _Namespace, dataPoint);
         TaskManager.getTaskManager().AddDeferredTaskObject(mt);
-        _currIndex++;
-        if (_currIndex >= _dataSet.length) // went through them all
+        currIndex++;
+        if (currIndex >= dataSet.length) // went through them all
         {
-            _currLoopCount++;
-            _currIndex = 0;
-            if (_RepeatCount == 0 || _currLoopCount <= _RepeatCount) {
+            currLoopCount++;
+            currIndex = 0;
+            if (_RepeatCount == 0 || currLoopCount <= _RepeatCount) {
                 // let fall through
             } else {
                 return; // no more

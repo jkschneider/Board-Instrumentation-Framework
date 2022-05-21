@@ -31,15 +31,15 @@ import kutch.biff.marvin.widget.DoubleBarGaugeWidget;
 /**
  * @author Patrick Kutch
  */
-public class DoubleBarGaugeWidgetBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class DoubleBarGaugeWidgetBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static DoubleBarGaugeWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         DoubleBarGaugeWidget gauge = new DoubleBarGaugeWidget();
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(gauge, node)) {
                 continue;
-            } else if (node.getNodeName().equalsIgnoreCase("MinValue")) {
+            } else if ("MinValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     gauge.setMinValue(Double.parseDouble(str));
@@ -47,7 +47,7 @@ public class DoubleBarGaugeWidgetBuilder {
                     LOGGER.severe("Invalid MinValue in DoubleBarGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MaxValue")) {
+            } else if ("MaxValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     gauge.setMaxValue(Double.parseDouble(str));
@@ -55,7 +55,7 @@ public class DoubleBarGaugeWidgetBuilder {
                     LOGGER.severe("Invalid MaxValue in DoubleBarGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Decimals")) {
+            } else if ("Decimals".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     gauge.setDecimalPlaces(Integer.parseInt(str));
@@ -69,5 +69,8 @@ public class DoubleBarGaugeWidgetBuilder {
             }
         }
         return gauge;
+    }
+
+    private DoubleBarGaugeWidgetBuilder() {
     }
 }

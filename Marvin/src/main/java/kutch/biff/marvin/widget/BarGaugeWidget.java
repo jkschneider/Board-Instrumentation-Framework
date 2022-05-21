@@ -36,18 +36,18 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick Kutch
  */
 public class BarGaugeWidget extends BaseWidget {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     private double MinValue;
     private double MaxValue;
-    private FlatGauge _Gauge;
-    private double _InitialValue;
+    private FlatGauge gauge;
+    private double initialValue;
     private String UnitText;
 
     public BarGaugeWidget() {
         UnitText = "";
         MinValue = 0;
         MaxValue = 0;
-        _Gauge = new FlatGauge();
+        gauge = new FlatGauge();
     }
 
     @Override
@@ -56,31 +56,28 @@ public class BarGaugeWidget extends BaseWidget {
         if (false == SetupGauge()) {
             return false;
         }
-        _Gauge.setValue(_InitialValue);
+        gauge.setValue(initialValue);
 
         ConfigureAlignment();
         SetupPeekaboo(dataMgr);
         ConfigureDimentions();
 
-        pane.add(_Gauge, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(gauge, getColumn(), getRow(), getColumnSpan(), getRowSpan());
 
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
-
-                double newDialValue = 0;
-                String strVal = newVal.toString();
-                try {
-                    newDialValue = Double.parseDouble(strVal);
-                } catch (NumberFormatException ex) {
-                    LOGGER.info("Ignoring invalid data for BarGauge received: " + strVal);
-                    return;
-                }
-                _Gauge.setValue(newDialValue);
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
             }
+
+            double newDialValue = 0;
+            String strVal = newVal.toString();
+            try {
+                newDialValue = Double.parseDouble(strVal);
+            } catch (NumberFormatException ex) {
+                LOGGER.info("Ignoring invalid data for BarGauge received: " + strVal);
+                return;
+            }
+            gauge.setValue(newDialValue);
         });
 
         return true;
@@ -88,12 +85,12 @@ public class BarGaugeWidget extends BaseWidget {
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return _Gauge;
+        return gauge;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _Gauge.getStylesheets();
+        return gauge.getStylesheets();
     }
 
     /**
@@ -105,21 +102,21 @@ public class BarGaugeWidget extends BaseWidget {
 
     @Override
     public boolean HandleValueRange(FrameworkNode rangeNode) {
-        double Min = -1234.5678;
-        double Max = -1234.5678;
+        double min = -1234.5678;
+        double max = -1234.5678;
         if (rangeNode.hasAttribute("Min")) {
-            Min = rangeNode.getDoubleAttribute("Min", Min);
-            if (Min == -1234.5678) {
+            min = rangeNode.getDoubleAttribute("Min", min);
+            if (min == -1234.5678) {
                 return false;
             }
-            this.MinValue = Min;
+            this.MinValue = min;
         }
         if (rangeNode.hasAttribute("Max")) {
-            Max = rangeNode.getDoubleAttribute("Max", Max);
-            if (Max == -1234.5678) {
+            max = rangeNode.getDoubleAttribute("Max", max);
+            if (max == -1234.5678) {
                 return false;
             }
-            this.MaxValue = Max;
+            this.MaxValue = max;
         }
         return true;
     }
@@ -127,48 +124,48 @@ public class BarGaugeWidget extends BaseWidget {
     @Override
     public void SetInitialValue(String value) {
         try {
-            _InitialValue = Double.parseDouble(value);
+            initialValue = Double.parseDouble(value);
         } catch (NumberFormatException ex) {
             LOGGER.severe("Invalid Default Value data for BarGauge: " + value);
         }
     }
 
-    public void setMaxValue(double MaxValue) {
-        this.MaxValue = MaxValue;
+    public void setMaxValue(double maxValue) {
+        this.MaxValue = maxValue;
     }
 
-    public void setMinValue(double MinValue) {
-        _InitialValue = MinValue;
-        this.MinValue = MinValue;
+    public void setMinValue(double minValue) {
+        initialValue = minValue;
+        this.MinValue = minValue;
     }
 
-    public void setUnitText(String UnitText) {
-        this.UnitText = UnitText;
+    public void setUnitText(String unitText) {
+        this.UnitText = unitText;
     }
 
     private boolean SetupGauge() {
-        _Gauge.setMinValue(MinValue);
-        _Gauge.setMaxValue(MaxValue);
+        gauge.setMinValue(MinValue);
+        gauge.setMaxValue(MaxValue);
 
         if (getTitle().length() > 0) {
-            _Gauge.setTitle(getTitle());
+            gauge.setTitle(getTitle());
         }
         if (null != getUnitsOverride()) {
-            _Gauge.setUnit(getUnitsOverride());
+            gauge.setUnit(getUnitsOverride());
             LOGGER.config("Overriding Widget Units Text to " + getUnitsOverride());
         } else if (UnitText.length() > 0) {
-            _Gauge.setUnit(UnitText);
+            gauge.setUnit(UnitText);
         }
 
-        _Gauge.setDecimals(getDecimalPlaces());
+        gauge.setDecimals(getDecimalPlaces());
 
         SetupTaskAction();
 
-        return false != ApplyCSS();
+                return ApplyCSS();
     }
 
     @Override
     public void UpdateTitle(String strTitle) {
-        _Gauge.setTitle(getTitle());
+        gauge.setTitle(getTitle());
     }
 }

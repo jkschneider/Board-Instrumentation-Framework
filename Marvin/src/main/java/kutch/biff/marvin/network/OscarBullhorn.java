@@ -38,7 +38,7 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick
  */
 public class OscarBullhorn extends Client {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     private static String convertByteArrayToHexString(byte[] arrayBytes) {
         StringBuffer stringBuffer = new StringBuffer();
@@ -69,20 +69,20 @@ public class OscarBullhorn extends Client {
 
     private String _Key;
 
-    public OscarBullhorn(String Address, int Port, String Key) {
-        super(Address, Port);
-        _Key = Key;
+    public OscarBullhorn(String address, int port, String key) {
+        super(address, port);
+        _Key = key;
     }
 
     public boolean SendNotification() {
-        String HashStr = OscarBullhorn.hashString(_Key, "MD5");
+        String hashStr = OscarBullhorn.hashString(_Key, "MD5");
 
-        if (null == HashStr) {
+        if (null == hashStr) {
             return false;
         }
 
         Random rnd = new Random();
-        String UniqueID = Integer.toString(rnd.nextInt());
+        String uniqueID = Integer.toString(rnd.nextInt());
         String strPort = Integer.toString(Configuration.getConfig().getPort());
         String strHostname = "Unknown";
         try {
@@ -100,9 +100,9 @@ public class OscarBullhorn extends Client {
         String sendBuffer = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
         sendBuffer += "<Marvin Type=\"Bullhorn\">";
         sendBuffer += "<Version>1.0</Version>";
-        sendBuffer += "<UniqueID>" + UniqueID + "</UniqueID>";
+        sendBuffer += "<UniqueID>" + uniqueID + "</UniqueID>";
         sendBuffer += "<Hostname>" + strHostname + "</Hostname>";
-        sendBuffer += "<Key>" + HashStr + "</Key>";
+        sendBuffer += "<Key>" + hashStr + "</Key>";
         sendBuffer += "<Port>" + strPort + "</Port>";
         sendBuffer += "</Marvin>";
 

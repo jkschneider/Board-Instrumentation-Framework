@@ -27,15 +27,15 @@ import kutch.biff.marvin.widget.DynamicTabWidget;
  * @author Patrick Kutch
  */
 public class DynamicDebugWidgetTask extends BaseTask {
-    private final TaskManager TASKMAN = TaskManager.getTaskManager();
+    private final TaskManager taskman = TaskManager.getTaskManager();
     private String Namespace;
     private String ID;
     private String Value;
 
-    public DynamicDebugWidgetTask(String Namespace, String ID, String Value) {
-        this.Namespace = Namespace;
-        this.ID = ID;
-        this.Value = Value;
+    public DynamicDebugWidgetTask(String namespace, String id, String value) {
+        this.Namespace = namespace;
+        this.ID = id;
+        this.Value = value;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class DynamicDebugWidgetTask extends BaseTask {
 
     @Override
     public void PerformTask() {
-        DynamicTabWidget objWidget = DynamicTabWidget.getTab(Namespace, TASKMAN.getDataMgr());
-        objWidget.AddWidget(TASKMAN.getDataMgr(), ID, Value);
+        DynamicTabWidget objWidget = DynamicTabWidget.getTab(Namespace, taskman.getDataMgr());
+        objWidget.AddWidget(taskman.getDataMgr(), ID, Value);
     }
 }

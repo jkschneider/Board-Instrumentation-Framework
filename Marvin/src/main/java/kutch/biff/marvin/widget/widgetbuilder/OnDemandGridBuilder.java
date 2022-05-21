@@ -18,35 +18,35 @@ import kutch.biff.marvin.widget.Widget;
  * @author Patrick.Kutch@gmail.com
  */
 public class OnDemandGridBuilder implements OnDemandWidgetBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private OnDemandGridWidget __containerGrid;
-    private int __builtCount = 0;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private OnDemandGridWidget containerGrid;
+    private int builtCount;
 
     public OnDemandGridBuilder(OnDemandGridWidget objParent) {
-        __containerGrid = objParent;
+        containerGrid = objParent;
     }
 
     @Override
-    public boolean Build(String Namespace, String ID, String Value, String sortStr) {
-        LOGGER.info("Creating OnDemand Grid for namespace: " + Namespace + " and ID: " + ID);
-        __builtCount += 1;
+    public boolean Build(String namespace, String id, String value, String sortStr) {
+        LOGGER.info("Creating OnDemand Grid for namespace: " + namespace + " and ID: " + id);
+        builtCount += 1;
         AliasMgr.getAliasMgr().PushAliasList(true);
-        __containerGrid.getCriterea().putAliasListSnapshot();
+        containerGrid.getCriterea().putAliasListSnapshot();
         // __containerGrid.AddAliasListSnapshot();
         AliasMgr.getAliasMgr().PushAliasList(true);
-        AliasMgr.getAliasMgr().AddAlias("TriggeredNamespace", Namespace); // So tab knows namespace
-        AliasMgr.getAliasMgr().AddAlias("TriggeredID", ID);
-        AliasMgr.getAliasMgr().AddAlias("TriggeredValue", Value);
-        AliasMgr.getAliasMgr().AddAlias("TriggeredIndex", Integer.toString(__builtCount));
-        __containerGrid.getCriterea().tokenizeAndCreateAlias(ID);
+        AliasMgr.getAliasMgr().AddAlias("TriggeredNamespace", namespace); // So tab knows namespace
+        AliasMgr.getAliasMgr().AddAlias("TriggeredID", id);
+        AliasMgr.getAliasMgr().AddAlias("TriggeredValue", value);
+        AliasMgr.getAliasMgr().AddAlias("TriggeredIndex", Integer.toString(builtCount));
+        containerGrid.getCriterea().tokenizeAndCreateAlias(id);
         // Let's throw in if it is odd or even :-)
-        if (__builtCount % 2 == 0) {
+        if (builtCount % 2 == 0) {
             AliasMgr.getAliasMgr().AddAlias("TriggeredEVEN", "TRUE");
         } else {
             AliasMgr.getAliasMgr().AddAlias("TriggeredEVEN", "FALSE");
         }
 
-        Widget objWidget = WidgetBuilder.Build(__containerGrid.getCriterea().getNode());
+        Widget objWidget = WidgetBuilder.Build(containerGrid.getCriterea().getNode());
         if (null == objWidget) {
             return false;
         }
@@ -61,7 +61,7 @@ public class OnDemandGridBuilder implements OnDemandWidgetBuilder {
         if (null != objGridWidget.getOnDemandTask()) {
             TaskManager.getTaskManager().AddDeferredTask(objGridWidget.getOnDemandTask());
         }
-        return __containerGrid.AddOnDemandWidget(objGridWidget, sortStr);
+        return containerGrid.AddOnDemandWidget(objGridWidget, sortStr);
     }
 
 }

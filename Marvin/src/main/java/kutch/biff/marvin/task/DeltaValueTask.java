@@ -26,83 +26,87 @@ package kutch.biff.marvin.task;
 
 public class DeltaValueTask extends PulseTask {
 
-    private String Value1_ID, Value2_ID;
-    private String Value1_NS, Value2_NS;
-    private boolean validVal = false;
-    private String _Operation = null;
+    private String value1ID;
+    private String value2ID;
+    private String value1NS;
+    private String value2NS;
+    private boolean validVal;
+    private String operation;
 
     public DeltaValueTask() {
 
     }
 
-    public void SetFirstDatapoint(String NS, String ID) {
-        Value1_ID = ID;
-        Value1_NS = NS;
+    public void SetFirstDatapoint(String ns, String id) {
+        value1ID = id;
+        value1NS = ns;
     }
 
     public void SetSecondDatapoint(String NS, String ID) {
-        Value2_ID = ID;
-        Value2_NS = NS;
+        value2ID = ID;
+        value2NS = NS;
     }
 
     @Override
     public boolean isValid() {
-        validVal = Value1_ID != null && Value2_ID != null && Value2_NS != null && Value1_NS != null;
+        validVal = value1ID != null && value2ID != null && value2NS != null && value1NS != null;
 
-        return (super.isValid() && validVal && _Operation != null);
+        return super.isValid() && validVal && operation != null;
     }
 
     @Override
     public void PerformTask() {
-        String Value1Str, Value2Str;
-        double doubleVal_1, doubleVal_2;
+        String value1Str;
+        String value2Str;
+        double doubleVal1;
+        double doubleVal2;
 
         synchronized (TASKMAN.getDataMgr()) {
-            Value1Str = TASKMAN.getDataMgr().GetValueForMath(Value1_ID, Value1_NS);
-            Value2Str = TASKMAN.getDataMgr().GetValueForMath(Value2_ID, Value2_NS);
-            if (null == Value1Str || null == Value2Str) {
+            value1Str = TASKMAN.getDataMgr().GetValueForMath(value1ID, value1NS);
+            value2Str = TASKMAN.getDataMgr().GetValueForMath(value2ID, value2NS);
+            if (null == value1Str || null == value2Str) {
                 LOGGER.warning(
                         "DeltaValue Task failed [" + getTaskID() + "] beause the data point does not exist (yet).");
                 return;
             }
 
             try {
-                doubleVal_1 = Double.parseDouble(Value1Str);
+                doubleVal1 = Double.parseDouble(value1Str);
             } catch (NumberFormatException ex) {
-                LOGGER.warning("Attempted DeltaValue Task on Non numrice Data point: [" + Value1_NS + ":" + Value1_ID
-                        + "] = " + Value1Str);
+                LOGGER.warning("Attempted DeltaValue Task on Non numrice Data point: [" + value1NS + ":" + value1ID
+                        + "] = " + value1Str);
                 return;
             }
             try {
-                doubleVal_2 = Double.parseDouble(Value2Str);
+                doubleVal2 = Double.parseDouble(value2Str);
             } catch (NumberFormatException ex) {
-                LOGGER.warning("Attempted DeltaValue Task on Non numrice Data point: [" + Value2_NS + ":" + Value2_ID
-                        + "] = " + Value2Str);
+                LOGGER.warning("Attempted DeltaValue Task on Non numrice Data point: [" + value2NS + ":" + value2ID
+                        + "] = " + value2Str);
                 return;
             }
             double newVal = 0.0;
-            if (_Operation.equalsIgnoreCase("Difference")) {
-                newVal = Math.abs(doubleVal_1 - doubleVal_2);
-            } else if (_Operation.equalsIgnoreCase("PercentDifference")) {
-                double diff = doubleVal_1 - doubleVal_2;
+            if ("Difference".equalsIgnoreCase(operation)) {
+                newVal = Math.abs(doubleVal1 - doubleVal2);
+            } else if ("PercentDifference".equalsIgnoreCase(operation)) {
+                double diff = doubleVal1 - doubleVal2;
 
-                newVal = diff / doubleVal_1;
+                newVal = diff / doubleVal1;
 
                 newVal = newVal * -100;
-            } else if (_Operation.equalsIgnoreCase("FactorDifference")) {
-                double diff = doubleVal_1 - doubleVal_2;
+            } else if ("FactorDifference".equalsIgnoreCase(operation)) {
+                double diff = doubleVal1 - doubleVal2;
 
-                newVal = (diff / doubleVal_1 * -1) + 1;
-            } else if (_Operation.equalsIgnoreCase("PercentDifferenceAbs")) {
-                double diff = Math.abs(doubleVal_1 - doubleVal_2);
+                newVal = (diff / doubleVal1 * -1) + 1;
+            } else if ("PercentDifferenceAbs".equalsIgnoreCase(operation)) {
+                double diff = Math.abs(doubleVal1 - doubleVal2);
 
-                newVal = diff / doubleVal_1;
+                newVal = diff / doubleVal1;
 
                 newVal = (newVal * 100) + 1;
-            } else if (_Operation.equalsIgnoreCase("FactorDifferenceAbs")) {
-                double diff = Math.abs(doubleVal_1 - doubleVal_2);
+            } else if ("FactorDifferenceAbs".equalsIgnoreCase(operation)) {
+                double diff = Math.abs(doubleVal1 - doubleVal2);
 
-                newVal = diff / doubleVal_1;
+                newVal = diff / doubleVal1;
             } else {
                 LOGGER.warning("Unknown Error processing DeltaValue Task on Non numrice Data point: [" + _Namespace
                         + ":" + _ID + "]");
@@ -114,11 +118,11 @@ public class DeltaValueTask extends PulseTask {
     }
 
     public boolean SetOperation(String strOper) {
-        if (strOper.equalsIgnoreCase("Difference") || strOper.equalsIgnoreCase("PercentDifference") || strOper.equalsIgnoreCase("FactorDifference")) {
-            _Operation = strOper;
+        if ("Difference".equalsIgnoreCase(strOper) || "PercentDifference".equalsIgnoreCase(strOper) || "FactorDifference".equalsIgnoreCase(strOper)) {
+            operation = strOper;
         }
 
-        return (null != _Operation);
+        return null != operation;
     }
 
 }

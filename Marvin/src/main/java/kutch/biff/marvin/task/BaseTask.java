@@ -31,12 +31,12 @@ import kutch.biff.marvin.logger.MarvinLogger;
 /**
  * @author Patrick Kutch
  */
-abstract public class BaseTask implements ITask {
-    private static int _TaskCount = 0;
-    protected final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public abstract class BaseTask implements ITask {
+    private static int taskCount;
+    protected static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static int getTaskCount() {
-        return _TaskCount;
+        return taskCount;
     }
 
     private ArrayList<Parameter> _Params;
@@ -48,13 +48,13 @@ abstract public class BaseTask implements ITask {
 
     public BaseTask() {
         _ID = null;
-        _TaskCount++;
+        taskCount++;
     }
 
     public BaseTask(String taskID) {
         _Params = null;
         _PostponePeriod = 0;
-        _TaskCount++;
+        taskCount++;
         _ID = taskID;
     }
 
@@ -109,13 +109,13 @@ abstract public class BaseTask implements ITask {
         return _ID;
     }
 
-    public void setParams(ArrayList<Parameter> _Params) {
-        this._Params = _Params;
+    public void setParams(ArrayList<Parameter> params) {
+        this._Params = params;
     }
 
     @Override
-    public void setPostponePeriod(long _PostponePeriod) {
-        this._PostponePeriod = _PostponePeriod;
+    public void setPostponePeriod(long postponePeriod) {
+        this._PostponePeriod = postponePeriod;
     }
 
     public void setTaskID(String taskID) {

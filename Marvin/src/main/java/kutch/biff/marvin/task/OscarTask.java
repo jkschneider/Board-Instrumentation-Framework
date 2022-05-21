@@ -73,7 +73,7 @@ public class OscarTask extends BaseTask {
         }
         sendBuffer += "</Marvin>";
 
-        if (strOscarID.equalsIgnoreCase("Broadcast")) {
+        if ("Broadcast".equalsIgnoreCase(strOscarID)) {
             TASKMAN.SendToAllOscars(sendBuffer.getBytes());
             LOGGER.info("Sending broadcast Oscar Task to Oscar");
         } else {
@@ -82,12 +82,12 @@ public class OscarTask extends BaseTask {
         }
     }
 
-    public void setOscarID(String _OscarID) {
-        this._OscarID = _OscarID;
+    public void setOscarID(String oscarID) {
+        this._OscarID = oscarID;
     }
 
     @Override
-    public void setTaskID(String _TaskID) {
-        this._TaskID = _TaskID;
+    public void setTaskID(String taskID) {
+        this._TaskID = taskID;
     }
 }

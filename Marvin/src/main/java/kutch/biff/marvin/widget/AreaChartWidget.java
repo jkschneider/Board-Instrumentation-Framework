@@ -53,7 +53,7 @@ public class AreaChartWidget extends LineChartWidget {
     @SuppressWarnings("rawtypes")
     @Override
     public javafx.scene.Node getStylableObject() {
-        return ((AreaChart) (getChart()));
+        return (AreaChart) (getChart());
     }
 
     @SuppressWarnings("rawtypes")

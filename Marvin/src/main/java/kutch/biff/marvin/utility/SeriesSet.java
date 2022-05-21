@@ -32,20 +32,20 @@ import kutch.biff.marvin.logger.MarvinLogger;
  */
 public class SeriesSet {
     @SuppressWarnings("unused")
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private ArrayList<SeriesDataSet> _MinionSrcList;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private ArrayList<SeriesDataSet> minionSrcList;
     @SuppressWarnings("rawtypes")
-    private XYChart.Series _Series;
-    private String _Title;
+    private XYChart.Series series;
+    private String title;
 
     @SuppressWarnings("rawtypes")
     public SeriesSet(String strTitle) {
-        _MinionSrcList = new ArrayList<>();
+        minionSrcList = new ArrayList<>();
 
-        _Series = new XYChart.Series();
-        _Series.setName(strTitle);
+        series = new XYChart.Series();
+        series.setName(strTitle);
 
-        _Title = strTitle;
+        title = strTitle;
     }
 
     /**
@@ -53,21 +53,21 @@ public class SeriesSet {
      */
     @SuppressWarnings("unchecked")
     public void AddSeries(SeriesDataSet objSeries) {
-        _MinionSrcList.add(objSeries);
-        _Series.getData().add(new XYChart.Data<>(objSeries.getTitle(), 110000.0));
+        minionSrcList.add(objSeries);
+        series.getData().add(new XYChart.Data<>(objSeries.getTitle(), 110000.0));
     }
 
     @SuppressWarnings("rawtypes")
     public XYChart.Series getSeries() {
-        return _Series;
+        return series;
     }
 
     public ArrayList<SeriesDataSet> getSeriesList() {
-        return _MinionSrcList;
+        return minionSrcList;
     }
 
     public String getTitle() {
-        return _Title;
+        return title;
     }
 
 }

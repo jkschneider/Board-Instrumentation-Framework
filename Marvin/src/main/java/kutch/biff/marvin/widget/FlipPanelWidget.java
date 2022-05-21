@@ -43,26 +43,27 @@ import kutch.biff.marvin.widget.widgetbuilder.WidgetBuilder;
  */
 public class FlipPanelWidget extends BaseWidget {
 
-    private GridWidget _BackGrid;
+    private GridWidget backGrid;
     private GridWidget _FrontGrid;
-    private FlipPanel _Panel;
-    private GridPane _FrontBaseGridPane;
-    private GridPane _BackBaseGridPane;
+    private FlipPanel panel;
+    private GridPane frontBaseGridPane;
+    private GridPane backBaseGridPane;
     private Orientation _Orientation;
-    private boolean _Front2Back = true;
+    private boolean front2Back = true;
     private PanelSideInfo _FrontInfo;
     private PanelSideInfo _BackInfo;
-    private VBox _vFront;
-    private VBox _vBack;
-    private Button _frontBtn, _backBtn;
+    private VBox vFront;
+    private VBox vBack;
+    private Button frontBtn;
+    private Button backBtn;
     private double _AnimationDuration;
 
     public FlipPanelWidget() {
-        _BackGrid = null;
+        backGrid = null;
         _FrontGrid = null;
-        _Panel = null;
-        _frontBtn = null;
-        _backBtn = null;
+        panel = null;
+        frontBtn = null;
+        backBtn = null;
         _Orientation = Orientation.HORIZONTAL;
         _AnimationDuration = 700;
         setDefaultIsSquare(false);
@@ -72,40 +73,40 @@ public class FlipPanelWidget extends BaseWidget {
     protected boolean ApplyCSS() {
         // super.ApplyCSS(); // can do CSS for entire widget here, and below is for
         // individual sides
-        _BackGrid.setWidgetInformation(getDefinintionFileDirectory(), null, "FlipPanel");
+        backGrid.setWidgetInformation(getDefinintionFileDirectory(), null, "FlipPanel");
         _FrontGrid.setWidgetInformation(getDefinintionFileDirectory(), null, "FlipPanel");
         if (null == _FrontGrid.GetCSS_File()) {
             _FrontGrid.setBaseCSSFilename(getBaseCSSFilename());
         }
-        if (null == _BackGrid.GetCSS_File()) {
-            _BackGrid.setBaseCSSFilename(getBaseCSSFilename());
+        if (null == backGrid.GetCSS_File()) {
+            backGrid.setBaseCSSFilename(getBaseCSSFilename());
         }
 
         _FrontGrid.ApplyCSS();
-        _BackGrid.ApplyCSS();
+        backGrid.ApplyCSS();
 
-        _vFront.getStylesheets().clear();
-        _vBack.getStylesheets().clear();
+        vFront.getStylesheets().clear();
+        vBack.getStylesheets().clear();
 
         if (null != getStyleID()) {
-            _vFront.setId(getStyleID());
-            _vBack.setId(getStyleID());
+            vFront.setId(getStyleID());
+            vBack.setId(getStyleID());
         }
         if (null != GetCSS_File()) {
-            _vFront.getStylesheets().add(GetCSS_File());
-            _vBack.getStylesheets().add(GetCSS_File());
+            vFront.getStylesheets().add(GetCSS_File());
+            vBack.getStylesheets().add(GetCSS_File());
         }
-        ApplyStyleOverrides(_vFront, getStyleOverride());
-        ApplyStyleOverrides(_vBack, getStyleOverride());
-        ApplyStyleOverrides(_vFront, _FrontGrid.getStyleOverride());
-        ApplyStyleOverrides(_vBack, _BackGrid.getStyleOverride());
+        ApplyStyleOverrides(vFront, getStyleOverride());
+        ApplyStyleOverrides(vBack, getStyleOverride());
+        ApplyStyleOverrides(vFront, _FrontGrid.getStyleOverride());
+        ApplyStyleOverrides(vBack, backGrid.getStyleOverride());
         return true;
     }
 
     @Override
     public boolean Create(GridPane parentPane, DataManager dataMgr) {
         SetParent(parentPane);
-        if (null == _BackGrid || null == _FrontGrid) {
+        if (null == backGrid || null == _FrontGrid) {
             LOGGER.severe("Flip Panel needs both front and back definition.");
             return false;
         }
@@ -114,47 +115,42 @@ public class FlipPanelWidget extends BaseWidget {
         }
 
         ConfigureDimentions();
-        parentPane.add(_Panel, getColumn(), getRow(), getColumnSpan(), getRowSpan()); // is a cycle since this is the
+        parentPane.add(panel, getColumn(), getRow(), getColumnSpan(), getRowSpan()); // is a cycle since this is the
         // parent of tab
 
         SetupPeekaboo(dataMgr);
 
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                String strVal = newVal.toString();
-                Orientation orientation = getRequestedOrientation(strVal);
-                if (strVal.equalsIgnoreCase("Flip")) {
-                    DoFlip();
-                } else if (strVal.equalsIgnoreCase("Front")) {
-                    DoFlip(false, getOrientation());
-                } else if (strVal.equalsIgnoreCase("Back")) {
-                    DoFlip(true, getOrientation());
-                } else if (strVal.length() > 4 && strVal.substring(0, 5).equalsIgnoreCase("Flip:")) // Flip, but with a
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+            String strVal = newVal.toString();
+            Orientation orientation = getRequestedOrientation(strVal);
+            if ("Flip".equalsIgnoreCase(strVal)) {
+                DoFlip();
+            } else if ("Front".equalsIgnoreCase(strVal)) {
+                DoFlip(false, getOrientation());
+            } else if ("Back".equalsIgnoreCase(strVal)) {
+                DoFlip(true, getOrientation());
+            } else if (strVal.length() > 4 && "Flip:".equalsIgnoreCase(strVal.substring(0, 5))) // Flip, but with a
                 // direction
                 {
                     if (null != orientation) {
-                        DoFlip(_Front2Back, orientation);
+                        DoFlip(front2Back, orientation);
                     }
 
-                } else if (strVal.length() > 4 && strVal.substring(0, 5).equalsIgnoreCase("Front:")) // Flip, but with a
+                } else if (strVal.length() > 4 && "Front:".equalsIgnoreCase(strVal.substring(0, 5))) // Flip, but with a
                 // direction
                 {
                     if (null != orientation) {
                         DoFlip(false, orientation);
                     }
 
-                } else if (strVal.length() > 4 && strVal.substring(0, 5).equalsIgnoreCase("Back:")) // Flip, but with a
+                } else if (strVal.length() > 4 && "Back:".equalsIgnoreCase(strVal.substring(0, 5))) // Flip, but with a
                 // direction
                 {
                     if (null != orientation) {
                         DoFlip(true, orientation);
                     }
-                } else {
-
                 }
 
-            }
         });
 
         return ApplyCSS();
@@ -162,13 +158,13 @@ public class FlipPanelWidget extends BaseWidget {
 
     private void DoFlip() {
         try {
-            _Panel.setFlipDirection(getOrientation());
-            if (_Front2Back) {
-                _Panel.flipToBack();
+            panel.setFlipDirection(getOrientation());
+            if (front2Back) {
+                panel.flipToBack();
             } else {
-                _Panel.flipToFront();
+                panel.flipToFront();
             }
-            _Front2Back = !_Front2Back;
+            front2Back = !front2Back;
         } catch (Exception ex) // latest Enzo build works, but sometimes has an exeption in here
         {
         }
@@ -177,13 +173,13 @@ public class FlipPanelWidget extends BaseWidget {
     private void DoFlip(boolean toBack, Orientation orientation) {
         if (null != orientation) // am on one side and want to go to other
         {
-            _Panel.setFlipDirection(orientation);
-            if (_Front2Back) {
-                _Panel.flipToBack();
+            panel.setFlipDirection(orientation);
+            if (front2Back) {
+                panel.flipToBack();
             } else {
-                _Panel.flipToFront();
+                panel.flipToFront();
             }
-            _Front2Back = !_Front2Back;
+            front2Back = !front2Back;
         }
     }
 
@@ -210,10 +206,10 @@ public class FlipPanelWidget extends BaseWidget {
     private Orientation getRequestedOrientation(String strRequest) {
         String[] parts = strRequest.split(":");
         if (parts.length > 1) {
-            if (parts[1].equalsIgnoreCase("Horizontal")) {
+            if ("Horizontal".equalsIgnoreCase(parts[1])) {
                 return Orientation.HORIZONTAL;
             }
-            if (parts[1].equalsIgnoreCase("Vertical")) {
+            if ("Vertical".equalsIgnoreCase(parts[1])) {
                 return Orientation.VERTICAL;
             }
             LOGGER.warning("Received invalid action for Flip Panel: " + strRequest);
@@ -223,12 +219,12 @@ public class FlipPanelWidget extends BaseWidget {
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return _Panel;
+        return panel;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _Panel.getStylesheets();
+        return panel.getStylesheets();
     }
 
     @Override
@@ -237,17 +233,17 @@ public class FlipPanelWidget extends BaseWidget {
         {
             return true;
         }
-        if (node.getNodeName().equalsIgnoreCase("Front")) {
+        if ("Front".equalsIgnoreCase(node.getNodeName())) {
             // _FrontGrid = WidgetBuilder.ReadGridInfo(node, new GridWidget());
             _FrontGrid = WidgetBuilder.BuildGrid(node, true);
             return _FrontGrid != null;
         }
-        if (node.getNodeName().equalsIgnoreCase("Back")) {
+        if ("Back".equalsIgnoreCase(node.getNodeName())) {
             // _BackGrid = WidgetBuilder.ReadGridInfo(node, new GridWidget());
-            _BackGrid = WidgetBuilder.BuildGrid(node, true);
-            return _BackGrid != null;
+            backGrid = WidgetBuilder.BuildGrid(node, true);
+            return backGrid != null;
         }
-        if (node.getNodeName().equalsIgnoreCase("AnimationDuration")) {
+        if ("AnimationDuration".equalsIgnoreCase(node.getNodeName())) {
             String str = node.getTextContent();
             try {
                 setAnimationDuration(Double.parseDouble(str));
@@ -256,7 +252,7 @@ public class FlipPanelWidget extends BaseWidget {
                 LOGGER.severe("Invlid value for <AnimationDuration> tag for FlipPanel Widget");
             }
         }
-        if (node.getNodeName().equalsIgnoreCase("RotationOverride")) {
+        if ("RotationOverride".equalsIgnoreCase(node.getNodeName())) {
             String str = node.getTextContent();
             if (0 == str.compareToIgnoreCase("Horizontal")) {
                 setOrientation(Orientation.HORIZONTAL);
@@ -275,14 +271,14 @@ public class FlipPanelWidget extends BaseWidget {
 
     @Override
     public boolean PerformPostCreateActions(GridWidget objParentGrid, boolean updateToolTipOnly) {
-        if (true == updateToolTipOnly) {
+        if (updateToolTipOnly) {
             if (CONFIG.isDebugMode()) {
                 _ToolTip = this.toString();
             }
             if (_ToolTip != null && null != getStylableObject()) {
                 HandleToolTipInit();
-                Tooltip.install(_vFront, _objToolTip);
-                Tooltip.install(_vBack, _objToolTip);
+                Tooltip.install(vFront, _objToolTip);
+                Tooltip.install(vBack, _objToolTip);
             }
             return true;
         }
@@ -292,28 +288,28 @@ public class FlipPanelWidget extends BaseWidget {
         }
         if (_ToolTip != null) {
             HandleToolTipInit();
-            Tooltip.install(_vFront, _objToolTip);
-            Tooltip.install(_vBack, _objToolTip);
+            Tooltip.install(vFront, _objToolTip);
+            Tooltip.install(vBack, _objToolTip);
         }
         FireDefaultPeekaboo();
 
         return true;
     }
 
-    public void setAnimationDuration(double _AnimationDuration) {
-        this._AnimationDuration = _AnimationDuration;
+    public void setAnimationDuration(double animationDuration) {
+        this._AnimationDuration = animationDuration;
     }
 
-    public void setBackInfo(PanelSideInfo _BackInfo) {
-        this._BackInfo = _BackInfo;
+    public void setBackInfo(PanelSideInfo backInfo) {
+        this._BackInfo = backInfo;
     }
 
-    public void setFrontGrid(GridWidget _FrontGrid) {
-        this._FrontGrid = _FrontGrid;
+    public void setFrontGrid(GridWidget frontGrid) {
+        this._FrontGrid = frontGrid;
     }
 
-    public void setFrontInfo(PanelSideInfo _FrontInfo) {
-        this._FrontInfo = _FrontInfo;
+    public void setFrontInfo(PanelSideInfo frontInfo) {
+        this._FrontInfo = frontInfo;
     }
 
     public void setOrientation(Orientation _Orientation) {
@@ -321,64 +317,64 @@ public class FlipPanelWidget extends BaseWidget {
     }
 
     private boolean SetupPanel(DataManager dataMgr) {
-        boolean RetVal = true;
-        _Panel = new FlipPanel(_Orientation);
+        boolean retVal = true;
+        panel = new FlipPanel(_Orientation);
 
-        _Panel.setFlipTime(getAnimationDuration());
-        _vFront = new VBox();
-        _vBack = new VBox();
+        panel.setFlipTime(getAnimationDuration());
+        vFront = new VBox();
+        vBack = new VBox();
 
-        _FrontBaseGridPane = new GridPane();
-        _BackBaseGridPane = new GridPane();
+        frontBaseGridPane = new GridPane();
+        backBaseGridPane = new GridPane();
 
-        if (false == _FrontGrid.Create(_FrontBaseGridPane, dataMgr)
+        if (false == _FrontGrid.Create(frontBaseGridPane, dataMgr)
                 || !_FrontGrid.PerformPostCreateActions(getFrontGrid(), false)) {
             return false;
         }
-        if (false == _BackGrid.Create(_BackBaseGridPane, dataMgr)
-                || !_BackGrid.PerformPostCreateActions(_BackGrid, false)) {
+        if (false == backGrid.Create(backBaseGridPane, dataMgr)
+                || !backGrid.PerformPostCreateActions(backGrid, false)) {
             return false;
         }
-        _FrontBaseGridPane.setAlignment(_FrontGrid.getPosition());
-        _BackBaseGridPane.setAlignment(_BackGrid.getPosition());
-        _frontBtn = SetupPanelButton(_FrontInfo);
-        _backBtn = SetupPanelButton(_BackInfo);
+        frontBaseGridPane.setAlignment(_FrontGrid.getPosition());
+        backBaseGridPane.setAlignment(backGrid.getPosition());
+        frontBtn = SetupPanelButton(_FrontInfo);
+        backBtn = SetupPanelButton(_BackInfo);
 
-        _vFront.getChildren().add(_FrontBaseGridPane);
-        _vBack.getChildren().add(_BackBaseGridPane);
-        if (null != _frontBtn) {
+        vFront.getChildren().add(frontBaseGridPane);
+        vBack.getChildren().add(backBaseGridPane);
+        if (null != frontBtn) {
             if (_FrontInfo.IsButtonOnTop()) {
-                _vFront.getChildren().add(0, _frontBtn);
+                vFront.getChildren().add(0, frontBtn);
             } else {
-                _vFront.getChildren().add(1, _frontBtn);
+                vFront.getChildren().add(1, frontBtn);
             }
         }
-        if (null != _backBtn) {
+        if (null != backBtn) {
             if (_BackInfo.IsButtonOnTop()) {
-                _vBack.getChildren().add(0, _backBtn);
+                vBack.getChildren().add(0, backBtn);
             } else {
-                _vBack.getChildren().add(1, _backBtn);
+                vBack.getChildren().add(1, backBtn);
             }
         }
 
         if (null != _FrontInfo) {
-            _vFront.setAlignment(_FrontInfo.GetButtonAlignment());
+            vFront.setAlignment(_FrontInfo.GetButtonAlignment());
         }
         if (null != _BackInfo) {
-            _vBack.setAlignment(_BackInfo.GetButtonAlignment());
+            vBack.setAlignment(_BackInfo.GetButtonAlignment());
         }
 
-        _Panel.getFront().getChildren().add(_vFront);
-        _Panel.getBack().getChildren().add(_vBack);
+        panel.getFront().getChildren().add(vFront);
+        panel.getBack().getChildren().add(vBack);
 
-        return RetVal;
+        return retVal;
     }
 
     private Button SetupPanelButton(PanelSideInfo info) {
         if (null == info) {
             return null;
         }
-        Button _button = new Button(info.getButtonText());
+        Button button = new Button(info.getButtonText());
         String strFile = "";
 
         strFile = strFile + getDefinintionFileDirectory() + File.separatorChar + info.getCSSFile();
@@ -389,16 +385,16 @@ public class FlipPanelWidget extends BaseWidget {
         } else {
             LOGGER.config("Applying Stylesheet: " + GetCSS_File() + " to Widget.");
             String url = BaseWidget.convertToFileURL(strFile);
-            if (false == _button.getStylesheets().add(url)) {
+            if (false == button.getStylesheets().add(url)) {
                 // return null;
             }
             if (null != info.getStyleID()) {
-                _button.setId(info.getStyleID());
+                button.setId(info.getStyleID());
             }
         }
-        _button.addEventHandler(MouseEvent.MOUSE_CLICKED, EVENT -> this.DoFlip());
+        button.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> this.DoFlip());
 
-        return _button;
+        return button;
     }
 
     @Override

@@ -35,8 +35,8 @@ import kutch.biff.marvin.utility.FrameworkNode;
  */
 public class StaticImageWidget extends BaseWidget {
     protected ImageView _ImageView;
-    private Image _Image;
-    private String _SrcFile;
+    private Image image;
+    private String srcFile;
     private boolean _PreserveRatio;
     private boolean _ScaleToFit;
     // private boolean _ClickThroughTransparentRegion=false;
@@ -44,9 +44,9 @@ public class StaticImageWidget extends BaseWidget {
 
     public StaticImageWidget() {
 //        _Pane = new Pane();
-        _Image = null;
+        image = null;
         _ImageView = null;
-        _SrcFile = null;
+        srcFile = null;
         _PreserveRatio = true;
         _ScaleToFit = false;
     }
@@ -88,7 +88,7 @@ public class StaticImageWidget extends BaseWidget {
     }
 
     public String getSrcFile() {
-        return _SrcFile;
+        return srcFile;
     }
 
     @Override
@@ -105,23 +105,23 @@ public class StaticImageWidget extends BaseWidget {
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode node) {
-        if (node.getNodeName().equalsIgnoreCase("Source")) {
+        if ("Source".equalsIgnoreCase(node.getNodeName())) {
             setSrcFile(node.getTextContent());
             return true;
         }
         return false;
     }
 
-    public void setPreserveRatio(boolean _PreserveRatio) {
-        this._PreserveRatio = _PreserveRatio;
+    public void setPreserveRatio(boolean preserveRatio) {
+        this._PreserveRatio = preserveRatio;
     }
 
-    public void setScaleToFit(boolean _ScaleToFit) {
-        this._ScaleToFit = _ScaleToFit;
+    public void setScaleToFit(boolean scaleToFit) {
+        this._ScaleToFit = scaleToFit;
     }
 
     public void setSrcFile(String strSrcFile) {
-        _SrcFile = strSrcFile;
+        srcFile = strSrcFile;
     }
 
     /*
@@ -132,16 +132,16 @@ public class StaticImageWidget extends BaseWidget {
      * { this._ClickThroughTransparentRegion = _CanClickOnTransparent; }
      */
     private boolean setupImage() {
-        if (null == _SrcFile) {
+        if (null == srcFile) {
             LOGGER.severe("Static Image Widget [ " + this.toString() + "] has no image source.");
             return false;
         }
-        String fname = convertToFileOSSpecific(_SrcFile);
+        String fname = convertToFileOSSpecific(srcFile);
         File file = new File(fname);
         if (file.exists()) {
             String fn = "file:" + fname;
-            _Image = new Image(fn);
-            _ImageView = new ImageView(_Image);
+            image = new Image(fn);
+            _ImageView = new ImageView(image);
             _ImageView.setPreserveRatio(getPreserveRatio());
             _ImageView.setSmooth(true);
 
@@ -149,13 +149,13 @@ public class StaticImageWidget extends BaseWidget {
             // be detected on transparent parts of
             // image
             if (0 == getWidth() && 0 == getHeight()) {
-                setWidth(_Image.getWidth());
-                setHeight(_Image.getHeight());
+                setWidth(image.getWidth());
+                setHeight(image.getHeight());
             }
 
             return true;
         }
-        LOGGER.severe("Image file does not exist:" + _SrcFile);
+        LOGGER.severe("Image file does not exist:" + srcFile);
         return false;
     }
 

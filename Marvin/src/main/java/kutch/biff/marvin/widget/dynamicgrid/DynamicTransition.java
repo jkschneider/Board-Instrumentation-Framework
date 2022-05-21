@@ -29,6 +29,8 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.beans.Observable;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
@@ -51,14 +53,14 @@ import kutch.biff.marvin.widget.DynamicImageWidget;
  */
 public class DynamicTransition {
 
-    public static enum Transition {
+    public enum Transition {
         VERTICAL_AROUND_X, VERTICAL_AROUND_Y, VERTICAL_AROUND_X_AND_Y, HORIZONTAL_AROUND_X, HORIZONTAL_AROUND_Y,
         HORIZONTAL_AROUND_X_AND_Y, RECTANGULAR_AROUND_X, RECTANGULAR_AROUND_Y, RECTANGULAR_AROUND_X_AND_Y,
         DISSOLVING_BLOCKS, CUBE, FLIP_HORIZONTAL, FLIP_VERTICAL, NONE, INVALID
 
     }
 
-    protected final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    protected static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static String names() {
         String strReturn = "";
@@ -74,37 +76,37 @@ public class DynamicTransition {
     }
 
     public static DynamicTransition ReadTransitionInformation(FrameworkNode baseNode) {
-        DynamicTransition.Transition _TransitionType = DynamicTransition.Transition.NONE;
-        int _Transition_xGridCount = 10;
-        int _Transition_yGridCount = 10;
-        int _Transition_Delay = 100;
-        Color _Transition_Snapshot_Color_bg = Color.TRANSPARENT;
-        Duration _Transition_Duration = Duration.millis(1500);
+        DynamicTransition.Transition transitionType = DynamicTransition.Transition.NONE;
+        int transitionXGridCount = 10;
+        int transitionYGridCount = 10;
+        int transitionDelay = 100;
+        Color transitionSnapshotColorBg = Color.TRANSPARENT;
+        Duration transitionDuration = Duration.millis(1500);
 
         for (FrameworkNode node : baseNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#Comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#Comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
             }
 
-            if (node.getNodeName().equalsIgnoreCase("Transition")) {
+            if ("Transition".equalsIgnoreCase(node.getNodeName())) {
                 String strTransition = node.getTextContent();
-                _TransitionType = DynamicTransition.VerifyTransitionType(strTransition);
-                if (_TransitionType == DynamicTransition.Transition.INVALID) {
+                transitionType = DynamicTransition.VerifyTransitionType(strTransition);
+                if (transitionType == DynamicTransition.Transition.INVALID) {
                     LOGGER.severe("Invalid Transition [" + strTransition + "] specified.  Valid values are: "
                             + DynamicTransition.names());
                     return null;
                 }
 
                 if (node.hasAttribute("xGrids")) {
-                    _Transition_xGridCount = node.getIntegerAttribute("xGrids", 0);
-                    if (_Transition_xGridCount <= 0) {
+                    transitionXGridCount = node.getIntegerAttribute("xGrids", 0);
+                    if (transitionXGridCount <= 0) {
                         LOGGER.severe("Invlid xGrids value for Transition: " + node.getAttribute("xGrids"));
                         return null;
                     }
                 }
                 if (node.hasAttribute("yGrids")) {
-                    _Transition_yGridCount = node.getIntegerAttribute("yGrids", 0);
-                    if (_Transition_yGridCount <= 0) {
+                    transitionYGridCount = node.getIntegerAttribute("yGrids", 0);
+                    if (transitionYGridCount <= 0) {
                         LOGGER.severe("Invlid yGrids value for Transition: " + node.getAttribute("yGrids"));
                         return null;
                     }
@@ -115,11 +117,11 @@ public class DynamicTransition {
                         LOGGER.severe("Invlid Duration value for Transition: " + node.getAttribute("Duration"));
                         return null;
                     }
-                    _Transition_Duration = Duration.millis(Transition_Duration);
+                    transitionDuration = Duration.millis(Transition_Duration);
                 }
                 if (node.hasAttribute("Delay")) {
-                    _Transition_Delay = node.getIntegerAttribute("Delay", 0);
-                    if (_Transition_Delay <= 0) {
+                    transitionDelay = node.getIntegerAttribute("Delay", 0);
+                    if (transitionDelay <= 0) {
                         LOGGER.severe("Invlid Delay value for Transition: " + node.getAttribute("Delay"));
                         return null;
                     }
@@ -141,12 +143,12 @@ public class DynamicTransition {
             }
         }
 
-        DynamicTransition objTransition = new DynamicTransition(_TransitionType);
-        objTransition.setDelay(_Transition_Delay);
-        objTransition.setDuration(_Transition_Duration);
-        objTransition.setNoOfTilesX(_Transition_xGridCount);
-        objTransition.setNoOfTilesY(_Transition_yGridCount);
-        objTransition.setSnapshotColor(_Transition_Snapshot_Color_bg);
+        DynamicTransition objTransition = new DynamicTransition(transitionType);
+        objTransition.setDelay(transitionDelay);
+        objTransition.setDuration(transitionDuration);
+        objTransition.setNoOfTilesX(transitionXGridCount);
+        objTransition.setNoOfTilesY(transitionYGridCount);
+        objTransition.setSnapshotColor(transitionSnapshotColorBg);
 
         // _objTransition = objTransition;
         return objTransition;
@@ -176,21 +178,21 @@ public class DynamicTransition {
     private boolean playing;
     private Image _endImage;
     private Image _startImage;
-    private GridPane Parent;
+    private GridPane parent;
     // private GridWidget fromGrid, toGrid;
     private Pane pane;
-    private Color _SnapshotBG;
-    private DynamicTransition.Transition _Type;
-    private boolean _HideBackSize;
+    private Color snapshotBG;
+    private DynamicTransition.Transition type;
+    private boolean hideBackSize;
 
-    private Node _finalObj; // the thing to be displayed when done
+    private Node finalObj; // the thing to be displayed when done
 
-    private Node _startObj; // the thing to be displayed when done
+    private Node startObj; // the thing to be displayed when done
 
     public DynamicTransition(DynamicTransition.Transition which) {
-        _Type = which;
+        type = which;
         playing = false;
-        _HideBackSize = true; // need this for images (like of widgets) with transparent parts
+        hideBackSize = true; // need this for images (like of widgets) with transparent parts
         // _Type = DynamicTransition.getTransition.NONE;
     }
 
@@ -199,9 +201,9 @@ public class DynamicTransition {
      *
      * @param VISIBLE_UP_TO
      */
-    private void adjustTilesVisibility(final int VISIBLE_UP_TO) {
+    private void adjustTilesVisibility(final int visibleUpTo) {
         for (int i = 0; i < (noOfTilesX * noOfTilesY); i++) {
-            tiles.get(i).setVisible(i >= VISIBLE_UP_TO ? false : true);
+            tiles.get(i).setVisible(i >= visibleUpTo ? false : true);
             tiles.get(i).getTransforms().clear();
 
             imageViewsFront.get(i).setOpacity(1);
@@ -228,12 +230,12 @@ public class DynamicTransition {
      * @param ROTATE
      * @param INDEX
      */
-    private void checkVisibility(final Rotate ROTATE, final int INDEX) {
-        if (_HideBackSize) {
+    private void checkVisibility(final Rotate rotate, final int INDEX) {
+        if (hideBackSize) {
             imageViewsBack.get(INDEX).setVisible(false);
         }
 
-        ROTATE.angleProperty().addListener((ov, oldAngle, newAngle) ->
+        rotate.angleProperty().addListener((ObservableValue ov, Number oldAngle, Number newAngle) ->
         {
             if (newAngle.doubleValue() > 360) {
                 imageViewsFront.get(INDEX).toFront();
@@ -241,13 +243,13 @@ public class DynamicTransition {
                 imageViewsFront.get(INDEX).toFront();
             } else if (newAngle.doubleValue() > 180) {
                 imageViewsBack.get(INDEX).toFront();
-                if (_HideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
+                if (hideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
                     imageViewsBack.get(INDEX).setVisible(true);
                     imageViewsFront.get(INDEX).setVisible(false);
                 }
             } else if (newAngle.doubleValue() > 90) {
                 imageViewsBack.get(INDEX).toFront();
-                if (_HideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
+                if (hideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
                     imageViewsBack.get(INDEX).setVisible(true);
                     imageViewsFront.get(INDEX).setVisible(false);
                 }
@@ -262,22 +264,22 @@ public class DynamicTransition {
      * @param ROTATE_Y
      * @param INDEX
      */
-    private void checkVisibility(final Rotate ROTATE_X, final Rotate ROTATE_Y, final int INDEX) {
-        if (_HideBackSize) {
+    private void checkVisibility(final Rotate rotate_x, final Rotate rotate_y, final int INDEX) {
+        if (hideBackSize) {
             imageViewsBack.get(INDEX).setVisible(false); // need this for images (like of widgets) with transparent
             // parts
         }
 
-        ROTATE_X.angleProperty().addListener(observable ->
+        rotate_x.angleProperty().addListener((Observable observable) ->
         {
-            int angleX = (int) ROTATE_X.getAngle();
-            int angleY = (int) ROTATE_Y.getAngle();
+            int angleX = (int) rotate_x.getAngle();
+            int angleY = (int) rotate_y.getAngle();
             if (angleX > 0 && angleX < 90) {
                 if (angleY > 0 && angleY < 90) {
                     imageViewsFront.get(INDEX).toFront();
                 } else if (angleY > 90 && angleY < 270) {
                     imageViewsBack.get(INDEX).toFront();
-                    if (_HideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
+                    if (hideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
                         imageViewsBack.get(INDEX).setVisible(true);
                         imageViewsFront.get(INDEX).setVisible(false);
                     }
@@ -288,7 +290,7 @@ public class DynamicTransition {
             } else if (angleX > 90 && angleX < 270) {
                 if (angleY > 0 && angleY < 90) {
                     imageViewsBack.get(INDEX).toFront();
-                    if (_HideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
+                    if (hideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
                         imageViewsBack.get(INDEX).setVisible(true);
                         imageViewsFront.get(INDEX).setVisible(false);
                     }
@@ -296,7 +298,7 @@ public class DynamicTransition {
                     imageViewsFront.get(INDEX).toFront();
                 } else if (angleY > 270 && angleY < 360) {
                     imageViewsBack.get(INDEX).toFront();
-                    if (_HideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
+                    if (hideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
                         imageViewsBack.get(INDEX).setVisible(true);
                         imageViewsFront.get(INDEX).setVisible(false);
                     }
@@ -306,7 +308,7 @@ public class DynamicTransition {
                     imageViewsFront.get(INDEX).toFront();
                 } else if (angleY > 90 && angleY < 270) {
                     imageViewsBack.get(INDEX).toFront();
-                    if (_HideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
+                    if (hideBackSize && !imageViewsBack.get(INDEX).isVisible()) {
                         imageViewsBack.get(INDEX).setVisible(true);
                         imageViewsFront.get(INDEX).setVisible(false);
                     }
@@ -338,38 +340,38 @@ public class DynamicTransition {
      * @param DURATION     oneSecond for the transition
      * @param DELAY        delay in milliseconds between each tile animation
      */
-    private void cube(final Image FRONT_IMAGE, final Image BACK_IMAGE, final Interpolator INTERPOLATOR,
+    private void cube(final Image frontImage, final Image backImage, final Interpolator INTERPOLATOR,
                       final Duration DURATION, final int DELAY) {
         adjustTilesVisibility(1);
         viewPorts.clear();
 
-        final Rectangle2D VIEW_PORT = new Rectangle2D(0, 0, FRONT_IMAGE.getWidth(), FRONT_IMAGE.getHeight());
+        final Rectangle2D viewPort = new Rectangle2D(0, 0, frontImage.getWidth(), frontImage.getHeight());
         for (int i = 0; i < (noOfTilesX * noOfTilesY); i++) {
-            imageViewsFront.get(i).setViewport(VIEW_PORT);
-            imageViewsBack.get(i).setViewport(VIEW_PORT);
+            imageViewsFront.get(i).setViewport(viewPort);
+            imageViewsBack.get(i).setViewport(viewPort);
         }
 
-        imageViewsFront.get(0).setImage(FRONT_IMAGE);
-        imageViewsBack.get(0).setImage(BACK_IMAGE);
+        imageViewsFront.get(0).setImage(frontImage);
+        imageViewsBack.get(0).setImage(backImage);
 
-        imageViewsFront.get(0).setTranslateZ(-0.5 * FRONT_IMAGE.getWidth());
+        imageViewsFront.get(0).setTranslateZ(-0.5 * frontImage.getWidth());
 
-        imageViewsBack.get(0).setTranslateX(0.5 * FRONT_IMAGE.getWidth());
+        imageViewsBack.get(0).setTranslateX(0.5 * frontImage.getWidth());
         imageViewsBack.get(0).setRotationAxis(Rotate.Y_AXIS);
         // imageViewsBack.get(0).setRotate(90);
         imageViewsBack.get(0).setRotate(270); // to grid would be reversed if didn't do this
 
         Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
-        rotateY.setPivotX(FRONT_IMAGE.getWidth() * 0.5);
-        rotateY.setPivotZ(FRONT_IMAGE.getWidth() * 0.5);
-        rotateY.angleProperty().addListener((ov, oldAngle, newAngle) ->
+        rotateY.setPivotX(frontImage.getWidth() * 0.5);
+        rotateY.setPivotZ(frontImage.getWidth() * 0.5);
+        rotateY.angleProperty().addListener((ObservableValue ov, Number oldAngle, Number newAngle) ->
         {
             if (73 < newAngle.intValue()) {
                 imageViewsBack.get(0).toFront();
             }
         });
 
-        Translate translateZ = new Translate(0, 0, FRONT_IMAGE.getWidth() * 0.5);
+        Translate translateZ = new Translate(0, 0, frontImage.getWidth() * 0.5);
         tiles.get(0).getTransforms().setAll(rotateY, translateZ);
 
         KeyValue kvRotateBegin = new KeyValue(rotateY.angleProperty(), 0, INTERPOLATOR);
@@ -418,9 +420,9 @@ public class DynamicTransition {
      * @param DURATION     oneSecond for the transition
      * @param DELAY        delay in milliseconds between each tile animation
      */
-    private void dissolvingBlocks(final Image FRONT_IMAGE, final Image BACK_IMAGE, final Interpolator INTERPOLATOR,
+    private void dissolvingBlocks(final Image front_image, final Image back_image, final Interpolator INTERPOLATOR,
                                   final Duration DURATION, final int DELAY) {
-        splitImageXY(FRONT_IMAGE, BACK_IMAGE);
+        splitImageXY(front_image, back_image);
 
         int count = 0;
         for (int y = 0; y < noOfTilesY; y++) {
@@ -476,7 +478,8 @@ public class DynamicTransition {
         playing = true;
 
         if (null != pane) {
-            double width, height;
+            double width;
+            double height;
             width = _endImage.getWidth();
             height = _endImage.getHeight();
             pane.setMaxSize(width, height);
@@ -484,7 +487,7 @@ public class DynamicTransition {
             pane.setMinSize(width, height);
         }
 
-        switch (_Type) {
+        switch (type) {
             case VERTICAL_AROUND_X:
                 rotateVerticalTilesAroundX(_startImage, _endImage, interpolator, duration, delay);
                 break;
@@ -611,7 +614,7 @@ public class DynamicTransition {
     }
 
     public Color getSnapshotColor() {
-        return _SnapshotBG;
+        return snapshotBG;
     }
 
     // ******************** Methods for horizontal tiles **********************
@@ -1131,12 +1134,12 @@ public class DynamicTransition {
     }
 
     public void setSnapshotColor(Color color) {
-        _SnapshotBG = color;
+        snapshotBG = color;
     }
 
     @SuppressWarnings("incomplete-switch")
     private void Setup(int xLoc, int yLoc) {
-        switch (_Type) {
+        switch (type) {
             case VERTICAL_AROUND_X:
             case VERTICAL_AROUND_Y:
             case HORIZONTAL_AROUND_Y:
@@ -1162,17 +1165,14 @@ public class DynamicTransition {
                 return;
         }
 
-        switch (_Type) {
-            case FLIP_HORIZONTAL:
-                _Type = DynamicTransition.Transition.RECTANGULAR_AROUND_Y;
-                noOfTilesX = 1;
-                noOfTilesY = 1;
-                break;
-            case FLIP_VERTICAL:
-                _Type = DynamicTransition.Transition.RECTANGULAR_AROUND_X;
-                noOfTilesX = 1;
-                noOfTilesY = 1;
-                break;
+        if (type == DynamicTransition.Transition.FLIP_HORIZONTAL) {
+            type = DynamicTransition.Transition.RECTANGULAR_AROUND_Y;
+            noOfTilesX = 1;
+            noOfTilesY = 1;
+        } else if (type == DynamicTransition.Transition.FLIP_VERTICAL) {
+            type = DynamicTransition.Transition.RECTANGULAR_AROUND_X;
+            noOfTilesX = 1;
+            noOfTilesY = 1;
         }
 
         imageViewsFront = new ArrayList<>(noOfTilesX * noOfTilesY);
@@ -1197,7 +1197,7 @@ public class DynamicTransition {
         }
         pane.getChildren().setAll(tiles);
 
-        Parent.add(pane, xLoc, yLoc); // TODO: I think may need to set col and row span here too......
+        parent.add(pane, xLoc, yLoc); // TODO: I think may need to set col and row span here too......
     }
 
     /**
@@ -1298,7 +1298,7 @@ public class DynamicTransition {
     }
 
     public void Transition(DynamicGrid fromGridObj, DynamicGrid toGridObj, GridPane objParent) {
-        Parent = objParent;
+        parent = objParent;
 
         int x = GridPane.getColumnIndex(fromGridObj.getBasePane());
         int y = GridPane.getRowIndex(fromGridObj.getBasePane());
@@ -1320,46 +1320,46 @@ public class DynamicTransition {
 
         toGridObj.getBasePane().setVisible(false);
         fromGridObj.getBasePane().setVisible(false);
-        _startObj = fromGridObj.getBasePane();
-        _finalObj = toGridObj.getBasePane();
+        startObj = fromGridObj.getBasePane();
+        finalObj = toGridObj.getBasePane();
 
         doTransition(startImage, endImage);
 
     }
 
     public void Transition(DynamicImageWidget objDynamicImage, ImageView objImageViewStart, ImageView objImageViewFinal) {
-        if (_Type == DynamicTransition.Transition.NONE) {
+        if (type == DynamicTransition.Transition.NONE) {
             transitionFinished();
             return;
         }
 
         int x = objDynamicImage.getColumn();
         int y = objDynamicImage.getRow();
-        Parent = objDynamicImage.GetContainerPane();
+        parent = objDynamicImage.GetContainerPane();
         Setup(x, y);
         // pane.prefHeight(objImageViewFinal.destHeight());
         // pane.prefWidth(objImageViewFinal.getFitWidth());
 
-        _startObj = objImageViewStart;
-        _finalObj = objImageViewFinal;
+        startObj = objImageViewStart;
+        finalObj = objImageViewFinal;
 
         SnapshotParameters params = new SnapshotParameters();
         params.setFill(getSnapshotColor());
         // params.setFill(Color.TRANSPARENT);
         Image startImage = objDynamicImage.GetContainerPane().snapshot(params, null);
 
-        _startObj.setVisible(false);
-        _finalObj.setVisible(true);
+        startObj.setVisible(false);
+        finalObj.setVisible(true);
 
         Image finalImage = objDynamicImage.GetContainerPane().snapshot(params, null);
 
         // _startObj.setVisible(true);
-        _finalObj.setVisible(false);
+        finalObj.setVisible(false);
 
         if (null == startImage || finalImage == null) {
             LOGGER.severe("Unable to do transition for DynamicImage - likely due to low memory.");
-            _startObj.setVisible(false);
-            _finalObj.setVisible(true);
+            startObj.setVisible(false);
+            finalObj.setVisible(true);
             return;
         }
 
@@ -1369,17 +1369,17 @@ public class DynamicTransition {
 
     private void transitionFinished() {
         playing = false;
-        if (null != _startObj) {
-            _startObj.setVisible(false);
+        if (null != startObj) {
+            startObj.setVisible(false);
         }
-        if (null != _finalObj) {
-            _finalObj.setVisible(true);
+        if (null != finalObj) {
+            finalObj.setVisible(true);
         }
 
         if (null != pane) {
             pane.setVisible(false);
             pane.getChildren().clear();
-            Parent.getChildren().remove(pane);
+            parent.getChildren().remove(pane);
         }
         Cleanup();
     }

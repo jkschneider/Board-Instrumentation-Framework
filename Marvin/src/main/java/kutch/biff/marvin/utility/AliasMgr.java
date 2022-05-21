@@ -50,19 +50,19 @@ import kutch.biff.marvin.logger.MarvinLogger;
  *
  * @author Patrick Kutch
  */
-public class AliasMgr {
+public final class AliasMgr {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private final static AliasMgr _Mgr = new AliasMgr();
-    private final static String strCurrentRowIsOddAlias = "CurrentRowIsOddAlias";
-    private final static String strCurrentColumnIsOddAlias = "CurrentColumnIsOddAlias";
-    private final static String strCurrentRowAlias = "CurrentRowAlias";
-    private final static String strNextRowAlias = "NextRowAlias";
-    private final static String strCurrentColumnAlias = "CurrentColumnAlias";
-    private final static String strNextColumnAlias = "NextColumnAlias";
-    private final static String strPrevColumnAlias = "PrevColumnAlias";
-    private final static String strPrevRowAlias = "PrevRowAlias";
-    private String _currentFileName = "not set";
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final AliasMgr _Mgr = new AliasMgr();
+    private static final String strCurrentRowIsOddAlias = "CurrentRowIsOddAlias";
+    private static final String strCurrentColumnIsOddAlias = "CurrentColumnIsOddAlias";
+    private static final String strCurrentRowAlias = "CurrentRowAlias";
+    private static final String strNextRowAlias = "NextRowAlias";
+    private static final String strCurrentColumnAlias = "CurrentColumnAlias";
+    private static final String strNextColumnAlias = "NextColumnAlias";
+    private static final String strPrevColumnAlias = "PrevColumnAlias";
+    private static final String strPrevRowAlias = "PrevRowAlias";
+    private String currentFileName = "not set";
 
     public static AliasMgr getAliasMgr() {
         return _Mgr;
@@ -80,12 +80,12 @@ public class AliasMgr {
             getAliasMgr().ReadExternalAliasFile(filename);
         }
         for (FrameworkNode nodeAlias : aliasNode.getChildNodes()) {
-            if (nodeAlias.getNodeName().equalsIgnoreCase("Alias")) {
+            if ("Alias".equalsIgnoreCase(nodeAlias.getNodeName())) {
                 String strReplace = null;
                 NamedNodeMap map = nodeAlias.GetNode().getAttributes();
                 for (int iLoop = 0; iLoop < map.getLength(); iLoop++) {
                     FrameworkNode node = new FrameworkNode(map.item(iLoop));
-                    if (node.getNodeName().equals("REPLACE")) {
+                    if ("REPLACE".equals(node.getNodeName())) {
                         strReplace = node.getTextContent();
                     }
                 }
@@ -94,7 +94,7 @@ public class AliasMgr {
                     FrameworkNode node = new FrameworkNode(map.item(iLoop));
 
                     String strAlias = node.getNodeName();
-                    if (strAlias.equals("REPLACE")) {
+                    if ("REPLACE".equals(strAlias)) {
                         continue; // ignore
                     }
                     if (strAlias.contains("REPLACE")) {
@@ -110,12 +110,12 @@ public class AliasMgr {
                     AliasMgr._Mgr.AddAlias(strAlias, strValue);
                 }
             } // Default Alias, only alias if not already aliased
-            else if (nodeAlias.getNodeName().equalsIgnoreCase("DefaultAlias")) {
+            else if ("DefaultAlias".equalsIgnoreCase(nodeAlias.getNodeName())) {
                 NamedNodeMap map = nodeAlias.GetNode().getAttributes();
                 String strReplace = null;
                 for (int iLoop = 0; iLoop < map.getLength(); iLoop++) {
                     FrameworkNode node = new FrameworkNode(map.item(iLoop));
-                    if (node.getNodeName().equals("REPLACE")) {
+                    if ("REPLACE".equals(node.getNodeName())) {
                         strReplace = node.getTextContent();
                     }
                 }
@@ -126,7 +126,7 @@ public class AliasMgr {
                     String strAlias = node.getNodeName();
                     String strValue = node.getTextContent();
 
-                    if (strAlias.equals("REPLACE")) {
+                    if ("REPLACE".equals(strAlias)) {
                         continue; // ignore
                     }
                     if (strAlias.contains("REPLACE")) {
@@ -143,7 +143,7 @@ public class AliasMgr {
                     }
                 }
             } // Allow reading alias's defined in other files
-            else if (nodeAlias.getNodeName().equalsIgnoreCase("Import")) {
+            else if ("Import".equalsIgnoreCase(nodeAlias.getNodeName())) {
                 String strImportFile = nodeAlias.getTextContent();
                 if (false == ReadAliasFromExternalFile(strImportFile)) {
                     return false;
@@ -157,9 +157,9 @@ public class AliasMgr {
         return true;
     }
 
-    public static boolean ReadAliasFromExternalFile(String FileName) {
-        Document doc = OpenXMLFile(FileName);
-        AliasMgr.getAliasMgr().SetCurrentConfigFile(FileName);
+    public static boolean ReadAliasFromExternalFile(String fileName) {
+        Document doc = OpenXMLFile(fileName);
+        AliasMgr.getAliasMgr().SetCurrentConfigFile(fileName);
         AliasMgr.getAliasMgr().AddRandomValueAlias();
         return ReadAliasFromRootDocument(doc);
     }
@@ -182,7 +182,7 @@ public class AliasMgr {
             FrameworkNode rootNode = new FrameworkNode(rootNodes.item(0));
 
             for (FrameworkNode child : rootNode.getChildNodes()) {
-                if (child.getNodeName().equalsIgnoreCase("AliasList")) {
+                if ("AliasList".equalsIgnoreCase(child.getNodeName())) {
                     if (false == AliasMgr.HandleAliasNode(child)) {
                         return false;
                     }
@@ -194,15 +194,15 @@ public class AliasMgr {
     }
 
     @SuppressWarnings("rawtypes")
-    private final List<Map> _AliasList;
+    private final List<Map> aliasList;
 
     private int randomVal;
 
-    private String _ExternalAliasFile;
+    private String externalAliasFile;
 
     private AliasMgr() {
-        _AliasList = new ArrayList<>();
-        _ExternalAliasFile = null;
+        aliasList = new ArrayList<>();
+        externalAliasFile = null;
         ClearAll();
     }
 
@@ -211,26 +211,26 @@ public class AliasMgr {
      * @param Value
      */
     @SuppressWarnings({"unchecked"})
-    public void AddAlias(String Alias, String Value) {
-        if (null == Alias) {
+    public void AddAlias(String alias, String value) {
+        if (null == alias) {
             LOGGER.severe("Attempted to set an ALIAS ID to NULL");
             return;
         }
-        Map<String, String> map = _AliasList.get(0);
-        if (map.containsKey(Alias.toUpperCase())) {
-            LOGGER.config("Duplicate Alias detected for : " + Alias + ". Ignoring.");
+        Map<String, String> map = aliasList.get(0);
+        if (map.containsKey(alias.toUpperCase())) {
+            LOGGER.config("Duplicate Alias detected for : " + alias + ". Ignoring.");
             return;
         }
-        if (null == Value) {
-            String strError = "Alias [" + Alias + "] has NULL value!";
+        if (null == value) {
+            String strError = "Alias [" + alias + "] has NULL value!";
             LOGGER.severe(strError);
-            map.put(Alias.toUpperCase(), strError);
+            map.put(alias.toUpperCase(), strError);
         } else {
-            map.put(Alias.toUpperCase(), Value);
+            map.put(alias.toUpperCase(), value);
         }
     }
 
-    public void AddAliasFromAttibuteList(FrameworkNode node, String KnownAttributes[]) {
+    public void AddAliasFromAttibuteList(FrameworkNode node, String[] knownAttributes) {
         if (node.hasAttributes()) {
             NamedNodeMap attrs = node.GetNode().getAttributes();
 
@@ -238,9 +238,9 @@ public class AliasMgr {
                 boolean found = false;
                 Attr attribute = (Attr) attrs.item(oLoop);
                 String strAlias = attribute.getName();
-                for (int iLoop = 0; iLoop < KnownAttributes.length; iLoop++) // compare to list of valid
+                for (int iLoop = 0; iLoop < knownAttributes.length; iLoop++) // compare to list of valid
                 {
-                    if (0 == KnownAttributes[iLoop].compareToIgnoreCase(strAlias)) // 1st check case independent just
+                    if (0 == knownAttributes[iLoop].compareToIgnoreCase(strAlias)) // 1st check case independent just
                     // for fun
                     {
                         found = true;
@@ -277,26 +277,26 @@ public class AliasMgr {
 
         Configuration CONFIG = Configuration.getConfig();
         Rectangle2D visualBounds = CONFIG.getPrimaryScreen().getVisualBounds();
-        double Width = CONFIG.getWidth();
-        double Height = CONFIG.getHeight();
+        double width = CONFIG.getWidth();
+        double height = CONFIG.getHeight();
         // use configured dimensions, otherwise use screen;
-        if (Width == 0.0) {
-            Width = visualBounds.getWidth();
+        if (width == 0.0) {
+            width = visualBounds.getWidth();
         }
-        if (Height == 0.0) {
-            Height = visualBounds.getHeight();
+        if (height == 0.0) {
+            height = visualBounds.getHeight();
         }
         // Width = Width - CONFIG.getAppBorderWidth() * 2;
         // Height = Height - CONFIG.getBottomOffset() - CONFIG.getTopOffset();
-        double H2W_Ratio = Width / Height;
-        double W2H_Ratio = Height / Width;
+        double h2WRatio = width / height;
+        double w2HRatio = height / width;
 
-        H2W_Ratio = visualBounds.getWidth() / visualBounds.getHeight();
-        W2H_Ratio = visualBounds.getHeight() / visualBounds.getWidth();
+        h2WRatio = visualBounds.getWidth() / visualBounds.getHeight();
+        w2HRatio = visualBounds.getHeight() / visualBounds.getWidth();
         AddRootAlias("CANVAS_WIDTH", Integer.toString(Configuration.getConfig().getCanvasWidth()));
         AddRootAlias("CANVAS_HEIGHT", Integer.toString(Configuration.getConfig().getCanvasHeight()));
-        AddRootAlias("SCREEN_H2W_RATIO", Double.toString(H2W_Ratio));
-        AddRootAlias("SCREEN_W2H_RATIO", Double.toString(W2H_Ratio));
+        AddRootAlias("SCREEN_H2W_RATIO", Double.toString(h2WRatio));
+        AddRootAlias("SCREEN_W2H_RATIO", Double.toString(w2HRatio));
     }
 
     public void AddRandomValueAlias() {
@@ -310,7 +310,7 @@ public class AliasMgr {
             LOGGER.severe("Attempted to set a Root ALIAS ID to NULL");
             return;
         }
-        Map<String, String> map = _AliasList.get(_AliasList.size() - 1);
+        Map<String, String> map = aliasList.get(aliasList.size() - 1);
         if (map.containsKey(Alias.toUpperCase())) {
             return;
         }
@@ -329,7 +329,7 @@ public class AliasMgr {
             LOGGER.severe("Attempted to set an ALIAS ID to NULL");
             return;
         }
-        Map<String, String> map = _AliasList.get(0);
+        Map<String, String> map = aliasList.get(0);
         if (map.containsKey(Alias.toUpperCase())) {
             UpdateAlias(Alias, Value);
         }
@@ -343,15 +343,15 @@ public class AliasMgr {
     }
 
     public final void ClearAll() {
-        _AliasList.clear();
+        aliasList.clear();
         PushAliasList(true);
         randomVal = 1;
         AddAlias("RandomVal", Integer.toString(randomVal));
         AddAlias("DEBUG_STYLE", "-fx-border-color:blue;-fx-border-style: dashed");
         PushAliasList(true);
         AddEnvironmentVars();
-        if (null != _ExternalAliasFile) {
-            ReadExternalAliasFile(_ExternalAliasFile);
+        if (null != externalAliasFile) {
+            ReadExternalAliasFile(externalAliasFile);
         }
 
     }
@@ -361,8 +361,8 @@ public class AliasMgr {
      */
     @SuppressWarnings("rawtypes")
     public void DumpTop() {
-        Map map = _AliasList.get(0);
-        String AliasStr = "Global Alias List:\n";
+        Map map = aliasList.get(0);
+        String aliasStr = "Global Alias List:\n";
 
         if (map.isEmpty()) {
             return;
@@ -370,9 +370,9 @@ public class AliasMgr {
 
         for (Object objKey : map.keySet()) {
             String key = (String) objKey;
-            AliasStr += key + "-->" + map.get(objKey) + "\n";
+            aliasStr += key + "-->" + map.get(objKey) + "\n";
         }
-        LOGGER.info(AliasStr);
+        LOGGER.info(aliasStr);
     }
 
     /**
@@ -385,7 +385,7 @@ public class AliasMgr {
     public String GetAlias(String strAliasRequested) {
         String strAlias = strAliasRequested.toUpperCase();
 
-        for (Map map : _AliasList) {
+        for (Map map : aliasList) {
             if (map.containsKey(strAlias)) {
                 String strRetVal = (String) map.get(strAlias);
                 if (strAlias.equalsIgnoreCase(strNextRowAlias)) {
@@ -417,7 +417,7 @@ public class AliasMgr {
 
         if (!Configuration.getConfig().DoNotReportAliasErrors()) {
 
-            String strfName = _currentFileName;
+            String strfName = currentFileName;
             strError = "Tried to use Alias [" + strAliasRequested + "] that has not been set. File: " + strfName;
             LOGGER.severe(strError);
         }
@@ -427,8 +427,8 @@ public class AliasMgr {
     @SuppressWarnings("unchecked")
     public Map<String, String> getSnapshot() {
         Map<String, String> retMap = new HashMap<>();
-        for (int i = _AliasList.size() - 1; i >= 0; i--) {
-            Map<String, String> aliasMap = _AliasList.get(i);
+        for (int i = aliasList.size() - 1; i >= 0; i--) {
+            Map<String, String> aliasMap = aliasList.get(i);
             for (String key : aliasMap.keySet()) {
                 retMap.put(key, aliasMap.get(key));
             }
@@ -445,7 +445,7 @@ public class AliasMgr {
     @SuppressWarnings("rawtypes")
     public boolean IsAliased(String strAlias) {
         strAlias = strAlias.toUpperCase();
-        for (Map map : _AliasList) {
+        for (Map map : aliasList) {
             if (map.containsKey(strAlias)) {
                 return true;
             }
@@ -456,15 +456,15 @@ public class AliasMgr {
     public int LoadAliasFile(String encodedFilename) {
         StringTokenizer tokens = new StringTokenizer(encodedFilename, "=");
         tokens.nextElement(); // eat up the -alaisfile=
-        _ExternalAliasFile = (String) tokens.nextElement(); // to get to the real filename!
-        return ReadExternalAliasFile(_ExternalAliasFile);
+        externalAliasFile = (String) tokens.nextElement(); // to get to the real filename!
+        return ReadExternalAliasFile(externalAliasFile);
     }
 
     /**
      *
      */
     public void PopAliasList() {
-        _AliasList.remove(0);
+        aliasList.remove(0);
         GridMacroMgr.getGridMacroMgr().PopGridMacroList();
     }
 
@@ -474,7 +474,7 @@ public class AliasMgr {
      * that scope
      */
     public final void PushAliasList(boolean addRowColAliases) {
-        _AliasList.add(0, new HashMap<>()); // put in position 0
+        aliasList.add(0, new HashMap<>()); // put in position 0
 
         if (addRowColAliases) {
             AddAlias(strCurrentColumnIsOddAlias, "FALSE");
@@ -505,7 +505,8 @@ public class AliasMgr {
             while ((line = br.readLine()) != null) {
                 if (line.trim() != null) {
                     StringTokenizer st = new StringTokenizer(line, "=");
-                    String strAlias, Value;
+                    String strAlias;
+                    String Value;
                     if (st.hasMoreElements()) {
                         strAlias = ((String) st.nextElement()).trim();
                     } else {
@@ -540,7 +541,7 @@ public class AliasMgr {
     }
 
     public void SetCurrentConfigFile(String strFname) {
-        _currentFileName = strFname;
+        currentFileName = strFname;
         AddAlias("CurrentConfigFilename", strFname);
     }
 
@@ -549,7 +550,7 @@ public class AliasMgr {
         if (null == Alias) {
             return;
         }
-        Map<String, String> map = _AliasList.get(0);
+        Map<String, String> map = aliasList.get(0);
         if (map.containsKey(Alias.toUpperCase())) {
             return;
         }
@@ -565,7 +566,7 @@ public class AliasMgr {
     private boolean UpdateAlias(String Alias, String newValue) {
         String strCheck = Alias.toUpperCase();
 
-        for (Map map : _AliasList) {
+        for (Map map : aliasList) {
             if (map.containsKey(strCheck)) {
                 map.replace(strCheck, newValue);
                 return true;

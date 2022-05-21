@@ -38,18 +38,18 @@ import kutch.biff.marvin.utility.FrameworkNode;
  */
 public class PieChartWidget extends BaseWidget {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private PieChart _Chart;
-    private ArrayList<String> _Slices;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private PieChart chart;
+    private ArrayList<String> slices;
 
     public PieChartWidget() {
-        _Chart = new PieChart();
-        _Slices = new ArrayList<>();
+        chart = new PieChart();
+        slices = new ArrayList<>();
     }
 
     public void AddSlide(String slice) {
 
-        _Slices.add(slice);
+        slices.add(slice);
     }
 
     @Override
@@ -60,33 +60,30 @@ public class PieChartWidget extends BaseWidget {
         ConfigureAlignment();
         SetupPeekaboo(dataMgr);
 
-        pane.add(_Chart, getColumn(), getRow(), getColumnSpan(), getRowSpan());
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
+        pane.add(chart, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
+            }
+            String[] strList = newVal.toString().split(","); // expecting comma separated data
+            int iIndex = 0;
+            for (String strValue : strList) {
+                double newValue;
+                try {
+                    newValue = Double.parseDouble(strValue);
+                } catch (NumberFormatException ex) {
+                    LOGGER.severe("Invalid data for Line Chart received: " + strValue);
                     return;
                 }
-                String[] strList = newVal.toString().split(","); // expecting comma separated data
-                int iIndex = 0;
-                for (String strValue : strList) {
-                    double newValue;
-                    try {
-                        newValue = Double.parseDouble(strValue);
-                    } catch (NumberFormatException ex) {
-                        LOGGER.severe("Invalid data for Line Chart received: " + strValue);
-                        return;
-                    }
 
-                    if (iIndex < _Slices.size()) {
-                        _Chart.getData().get(iIndex).setPieValue(newValue);
-                    } else {
-                        LOGGER.severe(
-                                "Received More datapoints for Pie Chart than was defined in application definition file");
-                        return;
-                    }
-                    iIndex++;
+                if (iIndex < slices.size()) {
+                    chart.getData().get(iIndex).setPieValue(newValue);
+                } else {
+                    LOGGER.severe(
+                            "Received More datapoints for Pie Chart than was defined in application definition file");
+                    return;
                 }
+                iIndex++;
             }
         });
 
@@ -96,17 +93,17 @@ public class PieChartWidget extends BaseWidget {
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return _Chart;
+        return chart;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _Chart.getStylesheets();
+        return chart.getStylesheets();
     }
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode node) {
-        if (node.getNodeName().equalsIgnoreCase("Slice")) {
+        if ("Slice".equalsIgnoreCase(node.getNodeName())) {
             if (node.hasAttribute("Label")) {
                 AddSlide(node.getAttribute("Label"));
             } else {
@@ -119,10 +116,10 @@ public class PieChartWidget extends BaseWidget {
     }
 
     private void SetupPieChart() {
-        for (String slice : _Slices) {
-            _Chart.getData().add(new PieChart.Data(slice, 100.0 / _Slices.size()));
+        for (String slice : slices) {
+            chart.getData().add(new PieChart.Data(slice, 100.0 / slices.size()));
         }
-        _Chart.setTitle(getTitle());
+        chart.setTitle(getTitle());
     }
 
     @Override
@@ -132,6 +129,6 @@ public class PieChartWidget extends BaseWidget {
 
     @Override
     public void UpdateTitle(String strTitle) {
-        _Chart.setTitle(strTitle);
+        chart.setTitle(strTitle);
     }
 }

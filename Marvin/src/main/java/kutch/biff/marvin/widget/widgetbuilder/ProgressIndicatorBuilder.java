@@ -31,21 +31,22 @@ import kutch.biff.marvin.widget.ProgressIndicatorWidget;
 /**
  * @author Patrick Kutch
  */
-public class ProgressIndicatorBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class ProgressIndicatorBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static ProgressIndicatorWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         kutch.biff.marvin.widget.ProgressIndicatorWidget _widget = new kutch.biff.marvin.widget.ProgressIndicatorWidget();
         for (FrameworkNode node : masterNode.getChildNodes()) {
-            if (BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
-                continue;
-            } else {
+            if (!BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
                 LOGGER.severe("Unknown Progress Bar setting in Widget Definition file: " + node.getNodeName());
                 return null;
             }
         }
 
         return _widget;
+    }
+
+    private ProgressIndicatorBuilder() {
     }
 
 }

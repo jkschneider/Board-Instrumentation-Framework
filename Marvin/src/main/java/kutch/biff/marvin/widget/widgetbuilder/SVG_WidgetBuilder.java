@@ -28,7 +28,7 @@ import kutch.biff.marvin.widget.SVG_Widget;
 /**
  * @author Patrick
  */
-public class SVG_WidgetBuilder {
+public final class SVG_WidgetBuilder {
     public static SVG_Widget Build(FrameworkNode masterNode, String widgetDefFilename) {
         SVG_Widget _widget = new SVG_Widget();
 
@@ -36,9 +36,12 @@ public class SVG_WidgetBuilder {
 
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
-            } else if (node.getNodeName().equalsIgnoreCase("#comment")) {
+            } else if ("#comment".equalsIgnoreCase(node.getNodeName())) {
             }
         }
         return _widget;
+    }
+
+    private SVG_WidgetBuilder() {
     }
 }

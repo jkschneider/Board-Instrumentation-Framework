@@ -25,5 +25,5 @@ package kutch.biff.marvin.widget.widgetbuilder;
  * @author Patrick.Kutch@gmail.com
  */
 public interface OnDemandWidgetBuilder {
-    public boolean Build(String Namespace, String ID, String Value, String sortStr);
+    public boolean Build(String namespace, String id, String value, String sortStr);
 }

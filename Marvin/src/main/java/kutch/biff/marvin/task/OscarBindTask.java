@@ -29,18 +29,18 @@ import kutch.biff.marvin.network.OscarBullhorn;
 public class OscarBindTask extends BaseTask {
     private String Address;
     private int Port;
-    private String Key;
+    private String key;
 
     public OscarBindTask(String address, int port, String hashStr) {
         Address = address;
         Port = port;
-        Key = hashStr;
+        key = hashStr;
     }
 
     @Override
     public void PerformTask() {
-        OscarBullhorn objBH = new OscarBullhorn(Address, Port, Key);
+        OscarBullhorn objBH = new OscarBullhorn(Address, Port, key);
         objBH.SendNotification();
-        LOGGER.info("Sending OscarBind to " + Address + ":" + Integer.toString(Port) + " Key:" + Key);
+        LOGGER.info("Sending OscarBind to " + Address + ":" + Integer.toString(Port) + " Key:" + key);
     }
 }

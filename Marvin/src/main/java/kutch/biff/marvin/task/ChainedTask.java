@@ -30,11 +30,11 @@ import kutch.biff.marvin.logger.MarvinLogger;
  */
 public class ChainedTask extends BaseTask {
     @SuppressWarnings("unused")
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private TaskManager TASKMAN = TaskManager.getTaskManager();
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private TaskManager taskman = TaskManager.getTaskManager();
 
-    public ChainedTask(String TaskID) {
-        super(TaskID);
+    public ChainedTask(String taskID) {
+        super(taskID);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class ChainedTask extends BaseTask {
         if (null == strID) {
             return;
         }
-        TASKMAN.PerformTask(strID);
+        taskman.PerformTask(strID);
     }
 
 }

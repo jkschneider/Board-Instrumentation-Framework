@@ -43,43 +43,43 @@ import kutch.biff.marvin.utility.Utility;
  * @author Patrick Kutch
  */
 public class TaskManager {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private static TaskManager _TaskManager = null;
-    private static ArrayList<String> _OnStartupList = null;
-    private static ArrayList<String> _OnConnectedList = null;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static TaskManager taskManager;
+    private static ArrayList<String> onStartupList;
+    private static ArrayList<String> onConnectedList;
 
-    private static boolean _WarningAboutManyTasksSent = false;
+    private static boolean warningAboutManyTasksSent;
 
     public static TaskManager getTaskManager() {
-        if (null == _TaskManager) {
-            _TaskManager = new TaskManager();
+        if (null == taskManager) {
+            taskManager = new TaskManager();
         }
-        return _TaskManager;
+        return taskManager;
     }
 
-    private ConcurrentHashMap<String, TaskList> _TaskMap;
-    private ConcurrentHashMap<String, Client> _ClientMap;
+    private ConcurrentHashMap<String, TaskList> taskMap;
+    private ConcurrentHashMap<String, Client> clientMap;
     private DataManager _DataMgr;
-    private final ArrayList<String> _DeferredTasks;
-    private final ArrayList<String> _TimedTasks;
-    private final ArrayList<PostponedTask> _PostponedTasks;
-    private final ArrayList<PostponedTask> _PostponedTasksNew;
-    private final ArrayList<ITask> _PostponedTaskObjectThatMustBeRunInGuiThreadList;
-    private long _TasksPerformed;
+    private final ArrayList<String> deferredTasks;
+    private final ArrayList<String> timedTasks;
+    private final ArrayList<PostponedTask> postponedTasks;
+    private final ArrayList<PostponedTask> postponedTasksNew;
+    private final ArrayList<ITask> postponedTaskObjectThatMustBeRunInGuiThreadList;
+    private long tasksPerformed;
 
-    private int _LoopsWithManyTasks;
+    private int loopsWithManyTasks;
 
     public TaskManager() {
-        _TaskMap = new ConcurrentHashMap<>();
+        taskMap = new ConcurrentHashMap<>();
         _DataMgr = null;
-        _ClientMap = null;
-        _TimedTasks = new ArrayList<>();
-        _DeferredTasks = new ArrayList<>();
-        _PostponedTasks = new ArrayList<>();
-        _PostponedTasksNew = new ArrayList<>();
-        _PostponedTaskObjectThatMustBeRunInGuiThreadList = new ArrayList<>();
-        _TasksPerformed = 0;
-        _LoopsWithManyTasks = 0;
+        clientMap = null;
+        timedTasks = new ArrayList<>();
+        deferredTasks = new ArrayList<>();
+        postponedTasks = new ArrayList<>();
+        postponedTasksNew = new ArrayList<>();
+        postponedTaskObjectThatMustBeRunInGuiThreadList = new ArrayList<>();
+        tasksPerformed = 0;
+        loopsWithManyTasks = 0;
     }
 
     // this is where a task comes in on a worker thread (like remote marvin)
@@ -88,14 +88,14 @@ public class TaskManager {
             LOGGER.severe("Sent null task ID to add Deferred Task");
             return;
         }
-        synchronized (_DeferredTasks) {
-            _DeferredTasks.add(newTask);
+        synchronized (deferredTasks) {
+            deferredTasks.add(newTask);
         }
     }
 
     public void AddDeferredTaskObject(ITask objTask) {
-        synchronized (_PostponedTaskObjectThatMustBeRunInGuiThreadList) {
-            _PostponedTaskObjectThatMustBeRunInGuiThreadList.add(objTask);
+        synchronized (postponedTaskObjectThatMustBeRunInGuiThreadList) {
+            postponedTaskObjectThatMustBeRunInGuiThreadList.add(objTask);
         }
     }
 
@@ -107,27 +107,27 @@ public class TaskManager {
      * @return true if success
      */
     private boolean AddNewTask(String TaskID, TaskList objTask, boolean onStartup, boolean onConnected) {
-        if (null == _TaskMap) {
-            _TaskMap = new ConcurrentHashMap<>();
+        if (null == taskMap) {
+            taskMap = new ConcurrentHashMap<>();
         }
 
-        if (false == _TaskMap.containsKey(TaskID.toUpperCase())) {
-            _TaskMap.put(TaskID.toUpperCase(), objTask);
-            if (true == onStartup) {
-                if (null == _OnStartupList) {
-                    _OnStartupList = new ArrayList<>();
+        if (false == taskMap.containsKey(TaskID.toUpperCase())) {
+            taskMap.put(TaskID.toUpperCase(), objTask);
+            if (onStartup) {
+                if (null == onStartupList) {
+                    onStartupList = new ArrayList<>();
                 }
-                _OnStartupList.add(TaskID);
+                onStartupList.add(TaskID);
             }
-            if (true == onConnected) {
-                if (null == _OnConnectedList) {
-                    _OnConnectedList = new ArrayList<>();
+            if (onConnected) {
+                if (null == onConnectedList) {
+                    onConnectedList = new ArrayList<>();
                 }
-                _OnConnectedList.add(TaskID);
+                onConnectedList.add(TaskID);
             }
 
             if (objTask.GetInterval() > 0.0) {
-                _TimedTasks.add(TaskID);
+                timedTasks.add(TaskID);
             }
 
             return true;
@@ -137,20 +137,20 @@ public class TaskManager {
     }
 
     public void AddOnStartupTask(String TaskID, BaseTask objTaskToPerform) {
-        if (false == _TaskMap.containsKey(TaskID.toUpperCase())) {
+        if (false == taskMap.containsKey(TaskID.toUpperCase())) {
             TaskList objTask = new TaskList();
             objTask.AddTaskItem(objTaskToPerform);
-            _TaskMap.put(TaskID.toUpperCase(), objTask);
-            if (null == _OnStartupList) {
-                _OnStartupList = new ArrayList<>();
+            taskMap.put(TaskID.toUpperCase(), objTask);
+            if (null == onStartupList) {
+                onStartupList = new ArrayList<>();
             }
-            _OnStartupList.add(TaskID);
+            onStartupList.add(TaskID);
         }
     }
 
-    public void AddPostponedTask(ITask objTask, long Period) {
-        synchronized (_PostponedTasks) {
-            _PostponedTasks.add(new PostponedTask(objTask, Period));
+    public void AddPostponedTask(ITask objTask, long period) {
+        synchronized (postponedTasks) {
+            postponedTasks.add(new PostponedTask(objTask, period));
         }
     }
 
@@ -158,8 +158,8 @@ public class TaskManager {
     // tasks. Since you can't go and add stuff to the _PostponedTask list while it
     // is being processed, add to the temp one.
     public void AddPostponedTaskThreaded(ITask objTask, long Period) {
-        synchronized (_PostponedTasksNew) {
-            _PostponedTasksNew.add(new PostponedTask(objTask, Period));
+        synchronized (postponedTasksNew) {
+            postponedTasksNew.add(new PostponedTask(objTask, Period));
         }
     }
 
@@ -179,8 +179,8 @@ public class TaskManager {
          * </TaskItem>
          */
 
-        int DataRate;
-        String FileName;
+        int dataRate;
+        String fileName;
 
 //	<TaskItem Type="DataSetFile" File="Foo.csv" DataRate="1000">
 //			<Options RepeatCount="forever"> <!-- Forever, or count -->                
@@ -193,16 +193,16 @@ public class TaskManager {
             return null;
         }
 
-        FileName = taskNode.getAttribute("File");
-        DataRate = taskNode.getIntegerAttribute("DataRate", -3232);
-        if (DataRate < 100) {
+        fileName = taskNode.getAttribute("File");
+        dataRate = taskNode.getIntegerAttribute("DataRate", -3232);
+        if (dataRate < 100) {
             LOGGER.severe("Task with ID: " + taskID + " contains an invalid DataRate  of "
                     + taskNode.getAttribute("DataRate"));
             return null;
 
         }
 
-        DataSetFileTask objTask = new DataSetFileTask(FileName, DataRate);
+        DataSetFileTask objTask = new DataSetFileTask(fileName, dataRate);
 
         if (taskNode.hasChild("Options")) {
             FrameworkNode optionsNode = taskNode.getChild("Options");
@@ -218,7 +218,8 @@ public class TaskManager {
             if (optionsNode.hasChild("RandomFluxRange")) // <RandomFluxRange Lower=\"-.24\" Upper=\".4\"/>"))
             {
                 FrameworkNode fluxNode = optionsNode.getChild("RandomFluxRange");
-                Double lower, upper;
+                Double lower;
+                Double upper;
                 if (!(fluxNode.hasAttribute("Lower") && fluxNode.hasAttribute("Upper"))) {
                     LOGGER.severe("DataSetFileTask with ID: " + taskID
                             + " specified RandomFlux range without Lower and Upper values");
@@ -253,7 +254,7 @@ public class TaskManager {
         DesktopTask objDesktopTask = new DesktopTask();
 
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("Document")) {
+            if ("Document".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Action"}, node);
 
                 if (!objDesktopTask.SetDocument(node.getTextContent())) {
@@ -287,7 +288,7 @@ public class TaskManager {
         objRunProgramTask.setParams(GetParameters(taskNode));
 
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("Application")) {
+            if ("Application".equalsIgnoreCase(node.getNodeName())) {
                 if (!objRunProgramTask.SetApplication(node.getTextContent())) {
                     LOGGER.severe("LaunchProgram task has invalid Application: " + node.getTextContent());
                     return null;
@@ -307,33 +308,34 @@ public class TaskManager {
          * * Example Task <TaskItem Type="MarvinAdmin">
          * <Task ID="TabChange" Data="DemoTab-Indicators"/> </TaskItem>
          */
-        String ID, Data;
-        ID = "";
-        Data = "";
-        boolean TaskFound = false;
+        String id;
+        String data;
+        id = "";
+        data = "";
+        boolean taskFound = false;
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("Task")) {
-                TaskFound = true;
+            if ("Task".equalsIgnoreCase(node.getNodeName())) {
+                taskFound = true;
                 Utility.ValidateAttributes(new String[]{"Data", "ID"}, node);
 
                 if (node.hasAttribute("ID")) {
-                    ID = node.getAttribute("ID");
+                    id = node.getAttribute("ID");
                 } else {
                     LOGGER.severe("Invalid MarvinAdminTask with Task ID: " + taskID + " - no ID specified.");
                     return null;
                 }
                 if (node.hasAttribute("Data")) {
-                    Data = node.getAttribute("Data");
+                    data = node.getAttribute("Data");
                 } else {
-                    Data = "";
+                    data = "";
                 }
             }
         }
-        if (!TaskFound) {
+        if (!taskFound) {
             LOGGER.severe("Invalid MarvinAdminTask with Task ID: " + taskID + " - no Task specified.");
             return null;
         }
-        MarvinAdminTask objTask = new MarvinAdminTask(taskID, ID, Data);
+        MarvinAdminTask objTask = new MarvinAdminTask(taskID, id, data);
 
         return objTask;
     }
@@ -348,16 +350,16 @@ public class TaskManager {
     private MarvinPlaybackTask BuildMarvinPlaybackTaskItem(String taskID, FrameworkNode taskNode) {
         // objMinionTask.setParams(GetParameters(taskNode));
         MarvinPlaybackTask pbT = null;
-        String PlayerID = null;
+        String playerID = null;
         MarvinPlaybackTask.PlaybackAction action = MarvinPlaybackTask.PlaybackAction.INVALID;
 
-        ArrayList<Parameter> Params = GetParameters(taskNode);
+        ArrayList<Parameter> params = GetParameters(taskNode);
 
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("Task")) {
+            if ("Task".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"PlayerID"}, node);
                 if (node.hasAttribute("PlayerID")) {
-                    PlayerID = node.getAttribute("PlayerID");
+                    playerID = node.getAttribute("PlayerID");
                 } else {
                     LOGGER.severe("MarvinPlayback Task [" + taskID + "] defined without PlayerID");
                     return null;
@@ -370,7 +372,7 @@ public class TaskManager {
 
                     case "STOP":
                         action = MarvinPlaybackTask.PlaybackAction.STOP;
-                        if (null != Params) {
+                        if (null != params) {
                             LOGGER.severe("MarvinPlayback Task [" + taskID
                                     + "] Invalid.  No Params allowed for task of " + strAction);
                             return null;
@@ -379,7 +381,7 @@ public class TaskManager {
 
                     case "PAUSE":
                         action = MarvinPlaybackTask.PlaybackAction.PAUSE;
-                        if (null != Params) {
+                        if (null != params) {
                             LOGGER.severe("MarvinPlayback Task [" + taskID
                                     + "] Invalid.  No Params allowed for task of " + strAction);
                             return null;
@@ -388,7 +390,7 @@ public class TaskManager {
 
                     case "RESUME":
                         action = MarvinPlaybackTask.PlaybackAction.RESUME;
-                        if (null != Params) {
+                        if (null != params) {
                             LOGGER.severe("MarvinPlayback Task [" + taskID
                                     + "] Invalid.  No Params allowed for task of " + strAction);
                             return null;
@@ -397,7 +399,7 @@ public class TaskManager {
 
                     case "SET OPTIONS":
                         action = MarvinPlaybackTask.PlaybackAction.SET_OPTIONS;
-                        if (null == Params) {
+                        if (null == params) {
                             LOGGER.severe("MarvinPlayback Task [" + taskID
                                     + "] Invalid.  No Params specified for task of " + strAction);
                             return null;
@@ -406,7 +408,7 @@ public class TaskManager {
 
                     case "PLAY FILE":
                         action = MarvinPlaybackTask.PlaybackAction.PLAY_FILE;
-                        if (null == Params) {
+                        if (null == params) {
                             LOGGER.severe("MarvinPlayback Task [" + taskID
                                     + "] Invalid.  No Params specified for task of " + strAction);
                             return null;
@@ -415,7 +417,7 @@ public class TaskManager {
 
                     case "LOAD FILE":
                         action = MarvinPlaybackTask.PlaybackAction.LOAD_FILE;
-                        if (null == Params) {
+                        if (null == params) {
                             LOGGER.severe("MarvinPlayback Task [" + taskID
                                     + "] Invalid.  No Params specified for task of " + strAction);
                             return null;
@@ -427,21 +429,21 @@ public class TaskManager {
                 }
             }
         }
-        pbT = new MarvinPlaybackTask(PlayerID, action);
+        pbT = new MarvinPlaybackTask(playerID, action);
 
-        if (null != Params) {
-            for (Parameter p : Params) {
+        if (null != params) {
+            for (Parameter p : params) {
                 if (!p.toString().contains("=")) {
                     LOGGER.severe("MarvinPlayback Task [" + taskID + "] defined with invalid Param: " + p.toString());
                     return null;
                 }
                 String[] parts = p.toString().split("=");
-                String What = parts[0];
-                if (What.equalsIgnoreCase("File")) {
+                String what = parts[0];
+                if ("File".equalsIgnoreCase(what)) {
                     if (!pbT.set_fileName(parts[1])) {
                         return null;
                     }
-                } else if (What.equalsIgnoreCase("Speed")) {
+                } else if ("Speed".equalsIgnoreCase(what)) {
                     try {
                         pbT.set_Speed(Double.parseDouble(parts[1]));
                     } catch (Exception e) {
@@ -449,10 +451,10 @@ public class TaskManager {
                                 "MarvinPlayback Task [" + taskID + "] defined with invalid Param: " + p.toString());
                         return null;
                     }
-                } else if (What.equalsIgnoreCase("Repeat")) {
-                    if (parts[1].equalsIgnoreCase("true")) {
+                } else if ("Repeat".equalsIgnoreCase(what)) {
+                    if ("true".equalsIgnoreCase(parts[1])) {
                         pbT.set_Loop(true);
-                    } else if (parts[1].equalsIgnoreCase("false")) {
+                    } else if ("false".equalsIgnoreCase(parts[1])) {
                         pbT.set_Loop(false);
                     } else {
                         LOGGER.severe(
@@ -480,12 +482,12 @@ public class TaskManager {
          */
         MarvinTask objMarvinTask = new MarvinTask();
         objMarvinTask.setParams(GetParameters(taskNode));
-        if (objMarvinTask.getParams() != null && objMarvinTask.getParams().size() == 0) {
+        if (objMarvinTask.getParams() != null && objMarvinTask.getParams().isEmpty()) {
             return null; // means had problem loading params.
         }
 
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("DataToInsert")) {
+            if ("DataToInsert".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Namespace", "ID", "Data"}, node);
                 if (node.hasAttribute("Namespace") && node.hasAttribute("ID")) {
                     String strData = null;
@@ -493,7 +495,7 @@ public class TaskManager {
                         strData = node.getAttribute("Data");
                     } else {
                         for (FrameworkNode dataNode : node.getChildNodes()) {
-                            if (dataNode.getNodeName().equalsIgnoreCase("Data")) {
+                            if ("Data".equalsIgnoreCase(dataNode.getNodeName())) {
                                 strData = dataNode.getTextContent();
                                 break;
                             }
@@ -532,7 +534,7 @@ public class TaskManager {
         MathematicTask objTask = new MathematicTask();
 
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("MarvinDataPoint")) {
+            if ("MarvinDataPoint".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Namespace", "ID"}, node);
                 if (node.hasAttribute("Namespace") && node.hasAttribute("ID")) {
                     objTask.SetNamespaceAndID(node.getAttribute("Namespace"), node.getAttribute("ID"));
@@ -541,7 +543,7 @@ public class TaskManager {
                             + " contains an invalid Mathematic Task - no Namespace and ID defined in MarvinDataPoint");
                     errorLogged = true;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Operation")) {
+            } else if ("Operation".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Value"}, node);
                 if (node.hasAttribute("Value")) {
                     if (!objTask.setValue(node.getAttribute("Value"))) {
@@ -584,7 +586,7 @@ public class TaskManager {
         boolean firstDPFound = false;
         boolean secondDPFound = false;
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("MarvinDataPoint")) {
+            if ("MarvinDataPoint".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Namespace", "ID"}, node);
                 if (node.hasAttribute("Namespace") && node.hasAttribute("ID")) {
                     if (!firstDPFound) {
@@ -603,7 +605,7 @@ public class TaskManager {
                             + " contains an invalid Mathematic Task - no Namespace and ID defined in MarvinDataPoint");
                     errorLogged = true;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Operation")) {
+            } else if ("Operation".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Namespace", "ID"}, node);
                 if (node.hasAttribute("Namespace") && node.hasAttribute("ID")) {
                     objTask.SetNamespaceAndID(node.getAttribute("Namespace"), node.getAttribute("ID"));
@@ -647,12 +649,12 @@ public class TaskManager {
 
         MinionTask objMinionTask = new MinionTask();
         objMinionTask.setParams(GetParameters(taskNode));
-        if (objMinionTask.getParams() != null && objMinionTask.getParams().size() == 0) {
+        if (objMinionTask.getParams() != null && objMinionTask.getParams().isEmpty()) {
             return null; // means had problem loading params.
         }
 
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("Actor")) {
+            if ("Actor".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Namespace", "ID"}, node);
 
                 if (node.hasAttribute("Namespace") && node.hasAttribute("ID")) {
@@ -675,24 +677,24 @@ public class TaskManager {
          * </TaskItem> </TaskList>
          *
          */
-        String Address;
-        int Port;
+        String address;
+        int port;
         String Key;
 
         if (taskNode.hasChild("ConnectionInfo")) {
             FrameworkNode connInfo = taskNode.getChild("ConnectionInfo");
             if (connInfo.hasAttribute("IP")) {
-                Address = connInfo.getAttribute("IP");
+                address = connInfo.getAttribute("IP");
             } else if (connInfo.hasAttribute("Address")) {
-                Address = connInfo.getAttribute("Address");
+                address = connInfo.getAttribute("Address");
             } else {
                 LOGGER.severe(
                         "Task with ID: " + taskID + " contains an invalid OscarBind Task - no Address/IP specified");
                 return null;
             }
             if (connInfo.hasAttribute("Port")) {
-                Port = connInfo.getIntegerAttribute("Port", -1);
-                if (Port == -1) {
+                port = connInfo.getIntegerAttribute("Port", -1);
+                if (port == -1) {
                     LOGGER.severe(
                             "Task with ID: " + taskID + " contains an invalid OscarBind Task - invalid Port specified");
                     return null;
@@ -712,7 +714,7 @@ public class TaskManager {
             return null;
         }
 
-        OscarBindTask objTask = new OscarBindTask(Address, Port, Key);
+        OscarBindTask objTask = new OscarBindTask(address, port, Key);
         objTask.setParams(GetParameters(taskNode));
 
         return objTask;
@@ -732,12 +734,12 @@ public class TaskManager {
          */
         OscarTask objOscarTask = new OscarTask();
         objOscarTask.setParams(GetParameters(taskNode));
-        if (objOscarTask.getParams() != null && objOscarTask.getParams().size() == 0) {
+        if (objOscarTask.getParams() != null && objOscarTask.getParams().isEmpty()) {
             return null; // means had problem loading params.
         }
 
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("Task")) {
+            if ("Task".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"OscarID"}, node);
 
                 if (node.hasAttribute("OscarID")) {
@@ -761,7 +763,7 @@ public class TaskManager {
         PulseTask objPulseTask = new PulseTask();
 
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("MarvinDataPoint")) {
+            if ("MarvinDataPoint".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Namespace", "ID"}, node);
                 if (node.hasAttribute("Namespace") && node.hasAttribute("ID")) {
                     objPulseTask.SetNamespaceAndID(node.getAttribute("Namespace"), node.getAttribute("ID"));
@@ -791,29 +793,29 @@ public class TaskManager {
          */
         RandomTask objRandomTask = new RandomTask();
 
-        double TotalWeight = 0;
+        double totalWeight = 0;
 
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("Task")) {
+            if ("Task".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Weight"}, node);
                 String strTaskID;
-                double Weight = 0;
+                double weight = 0;
                 if (node.hasAttribute("Weight")) {
-                    Weight = node.getDoubleAttribute("Weight", 0);
-                    if (Weight >= 100 || Weight <= 0) {
+                    weight = node.getDoubleAttribute("Weight", 0);
+                    if (weight >= 100 || weight <= 0) {
                         LOGGER.severe("RandomTask [" + taskID + "] has a Task with an invalid weight: "
                                 + node.getAttribute("Weight"));
                         return null;
                     }
-                    TotalWeight += Weight;
+                    totalWeight += weight;
                 }
 
                 strTaskID = node.getTextContent();
 
-                objRandomTask.AddTask(strTaskID, Weight);
+                objRandomTask.AddTask(strTaskID, weight);
             }
         }
-        if (TotalWeight > 100) {
+        if (totalWeight > 100) {
             LOGGER.severe("RandomTask [" + taskID + "] has a cummulative weight of > 100.");
             return null;
         }
@@ -825,26 +827,27 @@ public class TaskManager {
          * * Example Task <TaskItem Type="MarvinAdmin"> <Task ID="TabChange"/>
          * </TaskItem>
          */
-        String RemoteTaskID, RemoteMarvinID;
-        RemoteTaskID = "";
-        RemoteMarvinID = "";
+        String remoteTaskID;
+        String remoteMarvinID;
+        remoteTaskID = "";
+        remoteMarvinID = "";
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("Task")) {
+            if ("Task".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"ID"}, node);
 
                 if (node.hasAttribute("ID")) {
-                    RemoteTaskID = node.getAttribute("ID");
+                    remoteTaskID = node.getAttribute("ID");
                 } else {
                     LOGGER.severe("Invalid MarvinAdminTask with Task ID: " + taskID + " - no ID specified.");
                     return null;
                 }
             }
-            if (node.getNodeName().equalsIgnoreCase("MarvinID")) {
-                RemoteMarvinID = node.getTextContent();
+            if ("MarvinID".equalsIgnoreCase(node.getNodeName())) {
+                remoteMarvinID = node.getTextContent();
             }
         }
 
-        RemoteMarvinTask objTask = new RemoteMarvinTask(RemoteMarvinID, RemoteTaskID);
+        RemoteMarvinTask objTask = new RemoteMarvinTask(remoteMarvinID, remoteTaskID);
 
         return objTask;
     }
@@ -866,9 +869,9 @@ public class TaskManager {
         if (taskNode.hasAttribute("SavePolicy")) {
             strMode = taskNode.getAttribute("SavePolicy");
         }
-        if (strMode.equalsIgnoreCase("Overwrite")) {
+        if ("Overwrite".equalsIgnoreCase(strMode)) {
             mode = SaveScreenshotTask.SaveMode.OVERWRITE;
-        } else if (strMode.equalsIgnoreCase("SEQUENCE")) {
+        } else if ("SEQUENCE".equalsIgnoreCase(strMode)) {
             mode = SaveScreenshotTask.SaveMode.SEQUENCE;
         }
         /*
@@ -888,7 +891,7 @@ public class TaskManager {
     private UpdateProxyTask BuildUpdateProxyTask(String taskID, FrameworkNode taskNode) {
         UpdateProxyTask task = null;
         for (FrameworkNode node : taskNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("Proxy")) {
+            if ("Proxy".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"Namespace", "ID", "ProxyID", "ListEntry"}, node);
                 if (!node.hasAttribute("ProxyID")) {
                     LOGGER.severe("ProxyTask requires ProxyID");
@@ -921,58 +924,58 @@ public class TaskManager {
         boolean retVal = false;
         boolean OnStartup = false;
         boolean OnConnected = false;
-        double IntervalTime = 0;
+        double intervalTime = 0;
 
         TaskList objTask = null;
 
-        if (true == masterNode.hasAttribute("Stepped") && masterNode.getBooleanAttribute("Stepped")) {
+        if (masterNode.hasAttribute("Stepped") && masterNode.getBooleanAttribute("Stepped")) {
             SteppedTaskList objSteppedTask = new SteppedTaskList();
 
-            if (true == masterNode.hasAttribute("LoopTasks")) {
+            if (masterNode.hasAttribute("LoopTasks")) {
                 objSteppedTask.setLooped(masterNode.getBooleanAttribute("LoopTasks"));
             }
             objTask = objSteppedTask;
         } else {
             objTask = new TaskList();
         }
-        if (true == masterNode.hasAttribute("Interval")) {
-            IntervalTime = masterNode.getDoubleAttribute("Interval", -1.0);
-            if (IntervalTime < 0.0) {
-                IntervalTime = 0.0;
+        if (masterNode.hasAttribute("Interval")) {
+            intervalTime = masterNode.getDoubleAttribute("Interval", -1.0);
+            if (intervalTime < 0.0) {
+                intervalTime = 0.0;
             }
-            IntervalTime = IntervalTime * 1000.0; // specified in seconds, checked in ms
-            objTask.SetInterval(IntervalTime);
+            intervalTime = intervalTime * 1000.0; // specified in seconds, checked in ms
+            objTask.SetInterval(intervalTime);
         }
 
-        if (true == masterNode.hasAttribute("PerformOnStartup")) {
+        if (masterNode.hasAttribute("PerformOnStartup")) {
             OnStartup = masterNode.getBooleanAttribute("PerformOnStartup");
         }
 
-        if (true == masterNode.hasAttribute("PerformOnConnect")) {
+        if (masterNode.hasAttribute("PerformOnConnect")) {
             OnConnected = masterNode.getBooleanAttribute("PerformOnConnect");
         }
 
         for (FrameworkNode node : masterNode.getChildNodes()) {
-            long Postpone = 0;
+            long postpone = 0;
             if (0 == node.getNodeName().compareToIgnoreCase("#text")
                     || 0 == node.getNodeName().compareToIgnoreCase("#comment")) {
                 continue;
             }
 
-            if (node.getNodeName().equalsIgnoreCase("TaskItem")) {
+            if ("TaskItem".equalsIgnoreCase(node.getNodeName())) {
                 if (false == node.hasAttribute("Type")) {
                     LOGGER.severe("Task with ID: " + ID + " contains a TaskItem with no Type");
                     continue;
                 }
                 if (node.hasAttribute("Postpone")) {
-                    Postpone = ReadTaskPostpone(node.getAttribute("Postpone"));
+                    postpone = ReadTaskPostpone(node.getAttribute("Postpone"));
                 }
 
                 String taskType = node.getAttribute("Type");
                 BaseTask objTaskItem = null;
                 if (0 == taskType.compareToIgnoreCase("Oscar")) {
                     objTaskItem = BuildOscarTaskItem(ID, node);
-                } else if (taskType.equalsIgnoreCase("OscarBind")) {
+                } else if ("OscarBind".equalsIgnoreCase(taskType)) {
                     objTaskItem = BuildOscarBindTask(ID, node);
                 } else if (0 == taskType.compareToIgnoreCase("Minion")) {
                     objTaskItem = BuildMinionTaskItem(ID, node);
@@ -990,33 +993,33 @@ public class TaskManager {
                     objTaskItem = BuildMarvinAdminTaskItem(ID, node);
                 } else if (0 == taskType.compareToIgnoreCase("RemoteMarvinTask")) {
                     objTaskItem = BuildRemoteMarvinTaskItem(ID, node);
-                } else if (taskType.equalsIgnoreCase("RandomTask") || taskType.equalsIgnoreCase("Random")) {
+                } else if ("RandomTask".equalsIgnoreCase(taskType) || "Random".equalsIgnoreCase(taskType)) {
                     objTaskItem = BuildRandomTaskItem(ID, node);
-                } else if (taskType.equalsIgnoreCase("Desktop")) {
+                } else if ("Desktop".equalsIgnoreCase(taskType)) {
                     objTaskItem = BuildDesktopTaskItem(ID, node);
-                } else if (taskType.equalsIgnoreCase("UpdateProxy")) {
+                } else if ("UpdateProxy".equalsIgnoreCase(taskType)) {
                     objTaskItem = BuildUpdateProxyTask(ID, node);
-                } else if (taskType.equalsIgnoreCase("DataSetFile")) {
+                } else if ("DataSetFile".equalsIgnoreCase(taskType)) {
                     objTaskItem = BuildDataSetFileTaskItem(ID, node);
-                } else if (taskType.equalsIgnoreCase("SaveScreenshot")) {
+                } else if ("SaveScreenshot".equalsIgnoreCase(taskType)) {
                     objTaskItem = BuildSaveScreenshotTaskItem(ID, node);
-                } else if (taskType.equalsIgnoreCase("MarvinPlayback")) {
+                } else if ("MarvinPlayback".equalsIgnoreCase(taskType)) {
                     objTaskItem = BuildMarvinPlaybackTaskItem(ID, node);
-                } else if (taskType.equalsIgnoreCase("LaunchApplication") || taskType.equalsIgnoreCase("LaunchApp")
-                        || taskType.equalsIgnoreCase("LaunchProgram") || taskType.equalsIgnoreCase("RunProgram")
-                        || taskType.equalsIgnoreCase("RunApp")) {
+                } else if ("LaunchApplication".equalsIgnoreCase(taskType) || "LaunchApp".equalsIgnoreCase(taskType)
+                        || "LaunchProgram".equalsIgnoreCase(taskType) || "RunProgram".equalsIgnoreCase(taskType)
+                        || "RunApp".equalsIgnoreCase(taskType)) {
                     objTaskItem = BuildLaunchApplicationTaskItem(ID, node);
                 } else {
                     LOGGER.severe("Task with ID: " + ID + " contains a TaskItem of unknown Type of " + taskType + ".");
                 }
                 if (null != objTaskItem) {
-                    objTaskItem.setPostponePeriod(Postpone);
+                    objTaskItem.setPostponePeriod(postpone);
                     objTask.AddTaskItem(objTaskItem);
                     retVal = true;
                 }
             }
         }
-        if (true == retVal) {
+        if (retVal) {
             if (false == AddNewTask(ID, objTask, OnStartup, OnConnected)) {
                 retVal = false;
             }
@@ -1042,10 +1045,10 @@ public class TaskManager {
     }
 
     public int getNumberOfTasks() {
-        if (null == _TaskMap) {
+        if (null == taskMap) {
             return 0;
         }
-        return _TaskMap.size();
+        return taskMap.size();
     }
 
     /**
@@ -1060,53 +1063,54 @@ public class TaskManager {
         for (FrameworkNode node : taskNode.getChildNodes()) {
             if (0 == node.getNodeName().compareToIgnoreCase("#text")
                     || 0 == node.getNodeName().compareToIgnoreCase("#comment")) {
-            } else if (node.getNodeName().equalsIgnoreCase("Param")) {
-                if (null == Params) {
-                    Params = new ArrayList<>();
-                }
-                if (node.getTextContent().length() > 0) {
-//		    if (node.hasAttributes())
-//		    {
-//                        String y = node.getAttributeList();
-//                        String x = node.toString();
-//			LOGGER.severe("Specified a value and an attribute for <Param>.  They are mutually exclusive.");
-//		    }
+                if ("Param".equalsIgnoreCase(node.getNodeName())) {
+                    if (null == Params) {
+                        Params = new ArrayList<>();
+                    }
+                    if (node.getTextContent().length() > 0) {
+    //		    if (node.hasAttributes())
+    //		    {
+    //                        String y = node.getAttributeList();
+    //                        String x = node.toString();
+    //			LOGGER.severe("Specified a value and an attribute for <Param>.  They are mutually exclusive.");
+    //		    }
 
-                    Params.add(new Parameter(node.getTextContent()));
-                } else if (node.hasAttribute("Namespace") || node.hasAttribute("id")) {
-                    if (!node.hasAttribute("Namespace")) {
-                        LOGGER.severe(
-                                "Specified a <Param> with intent to use Namespace & ID, but did not specify Namespace.");
+                        Params.add(new Parameter(node.getTextContent()));
+                    } else if (node.hasAttribute("Namespace") || node.hasAttribute("id")) {
+                        if (!node.hasAttribute("Namespace")) {
+                            LOGGER.severe(
+                                    "Specified a <Param> with intent to use Namespace & ID, but did not specify Namespace.");
+                            Params.clear(); // return an empty, but non-null list to know there was a problem.
+                            break;
+                        }
+                        if (!node.hasAttribute("id")) {
+                            LOGGER.severe("Specified a <Param> with intent to use Namespace & ID, but did not specify ID.");
+                            Params.clear(); // return an empty, but non-null list to know there was a problem.
+                            break;
+                        }
+                        String ns = node.getAttribute("Namespace");
+                        String ID = node.getAttribute("ID");
+                        DataSrcParameter param = new DataSrcParameter(ns, ID, getDataMgr());
+                        Params.add(param);
+                        LOGGER.info("Creating <Param> with input from Namespace=" + ns + " and ID=" + ID);
+                    } else {
                         Params.clear(); // return an empty, but non-null list to know there was a problem.
+                        LOGGER.severe("Empty <Param> in task");
                         break;
                     }
-                    if (!node.hasAttribute("id")) {
-                        LOGGER.severe("Specified a <Param> with intent to use Namespace & ID, but did not specify ID.");
-                        Params.clear(); // return an empty, but non-null list to know there was a problem.
-                        break;
-                    }
-                    String NS = node.getAttribute("Namespace");
-                    String ID = node.getAttribute("ID");
-                    DataSrcParameter param = new DataSrcParameter(NS, ID, getDataMgr());
-                    Params.add(param);
-                    LOGGER.info("Creating <Param> with input from Namespace=" + NS + " and ID=" + ID);
                 } else {
-                    Params.clear(); // return an empty, but non-null list to know there was a problem.
-                    LOGGER.severe("Empty <Param> in task");
-                    break;
-                }
-            } else {
-                List<String> validTags = Arrays.asList("TASK", "DATATOINSERT", "ACTOR", "ConnectionInfo");
-                String strTag = node.getNodeName();
-                boolean invalidTag = true;
-                for (String validTag : validTags) {
-                    if (validTag.equalsIgnoreCase(strTag)) {
-                        invalidTag = false;
-                        break;
+                    List<String> validTags = Arrays.asList("TASK", "DATATOINSERT", "ACTOR", "ConnectionInfo");
+                    String strTag = node.getNodeName();
+                    boolean invalidTag = true;
+                    for (String validTag : validTags) {
+                        if (validTag.equalsIgnoreCase(strTag)) {
+                            invalidTag = false;
+                            break;
+                        }
                     }
-                }
-                if (invalidTag) {
-                    LOGGER.warning("Possible unknown tag in task: " + strTag);
+                    if (invalidTag) {
+                        LOGGER.warning("Possible unknown tag in task: " + strTag);
+                    }
                 }
             }
         }
@@ -1116,28 +1120,28 @@ public class TaskManager {
 
     public long GetPendingTaskCount() {
         long retVal = 0;
-        synchronized (_DeferredTasks) // make a quick copy to reduce time in synchronized block
+        synchronized (deferredTasks) // make a quick copy to reduce time in synchronized block
         {
-            retVal += _DeferredTasks.size();
+            retVal += deferredTasks.size();
         }
-        synchronized (_PostponedTaskObjectThatMustBeRunInGuiThreadList) {
-            retVal = _PostponedTaskObjectThatMustBeRunInGuiThreadList.size();
+        synchronized (postponedTaskObjectThatMustBeRunInGuiThreadList) {
+            retVal = postponedTaskObjectThatMustBeRunInGuiThreadList.size();
         }
 
-        synchronized (_PostponedTasks) {
-            retVal += _PostponedTasks.size();
+        synchronized (postponedTasks) {
+            retVal += postponedTasks.size();
         }
         return retVal;
     }
 
     public long GetPerformedCount() {
-        return _TasksPerformed;
+        return tasksPerformed;
     }
 
     public int GetPostPonedTaskCount() {
         int retVal;
-        synchronized (_PostponedTaskObjectThatMustBeRunInGuiThreadList) {
-            retVal = _PostponedTaskObjectThatMustBeRunInGuiThreadList.size();
+        synchronized (postponedTaskObjectThatMustBeRunInGuiThreadList) {
+            retVal = postponedTaskObjectThatMustBeRunInGuiThreadList.size();
         }
         return retVal;
     }
@@ -1149,33 +1153,33 @@ public class TaskManager {
      * @param Address Where it
      * @param Port    is from
      */
-    public void OscarAnnouncementReceived(String OscarID, String Address, int Port, String OscarVersion) {
-        if (null == _ClientMap) {
-            _ClientMap = new ConcurrentHashMap<>();
+    public void OscarAnnouncementReceived(String oscarID, String Address, int Port, String oscarVersion) {
+        if (null == clientMap) {
+            clientMap = new ConcurrentHashMap<>();
         }
-        OscarID = OscarID.toLowerCase();
-        if (true == _ClientMap.containsKey(OscarID)) { // already exists, check to see if is same
-            Client objClient = _ClientMap.get(OscarID);
+        oscarID = oscarID.toLowerCase();
+        if (clientMap.containsKey(oscarID)) { // already exists, check to see if is same
+            Client objClient = clientMap.get(oscarID);
             if (0 == objClient.getAddress().compareTo(Address) && objClient.getPort() == Port) {
                 // they are the same, just got another announcment from same Oscar as before
             } else {
-                _ClientMap.remove(OscarID);
-                _ClientMap.put(OscarID, new Client(Address, Port));
+                clientMap.remove(oscarID);
+                clientMap.put(oscarID, new Client(Address, Port));
                 if (0 == objClient.getAddress().compareTo(Address)) { // going to assume old Oscar died, and a new one started on different port
-                    LOGGER.info("New Oscar [" + OscarID + "] Connection made [" + Address + "," + Integer.toString(Port)
+                    LOGGER.info("New Oscar [" + oscarID + "] Connection made [" + Address + "," + Integer.toString(Port)
                             + "] Replacing the on on port " + Integer.toString(objClient.getPort()));
                 } else // same ID, but from different IP address
                 {
                     LOGGER.severe(
-                            "New Oscar [" + OscarID + "] Connection made [" + Address + "," + Integer.toString(Port)
+                            "New Oscar [" + oscarID + "] Connection made [" + Address + "," + Integer.toString(Port)
                                     + "].  This OscarID was already used.  Using new connection from now on.");
                 }
             }
         } else // brand new Oscar
         {
-            _ClientMap.put(OscarID, new Client(Address, Port));
-            LOGGER.info("New Oscar [" + OscarID + "] Connection made [" + Address + "," + Integer.toString(Port)
-                    + "] Ocscar Version: " + OscarVersion);
+            clientMap.put(oscarID, new Client(Address, Port));
+            LOGGER.info("New Oscar [" + oscarID + "] Connection made [" + Address + "," + Integer.toString(Port)
+                    + "] Ocscar Version: " + oscarVersion);
             PerformOnConnectedTasks(); // Just do it every time a new connection is made, might be a bit redundant, but
             // not too bad
         }
@@ -1187,20 +1191,20 @@ public class TaskManager {
         ArrayList<String> localDeferredTasksToRun = new ArrayList<>();
         ArrayList<ITask> localPostponedTaskstoRun = new ArrayList<>();
 
-        synchronized (_DeferredTasks) // make a quick copy to reduce time in synchronized block
+        synchronized (deferredTasks) // make a quick copy to reduce time in synchronized block
         {
-            size = _DeferredTasks.size();
+            size = deferredTasks.size();
             if (size > 0) {
-                localDeferredTasksToRun.addAll(_DeferredTasks);
-                _DeferredTasks.clear();
+                localDeferredTasksToRun.addAll(deferredTasks);
+                deferredTasks.clear();
             }
         }
 
-        if (size > 256 && !_WarningAboutManyTasksSent) {
-            if (_LoopsWithManyTasks++ > 5) {
+        if (size > 256 && !warningAboutManyTasksSent) {
+            if (loopsWithManyTasks++ > 5) {
                 LOGGER.warning(" There are " + size
                         + " Tasks queued up to be performed. That is a lot - you MAY have a circular logic bomb in <Conditionals>.  This is the last warning for this potential problem.");
-                _WarningAboutManyTasksSent = true;
+                warningAboutManyTasksSent = true;
             } else {
                 LOGGER.warning(" There are " + size
                         + " Tasks queued up to be performed. That is a lot - you MAY have a circular logic bomb in <Conditionals>.");
@@ -1208,42 +1212,36 @@ public class TaskManager {
         }
 
         // String Task;
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() { // go run this in a GUI thread
-                //
-                for (String strTask : localDeferredTasksToRun) {
+        Platform.runLater(() -> { // go run this in a GUI thread
+            //
+            for (String strTask : localDeferredTasksToRun) {
+                PerformTask(strTask);
+            }
+            for (String strTask : timedTasks) {
+                TaskList objTaskList = taskMap.get(strTask.toUpperCase());
+                if (objTaskList.ReadyForIntervalExecuation()) {
                     PerformTask(strTask);
-                }
-                for (String strTask : _TimedTasks) {
-                    TaskList objTaskList = _TaskMap.get(strTask.toUpperCase());
-                    if (objTaskList.ReadyForIntervalExecuation()) {
-                        PerformTask(strTask);
-                    }
                 }
             }
         });
         // Now go and process all of the postponed tasks that need to be done in gui
         // thread
 
-        synchronized (_PostponedTaskObjectThatMustBeRunInGuiThreadList) {
-            size = _PostponedTaskObjectThatMustBeRunInGuiThreadList.size();
+        synchronized (postponedTaskObjectThatMustBeRunInGuiThreadList) {
+            size = postponedTaskObjectThatMustBeRunInGuiThreadList.size();
             if (size > 0) {
-                localPostponedTaskstoRun.addAll(_PostponedTaskObjectThatMustBeRunInGuiThreadList);
-                _PostponedTaskObjectThatMustBeRunInGuiThreadList.clear();
+                localPostponedTaskstoRun.addAll(postponedTaskObjectThatMustBeRunInGuiThreadList);
+                postponedTaskObjectThatMustBeRunInGuiThreadList.clear();
             }
         }
 
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() { // go run this in a GUI thread
-                //
-                for (ITask objTask : localPostponedTaskstoRun) {
-                    objTask.PerformTask();
-                }
-                if (localPostponedTaskstoRun.size() > 0) {
-                    Configuration.getConfig().requestImmediateRefresh();
-                }
+        Platform.runLater(() -> { // go run this in a GUI thread
+            //
+            for (ITask objTask : localPostponedTaskstoRun) {
+                objTask.PerformTask();
+            }
+            if (localPostponedTaskstoRun.size() > 0) {
+                Configuration.getConfig().requestImmediateRefresh();
             }
         });
 
@@ -1256,7 +1254,7 @@ public class TaskManager {
     public int PerformOnConnectedTasks() {
         WatchdogTask.OnInitialOscarConnection(); // Send the 'Refresh' message NOW rather than after the watchdog
         // interval
-        int RetVal = RunThroughList(_OnConnectedList);
+        int RetVal = RunThroughList(onConnectedList);
         if (RetVal > 0) {
             LOGGER.info("Performed [" + Integer.toString(RetVal) + "] tasks after connection establshed");
         }
@@ -1264,7 +1262,7 @@ public class TaskManager {
     }
 
     public int PerformOnStartupTasks() {
-        int RetVal = RunThroughList(_OnStartupList);
+        int RetVal = RunThroughList(onStartupList);
         LOGGER.info("Performed [" + Integer.toString(RetVal) + "] tasks after startup");
 
         return RetVal;
@@ -1275,8 +1273,8 @@ public class TaskManager {
      */
     public void PerformPostponedTasks() {
         ArrayList<PostponedTask> toRunList = null;
-        synchronized (_PostponedTasks) {
-            for (PostponedTask objTask : _PostponedTasks) {
+        synchronized (postponedTasks) {
+            for (PostponedTask objTask : postponedTasks) {
                 if (objTask.ReadyToPerform()) {
                     if (null == toRunList) {
                         toRunList = new ArrayList<>();
@@ -1286,7 +1284,7 @@ public class TaskManager {
             }
             if (null != toRunList) {
                 for (PostponedTask objTask : toRunList) {
-                    _PostponedTasks.remove(objTask);
+                    postponedTasks.remove(objTask);
                 }
             }
         }
@@ -1298,13 +1296,13 @@ public class TaskManager {
             }
         }
 
-        synchronized (_PostponedTasksNew) // New postponed tasks came in while during processing of postponed tasks
+        synchronized (postponedTasksNew) // New postponed tasks came in while during processing of postponed tasks
         // thread
         {
-            synchronized (_PostponedTasks) {
-                _PostponedTasks.addAll(_PostponedTasksNew); // add to postponed list for processing next time
+            synchronized (postponedTasks) {
+                postponedTasks.addAll(postponedTasksNew); // add to postponed list for processing next time
             }
-            _PostponedTasksNew.clear();
+            postponedTasksNew.clear();
         }
     }
 
@@ -1319,8 +1317,8 @@ public class TaskManager {
             LOGGER.severe("Asked to perform a task [" + TaskID + "] that doesn't exist.");
             return false;
         }
-        _TasksPerformed++;
-        TaskList objTaskList = _TaskMap.get(TaskID.toUpperCase());
+        tasksPerformed++;
+        TaskList objTaskList = taskMap.get(TaskID.toUpperCase());
 
         if (null != objTaskList) {
             return objTaskList.PerformTasks();
@@ -1383,31 +1381,31 @@ public class TaskManager {
      *
      * @param sendData
      */
-    protected boolean SendToAllOscars(byte sendData[]) {
-        if (null == _ClientMap || _ClientMap.isEmpty()) {
+    protected boolean SendToAllOscars(byte[] sendData) {
+        if (null == clientMap || clientMap.isEmpty()) {
             LOGGER.info("Marvin tried to send something to Oscar, but there are no Oscar's available.");
             return false;
         }
-        ArrayList<String> BadList = null;
-        Iterator<String> reader = this._ClientMap.keySet().iterator();
+        ArrayList<String> badList = null;
+        Iterator<String> reader = this.clientMap.keySet().iterator();
         while (reader.hasNext()) {
             String key = reader.next();
-            Client client = _ClientMap.get(key);
+            Client client = clientMap.get(key);
             if (null == client || false == client.send(sendData)) {
-                if (null == BadList) // if either null (should not happen or failure to send (could happen)
+                if (null == badList) // if either null (should not happen or failure to send (could happen)
                 {
-                    BadList = new ArrayList<>(); // make a list of keys to nuke
+                    badList = new ArrayList<>(); // make a list of keys to nuke
                 }
-                BadList.add(key);
+                badList.add(key);
             } else {
                 client.send(sendData); // send it again - it is UDP traffic, so not guaranteed. Minion will worry about
                 // duplicates
             }
         }
-        if (null != BadList) // something went wrong, nuke them.
+        if (null != badList) // something went wrong, nuke them.
         {
-            for (String key : BadList) {
-                _ClientMap.remove(key);
+            for (String key : badList) {
+                clientMap.remove(key);
                 LOGGER.info("Unable to send data to Oscar with ID:" + key);
             }
         }
@@ -1420,22 +1418,22 @@ public class TaskManager {
      * @param OscarID  - Which Oscar to send packet to
      * @param sendData - Data 2 send
      */
-    protected void SendToOscar(String OscarID, byte sendData[]) {
+    protected void SendToOscar(String OscarID, byte[] sendData) {
         if (null == OscarID) {
             LOGGER.severe("SendToOscar fn received NULL OscarID.");
             return;
         }
 
         OscarID = OscarID.toLowerCase();
-        if (null == _ClientMap || _ClientMap.isEmpty()) {
+        if (null == clientMap || clientMap.isEmpty()) {
             // LOGGER.info("Marvin tried to send something to Oscar, but there are no
             // Oscar's available.");
             return;
         }
-        if (_ClientMap.containsKey(OscarID)) {
-            Client client = _ClientMap.get(OscarID);
+        if (clientMap.containsKey(OscarID)) {
+            Client client = clientMap.get(OscarID);
             if (null == client || false == client.send(sendData)) {
-                _ClientMap.remove(OscarID); // something not right with this sucker, so nuke it.
+                clientMap.remove(OscarID); // something not right with this sucker, so nuke it.
                 LOGGER.info("Unable to send data to Oscar with ID:" + OscarID);
             } else { // success
                 client.send(sendData); // send it again, just in case, as it is UDP - Other end needs to take care not
@@ -1447,8 +1445,8 @@ public class TaskManager {
         }
     }
 
-    public void setDataMgr(DataManager _DataMgr) {
-        this._DataMgr = _DataMgr;
+    public void setDataMgr(DataManager dataMgr) {
+        this._DataMgr = dataMgr;
     }
 
     /**
@@ -1461,27 +1459,28 @@ public class TaskManager {
         if (null == TaskID) {
             return false;
         }
-        if (null != _TaskMap) {
-            return _TaskMap.containsKey(TaskID.toUpperCase());
+        if (null != taskMap) {
+            return taskMap.containsKey(TaskID.toUpperCase());
         }
         return false;
     }
 
     public boolean VerifyTasks() {
         boolean returnVal = true;
-        HashMap<String, String> _knownBad = new HashMap<>();
-        for (String strKey : _TaskMap.keySet()) {
-            TaskList objTaskList = _TaskMap.get(strKey);
+        HashMap<String, String> knownBad = new HashMap<>();
+        for (String strKey : taskMap.keySet()) {
+            TaskList objTaskList = taskMap.get(strKey);
             for (BaseTask objTask : objTaskList.GetTasks()) {
                 String taskID = objTask.getTaskID_ForVerification();
-                if (null == taskID) {
+                if (null != taskID) {
+                    if (taskMap.containsKey(taskID.toUpperCase())) {
+                        // all good
+                    } else if (false == knownBad.containsKey(taskID.toUpperCase())) {
+                        knownBad.put(taskID.toUpperCase(), taskID);
+                        LOGGER.warning("Task with ID " + taskID + " specified, but not defined anywhere.");
+                        returnVal = false;
+                    }
 
-                } else if (_TaskMap.containsKey(taskID.toUpperCase())) {
-                    // all good
-                } else if (false == _knownBad.containsKey(taskID.toUpperCase())) {
-                    _knownBad.put(taskID.toUpperCase(), taskID);
-                    LOGGER.warning("Task with ID " + taskID + " specified, but not defined anywhere.");
-                    returnVal = false;
                 }
             }
         }
@@ -1489,10 +1488,10 @@ public class TaskManager {
         for (int iIndex = 0; iIndex < ConfigurationReader.GetConfigReader().getTabs().size(); iIndex++) {
             ArrayList<String> taskIDs = ConfigurationReader.GetConfigReader().getTabs().get(iIndex).GetAllWidgetTasks();
             for (String taskID : taskIDs) {
-                if (_TaskMap.containsKey(taskID.toUpperCase())) {
+                if (taskMap.containsKey(taskID.toUpperCase())) {
                     // all good
-                } else if (false == _knownBad.containsKey(taskID.toUpperCase())) {
-                    _knownBad.put(taskID.toUpperCase(), taskID);
+                } else if (false == knownBad.containsKey(taskID.toUpperCase())) {
+                    knownBad.put(taskID.toUpperCase(), taskID);
                     LOGGER.warning("Task with ID " + taskID + " specified, but not defined anywhere.");
                     returnVal = false;
                 }

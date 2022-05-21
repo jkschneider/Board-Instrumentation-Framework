@@ -31,16 +31,16 @@ public class SeriesDataSet {
     private String Title;
     private String Namespace;
     @SuppressWarnings("rawtypes")
-    private XYChart.Series _Series;
-    private double _ScaleValue;
+    private XYChart.Series series;
+    private double scaleValue;
 
     public SeriesDataSet(String title, String id, String namespace) {
         Title = title;
         ID = id;
         Namespace = namespace;
-        _Series = new XYChart.Series<>();
-        _Series.setName(Title);
-        _ScaleValue = 1.0;
+        series = new XYChart.Series<>();
+        series.setName(Title);
+        scaleValue = 1.0;
     }
 
     public String getHashKey() {
@@ -56,12 +56,12 @@ public class SeriesDataSet {
     }
 
     public double getScaleValue() {
-        return _ScaleValue;
+        return scaleValue;
     }
 
     @SuppressWarnings("rawtypes")
     public XYChart.Series getSeries() {
-        return _Series;
+        return series;
     }
 
     public String getTitle() {
@@ -77,6 +77,6 @@ public class SeriesDataSet {
     }
 
     public void setScaleValue(double dVal) {
-        _ScaleValue = dVal;
+        scaleValue = dVal;
     }
 }

@@ -37,15 +37,15 @@ import kutch.biff.marvin.widget.TabWidget;
  */
 public class MarvinAdminTask extends BaseTask {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private final String _Task;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private final String task;
     private final String _Data;
-    private final String _ID;
+    private final String _id;
 
-    public MarvinAdminTask(String ID, String Task, String Data) {
-        _ID = ID;
-        _Task = Task;
-        _Data = Data;
+    public MarvinAdminTask(String id, String Task, String data) {
+        _id = id;
+        task = Task;
+        _Data = data;
     }
 
     @Override
@@ -55,16 +55,16 @@ public class MarvinAdminTask extends BaseTask {
 
     @Override
     public void PerformTask() {
-        if (_Task.equalsIgnoreCase("SetActiveTab")) {
+        if ("SetActiveTab".equalsIgnoreCase(task)) {
             SetTab();
-        } else if (_Task.equalsIgnoreCase("SetTabVisibility")) {
+        } else if ("SetTabVisibility".equalsIgnoreCase(task)) {
             SetVisible();
-        } else if (_Task.equalsIgnoreCase("Terminate")) {
+        } else if ("Terminate".equalsIgnoreCase(task)) {
             TerminateMarvin();
-        } else if (_Task.equalsIgnoreCase("RefreshData")) {
+        } else if ("RefreshData".equalsIgnoreCase(task)) {
             WatchdogTask.ForceRefresh();
         } else {
-            LOGGER.warning("Asked to perform a MarvinAdminTask of [" + _Task + "] for Task ID: " + _ID
+            LOGGER.warning("Asked to perform a MarvinAdminTask of [" + task + "] for Task ID: " + _id
                     + ".  However that is not a valid task.");
         }
     }
@@ -97,9 +97,9 @@ public class MarvinAdminTask extends BaseTask {
             if (parts.length > 1) {
                 String strTabID = parts[0];
                 String strVisibility = parts[1];
-                if (strVisibility.equalsIgnoreCase("true")) {
+                if ("true".equalsIgnoreCase(strVisibility)) {
                     fVisible = true;
-                } else if (strVisibility.equalsIgnoreCase("false")) {
+                } else if ("false".equalsIgnoreCase(strVisibility)) {
                     fVisible = false;
                 } else {
                     LOGGER.severe("MarvinAdminTask received invalid command --> " + _Data);

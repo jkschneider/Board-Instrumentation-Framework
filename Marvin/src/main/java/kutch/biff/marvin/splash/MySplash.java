@@ -49,10 +49,10 @@ import kutch.biff.marvin.version.Version;
  */
 public class MySplash {
     private static MySplash _Splash;
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private static int SPLASH_WIDTH = 676;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static int splashWidth = 676;
 
-    static public MySplash getSplash() {
+    public static MySplash getSplash() {
         return _Splash;
     }
 
@@ -66,9 +66,9 @@ public class MySplash {
     private String strAltSplash;
     double TimerInterval = 3000;
     public boolean _appVisible;
-    Rectangle2D AppVisualBounds = null;
+    Rectangle2D AppVisualBounds;
 
-    private boolean _SplashClosed = true;
+    private boolean splashClosed = true;
 
     public MySplash(boolean show, String alternateSplashImage) {
         _Splash = this;
@@ -113,10 +113,10 @@ public class MySplash {
 
         ImageView splash = new ImageView(splashImg);
 
-        SPLASH_WIDTH = (int) splashImg.getWidth();
+        splashWidth = (int) splashImg.getWidth();
 
         loadProgress = new ProgressBar();
-        loadProgress.setPrefWidth(SPLASH_WIDTH);
+        loadProgress.setPrefWidth(splashWidth);
 
         progressText = new Label(Version.getVersion());
         progressText.setAlignment(Pos.CENTER);
@@ -134,7 +134,7 @@ public class MySplash {
     }
 
     public boolean isSplashClosed() {
-        return _SplashClosed;
+        return splashClosed;
     }
 
     private void showSplash(Stage initStage) {
@@ -181,11 +181,11 @@ public class MySplash {
                         double visWidth = Math.abs(AppVisualBounds.getMaxX()) - Math.abs(AppVisualBounds.getMinX());
                         double visHeight = Math.abs(AppVisualBounds.getMaxY()) - Math.abs(AppVisualBounds.getMinY());
 
-                        double X = visWidth / 2 - _Stage.getWidth() / 2;
-                        double Y = visHeight / 2 - _Stage.getHeight() / 2;
+                        double x = visWidth / 2 - _Stage.getWidth() / 2;
+                        double y = visHeight / 2 - _Stage.getHeight() / 2;
 
-                        _Stage.setX(X);
-                        _Stage.setY(Y);
+                        _Stage.setX(x);
+                        _Stage.setY(y);
                         // _Stage.setX(AppVisualBounds.getMinX() +
                         // Configuration.getConfig().getWidth()/2 - _Stage.getWidth()/2);
                         // _Stage.setY(AppVisualBounds.getMinY() +
@@ -203,9 +203,7 @@ public class MySplash {
                 if (System.currentTimeMillis() >= startTimerTime + TimerInterval) {
                     _splashAnimationTimer.stop();
                     stopSplash();
-
-                    if (true == Configuration.getConfig().getKioskMode()) {
-                    }
+                    Configuration.getConfig().getKioskMode();
                     return;
                 }
                 try {
@@ -215,7 +213,7 @@ public class MySplash {
                 }
             }
         };
-        _SplashClosed = false;
+        splashClosed = false;
         // startTimerTime = System.currentTimeMillis();
 
         _splashAnimationTimer.start();
@@ -225,7 +223,7 @@ public class MySplash {
         if (false == _Show) {
             return;
         }
-        _SplashClosed = true;
+        splashClosed = true;
         TimerInterval = 0;
         _Stage.close();
     }

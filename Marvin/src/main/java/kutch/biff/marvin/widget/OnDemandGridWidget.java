@@ -38,19 +38,19 @@ import kutch.biff.marvin.widget.widgetbuilder.OnDemandGridBuilder;
  * @author Patrick.Kutch@gmail.com
  */
 public class OnDemandGridWidget extends GridWidget {
-    private String __strPrimaryGrowth = "HZ";
-    private String __strSecondaryGrowth = "VT";
-    private int __NewLineCount = 1;
+    private String strPrimaryGrowth = "HZ";
+    private String strSecondaryGrowth = "VT";
+    private int newLineCount = 1;
     @SuppressWarnings("unused")
-    private int __currentLineCount = 0;
-    private int __nextPositionX = 0;
-    private int __nextPositionY = 0;
-    private DynamicItemInfoContainer __criterea;
-    private List<Pair<BaseWidget, String>> __AddedGridList;
+    private int currentLineCount;
+    private int nextPositionX;
+    private int nextPositionY;
+    private DynamicItemInfoContainer criterea;
+    private List<Pair<BaseWidget, String>> addedGridList;
 
     public OnDemandGridWidget(DynamicItemInfoContainer onDemandInfo) {
-        __criterea = onDemandInfo;
-        __AddedGridList = new ArrayList<>();
+        criterea = onDemandInfo;
+        addedGridList = new ArrayList<>();
     }
 
     public boolean AddOnDemandWidget(BaseWidget objWidget, String sortStr) {
@@ -63,11 +63,11 @@ public class OnDemandGridWidget extends GridWidget {
 
         if (objWidget.Create(getGridPane(), DataManager.getDataManager())) {
             if (objWidget.PerformPostCreateActions(this, false)) {
-                __AddedGridList.add(new Pair<>(objWidget, sortStr));
-                if (__criterea.getSortByMethod() != SortMethod.NONE) {
+                addedGridList.add(new Pair<>(objWidget, sortStr));
+                if (criterea.getSortByMethod() != SortMethod.NONE) {
                     resortWidgets(); // OddEven Style applied in here
                 } else {
-                    __criterea.ApplyOddEvenStyle(objWidget, __AddedGridList.size());
+                    criterea.ApplyOddEvenStyle(objWidget, addedGridList.size());
                 }
                 return true;
             }
@@ -81,71 +81,71 @@ public class OnDemandGridWidget extends GridWidget {
         super.Create(parentPane, dataMgr);
         setupPositioning();
         OnDemandGridBuilder objBuilder = new OnDemandGridBuilder(this);
-        dataMgr.AddOnDemandWidgetCriterea(__criterea, objBuilder);
+        dataMgr.AddOnDemandWidgetCriterea(criterea, objBuilder);
         // grab ALL aliases to use when contained widgets created
         return true;
     }
 
     public DynamicItemInfoContainer getCriterea() {
-        return __criterea;
+        return criterea;
     }
 
     private Pair<Integer, Integer> getNextPosition() {
         Pair<Integer, Integer> retObj = null;
-        if ("HZ".equals(__strPrimaryGrowth)) {
-            __nextPositionX++;
-            if (__nextPositionX >= __NewLineCount) {
-                __currentLineCount++;
-                __nextPositionX = 0;
-                if ("VT".equals(__strSecondaryGrowth)) {
-                    __nextPositionY++;
+        if ("HZ".equals(strPrimaryGrowth)) {
+            nextPositionX++;
+            if (nextPositionX >= newLineCount) {
+                currentLineCount++;
+                nextPositionX = 0;
+                if ("VT".equals(strSecondaryGrowth)) {
+                    nextPositionY++;
                 } else {
-                    __nextPositionY--;
+                    nextPositionY--;
                 }
             }
-        } else if ("ZH".equals(__strPrimaryGrowth)) {
-            __nextPositionX--;
-            if (__nextPositionX < 0) {
-                __currentLineCount++;
-                __nextPositionX = __NewLineCount - 1;
-                if ("VT".equals(__strSecondaryGrowth)) {
-                    __nextPositionY++;
+        } else if ("ZH".equals(strPrimaryGrowth)) {
+            nextPositionX--;
+            if (nextPositionX < 0) {
+                currentLineCount++;
+                nextPositionX = newLineCount - 1;
+                if ("VT".equals(strSecondaryGrowth)) {
+                    nextPositionY++;
                 } else {
-                    __nextPositionY--;
+                    nextPositionY--;
                 }
             }
-        } else if ("VT".equals(__strPrimaryGrowth)) {
-            __nextPositionY++;
-            if (__nextPositionY >= __NewLineCount) {
-                __currentLineCount++;
-                __nextPositionY = 0;
-                if ("HZ".equals(__strSecondaryGrowth)) {
-                    __nextPositionX++;
+        } else if ("VT".equals(strPrimaryGrowth)) {
+            nextPositionY++;
+            if (nextPositionY >= newLineCount) {
+                currentLineCount++;
+                nextPositionY = 0;
+                if ("HZ".equals(strSecondaryGrowth)) {
+                    nextPositionX++;
                 } else {
-                    __nextPositionX--;
+                    nextPositionX--;
                 }
             }
-        } else if ("TV".equals(__strPrimaryGrowth)) {
-            __nextPositionY--;
-            if (__nextPositionY < 0) {
-                __currentLineCount++;
-                __nextPositionY = __NewLineCount - 1;
-                if ("HZ".equals(__strSecondaryGrowth)) {
-                    __nextPositionX++;
+        } else if ("TV".equals(strPrimaryGrowth)) {
+            nextPositionY--;
+            if (nextPositionY < 0) {
+                currentLineCount++;
+                nextPositionY = newLineCount - 1;
+                if ("HZ".equals(strSecondaryGrowth)) {
+                    nextPositionX++;
                 } else {
-                    __nextPositionX--;
+                    nextPositionX--;
                 }
             }
         }
 
-        retObj = new Pair<>(__nextPositionX, __nextPositionY);
+        retObj = new Pair<>(nextPositionX, nextPositionY);
         return retObj;
     }
 
     public boolean ReadGrowthInfo(FrameworkNode growthNode) {
         String strPrimary = growthNode.getAttribute("Primary");
         String strSecondary = growthNode.getAttribute("Secondary");
-        __NewLineCount = growthNode.getIntegerAttribute("NewLineCount", 1);
+        newLineCount = growthNode.getIntegerAttribute("NewLineCount", 1);
         boolean primaryIsHorizontal = false;
         boolean secondaryIsHorizontal = false;
 
@@ -153,15 +153,15 @@ public class OnDemandGridWidget extends GridWidget {
             strPrimary = "HZ";
             primaryIsHorizontal = true;
         } else if ("Horizontal".equalsIgnoreCase(strPrimary) || "HZ".equalsIgnoreCase(strPrimary)) {
-            __strPrimaryGrowth = "HZ";
+            strPrimaryGrowth = "HZ";
             primaryIsHorizontal = true;
         } else if ("latnoziroh".equalsIgnoreCase(strPrimary) || "ZH".equalsIgnoreCase(strPrimary)) {
-            __strPrimaryGrowth = "ZH";
+            strPrimaryGrowth = "ZH";
             primaryIsHorizontal = true;
         } else if ("Vertical".equalsIgnoreCase(strPrimary) || "VT".equalsIgnoreCase(strPrimary)) {
-            __strPrimaryGrowth = "VT";
+            strPrimaryGrowth = "VT";
         } else if ("lacitrev".equalsIgnoreCase(strPrimary) || "TV".equalsIgnoreCase(strPrimary)) {
-            __strPrimaryGrowth = "TV";
+            strPrimaryGrowth = "TV";
         } else {
             LOGGER.severe("Unknown primary Growth Direction for OnDemand grid: " + strPrimary);
             return false;
@@ -172,19 +172,19 @@ public class OnDemandGridWidget extends GridWidget {
                 strSecondary = "VT";
                 secondaryIsHorizontal = false;
             } else {
-                __strSecondaryGrowth = "HZ";
+                strSecondaryGrowth = "HZ";
                 secondaryIsHorizontal = true;
             }
         } else if ("Horizontal".equalsIgnoreCase(strSecondary) || "HZ".equalsIgnoreCase(strSecondary)) {
-            __strSecondaryGrowth = "HZ";
+            strSecondaryGrowth = "HZ";
             secondaryIsHorizontal = true;
         } else if ("latnoziroh".equalsIgnoreCase(strSecondary) || "ZH".equalsIgnoreCase(strSecondary)) {
-            __strSecondaryGrowth = "ZH";
+            strSecondaryGrowth = "ZH";
             secondaryIsHorizontal = true;
         } else if ("Vertical".equalsIgnoreCase(strSecondary) || "VT".equalsIgnoreCase(strSecondary)) {
-            __strSecondaryGrowth = "VT";
+            strSecondaryGrowth = "VT";
         } else if ("lacitrev".equalsIgnoreCase(strSecondary) || "TV".equalsIgnoreCase(strSecondary)) {
-            __strSecondaryGrowth = "TV";
+            strSecondaryGrowth = "TV";
         } else {
             LOGGER.severe("Unknown secondary Growth Direction for OnDemand grid: " + strSecondary);
             return false;
@@ -206,49 +206,49 @@ public class OnDemandGridWidget extends GridWidget {
 
         setupPositioning();
         int widgetNum = 0;
-        for (Pair<BaseWidget, String> tuple : __AddedGridList) {
+        for (Pair<BaseWidget, String> tuple : addedGridList) {
             widgetNum++;
             BaseWidget objWidget = tuple.getKey();
             Pair<Integer, Integer> position = getNextPosition();
             getGridPane().add(objWidget.getStylableObject(), position.getKey(), position.getValue());
-            __criterea.ApplyOddEvenStyle(objWidget, widgetNum);
+            criterea.ApplyOddEvenStyle(objWidget, widgetNum);
         }
     }
 
     private void setupPositioning() {
-        if ("HZ".equals(__strPrimaryGrowth)) {
-            __nextPositionX = -1;
-            if ("VT".equals(__strSecondaryGrowth)) {
-                __nextPositionY = 0;
+        if ("HZ".equals(strPrimaryGrowth)) {
+            nextPositionX = -1;
+            if ("VT".equals(strSecondaryGrowth)) {
+                nextPositionY = 0;
             } else {
-                __nextPositionY = 125;
+                nextPositionY = 125;
             }
-        } else if ("ZH".equals(__strPrimaryGrowth)) {
-            __nextPositionX = __NewLineCount - 1;
-            if ("VT".equals(__strSecondaryGrowth)) {
-                __nextPositionY = 0;
+        } else if ("ZH".equals(strPrimaryGrowth)) {
+            nextPositionX = newLineCount - 1;
+            if ("VT".equals(strSecondaryGrowth)) {
+                nextPositionY = 0;
             } else {
-                __nextPositionY = 125;
+                nextPositionY = 125;
             }
-        } else if ("VT".equals(__strPrimaryGrowth)) {
-            __nextPositionY = -1;
-            if ("HZ".equals(__strSecondaryGrowth)) {
-                __nextPositionX = -1;
+        } else if ("VT".equals(strPrimaryGrowth)) {
+            nextPositionY = -1;
+            if ("HZ".equals(strSecondaryGrowth)) {
+                nextPositionX = -1;
             } else {
-                __nextPositionX = 125;
+                nextPositionX = 125;
             }
-        } else if ("TV".equals(__strPrimaryGrowth)) {
-            __nextPositionY = __NewLineCount - 1;
-            if ("HZ".equals(__strSecondaryGrowth)) {
-                __nextPositionX = -1;
+        } else if ("TV".equals(strPrimaryGrowth)) {
+            nextPositionY = newLineCount - 1;
+            if ("HZ".equals(strSecondaryGrowth)) {
+                nextPositionX = -1;
             } else {
-                __nextPositionX = 125;
+                nextPositionX = 125;
             }
         }
     }
 
     private void sortGrids() {
-        Collections.sort(__AddedGridList, new Comparator<Pair<BaseWidget, String>>() {
+        Collections.sort(addedGridList, new Comparator<Pair<BaseWidget, String>>() {
             @Override
             public int compare(Pair<BaseWidget, String> o1, Pair<BaseWidget, String> o2) {
                 return o1.getValue().compareTo(o2.getValue());

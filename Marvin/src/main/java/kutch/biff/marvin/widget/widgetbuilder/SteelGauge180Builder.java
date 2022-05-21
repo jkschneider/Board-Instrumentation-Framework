@@ -31,8 +31,8 @@ import kutch.biff.marvin.widget.SteelGauge180Widget;
 /**
  * @author Patrick Kutch
  */
-public class SteelGauge180Builder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class SteelGauge180Builder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static SteelGauge180Widget Build(FrameworkNode masterNode, String widgetDefFilename) {
         SteelGauge180Widget sg = new SteelGauge180Widget();
@@ -40,7 +40,7 @@ public class SteelGauge180Builder {
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(sg, node)) {
                 continue;
-            } else if (node.getNodeName().equalsIgnoreCase("MinValue")) {
+            } else if ("MinValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     sg.setMinValue(Double.parseDouble(str));
@@ -48,7 +48,7 @@ public class SteelGauge180Builder {
                     LOGGER.severe("Invalid MinValue in Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MaxValue")) {
+            } else if ("MaxValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     sg.setMaxValue(Double.parseDouble(str));
@@ -56,7 +56,7 @@ public class SteelGauge180Builder {
                     LOGGER.severe("Invalid MaxValue in SteelGauge180 Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("UnitText")) {
+            } else if ("UnitText".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 sg.setUnitText(str);
             } else {
@@ -65,6 +65,9 @@ public class SteelGauge180Builder {
             }
         }
         return sg;
+    }
+
+    private SteelGauge180Builder() {
     }
 
 }

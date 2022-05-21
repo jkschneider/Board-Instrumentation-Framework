@@ -32,28 +32,28 @@ import kutch.biff.marvin.widget.BaseWidget;
  * @author Patrick Kutch
  */
 public class PromptManager {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private static PromptManager _PromptManager = null;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static PromptManager promptManager;
 
     public static PromptManager getPromptManager() {
-        if (null == _PromptManager) {
-            _PromptManager = new PromptManager();
+        if (null == promptManager) {
+            promptManager = new PromptManager();
         }
-        return _PromptManager;
+        return promptManager;
     }
 
-    private ArrayList<BasePrompt> _Prompts = null;
+    private ArrayList<BasePrompt> prompts;
 
     public PromptManager() {
-        _Prompts = new ArrayList<>();
+        prompts = new ArrayList<>();
     }
 
-    public boolean addPrompt(String ID, BasePrompt prompt) {
-        if (null == getPrompt(ID)) {
-            _Prompts.add(prompt);
+    public boolean addPrompt(String id, BasePrompt prompt) {
+        if (null == getPrompt(id)) {
+            prompts.add(prompt);
 
         } else {
-            LOGGER.warning("Tried to add duplicate Prompt: " + ID + ". Ignoring.");
+            LOGGER.warning("Tried to add duplicate Prompt: " + id + ". Ignoring.");
         }
         return true;
     }
@@ -71,9 +71,9 @@ public class PromptManager {
             return false;
         }
 
-        if (strType.equalsIgnoreCase("ListBox")) {
+        if ("ListBox".equalsIgnoreCase(strType)) {
             objPrompt = new Prompt_ListBox(ID);
-        } else if (strType.equalsIgnoreCase("InputBox")) {
+        } else if ("InputBox".equalsIgnoreCase(strType)) {
             objPrompt = new Prompt_InputBox(ID);
         } else {
             LOGGER.severe("Invalid Prompt Object, Type[" + strType + "] is unknown ID=" + ID);
@@ -88,20 +88,20 @@ public class PromptManager {
         }
 
         for (FrameworkNode node : taskNode.getChildNodes(true)) {
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#Comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#Comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
             }
-            if (node.getNodeName().equalsIgnoreCase("StyleSheet")) {
+            if ("StyleSheet".equalsIgnoreCase(node.getNodeName())) {
                 objPrompt.setCssFile(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("StyleOverride")) {
+            } else if ("StyleOverride".equalsIgnoreCase(node.getNodeName())) {
                 String styleList = "";
 
                 for (FrameworkNode itemNode : node.getChildNodes()) {
-                    if (itemNode.getNodeName().equalsIgnoreCase("#Text")
-                            || node.getNodeName().equalsIgnoreCase("#comment")) {
+                    if ("#Text".equalsIgnoreCase(itemNode.getNodeName())
+                            || "#comment".equalsIgnoreCase(node.getNodeName())) {
                         continue;
                     }
-                    if (itemNode.getNodeName().equalsIgnoreCase("Item")) {
+                    if ("Item".equalsIgnoreCase(itemNode.getNodeName())) {
                         styleList += node.getTextContent() + ";";
                     } else {
                         LOGGER.severe("Unknown Tag under <Prompt> <StyleOverride>: " + itemNode.getNodeName());
@@ -109,9 +109,9 @@ public class PromptManager {
                     }
                 }
                 objPrompt.setStyleOverride(styleList);
-            } else if (node.getNodeName().equalsIgnoreCase("Title")) {
+            } else if ("Title".equalsIgnoreCase(node.getNodeName())) {
                 strTitle = node.getTextContent();
-            } else if (node.getNodeName().equalsIgnoreCase("Message")) {
+            } else if ("Message".equalsIgnoreCase(node.getNodeName())) {
                 strMessage = node.getTextContent();
             } else if (objPrompt.HandlePromptSpecificConfig(node)) {
                 continue;
@@ -133,7 +133,7 @@ public class PromptManager {
     }
 
     public BasePrompt getPrompt(String ID) {
-        for (BasePrompt prompt : _Prompts) {
+        for (BasePrompt prompt : prompts) {
             if (ID.equalsIgnoreCase(prompt.toString())) {
                 return prompt;
             }

@@ -34,28 +34,28 @@ import kutch.biff.marvin.utility.FrameworkNode;
  */
 public class SteelLCDWidget extends BaseWidget {
     private static double aspectRatio = 2.75;
-    private Lcd _LCD = null;
+    private Lcd lcd;
     private String UnitText;
     private boolean ShowMeasuredMax;
     private boolean ShowMeasuredMin;
     private double MinValue;
     private double MaxValue;
-    private boolean KeepAspectRatio;
-    private boolean _TextMode;
-    private String _InitialValue = "";
+    private boolean keepAspectRatio;
+    private boolean textMode;
+    private String initialValue = "";
 
     public SteelLCDWidget() {
-        _LCD = new Lcd();
-        KeepAspectRatio = true;
-        _TextMode = false;
+        lcd = new Lcd();
+        keepAspectRatio = true;
+        textMode = false;
 
         UnitText = "";
-        _LCD.setAnimationDuration(300);
+        lcd.setAnimationDuration(300);
     }
 
     @Override
     protected void ConfigureDimentions() {
-        if (KeepAspectRatio) {
+        if (keepAspectRatio) {
             if (getWidth() > 0) {
                 setHeight(getWidth() / aspectRatio);
             } else if (getHeight() > 0) {
@@ -71,24 +71,21 @@ public class SteelLCDWidget extends BaseWidget {
         if (false == SetupLCD()) {
             return false;
         }
-        if (_InitialValue.length() > 0) {
-            SetValue(_InitialValue);
+        if (initialValue.length() > 0) {
+            SetValue(initialValue);
         }
 
         ConfigureAlignment();
         ConfigureDimentions();
 
-        pane.add(_LCD, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(lcd, getColumn(), getRow(), getColumnSpan(), getRowSpan());
         SetupPeekaboo(dataMgr);
 
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
-                SetValue(newVal.toString());
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
             }
+            SetValue(newVal.toString());
         });
         SetupTaskAction();
 
@@ -105,16 +102,16 @@ public class SteelLCDWidget extends BaseWidget {
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return _LCD;
+        return lcd;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _LCD.getStylesheets();
+        return lcd.getStylesheets();
     }
 
     public boolean getTextMode() {
-        return _TextMode;
+        return textMode;
     }
 
     public String getUnitText() {
@@ -129,27 +126,27 @@ public class SteelLCDWidget extends BaseWidget {
      */
     @Override
     public boolean HandleValueRange(FrameworkNode rangeNode) {
-        double Min = -1234.5678;
-        double Max = -1234.5678;
+        double min = -1234.5678;
+        double max = -1234.5678;
         if (rangeNode.hasAttribute("Min")) {
-            Min = rangeNode.getDoubleAttribute("Min", Min);
-            if (Min == -1234.5678) {
+            min = rangeNode.getDoubleAttribute("Min", min);
+            if (min == -1234.5678) {
                 return false;
             }
-            this.MinValue = Min;
+            this.MinValue = min;
         }
         if (rangeNode.hasAttribute("Max")) {
-            Max = rangeNode.getDoubleAttribute("Max", Max);
-            if (Max == -1234.5678) {
+            max = rangeNode.getDoubleAttribute("Max", max);
+            if (max == -1234.5678) {
                 return false;
             }
-            this.MaxValue = Max;
+            this.MaxValue = max;
         }
         return true;
     }
 
     public boolean isKeepAspectRatio() {
-        return KeepAspectRatio;
+        return keepAspectRatio;
     }
 
     public boolean isShowMeasuredMax() {
@@ -162,87 +159,87 @@ public class SteelLCDWidget extends BaseWidget {
 
     @Override
     public void SetInitialValue(String value) {
-        _InitialValue = value;
+        initialValue = value;
     }
 
-    public void setKeepAspectRatio(boolean KeepAspectRation) {
-        this.KeepAspectRatio = KeepAspectRation;
+    public void setKeepAspectRatio(boolean keepAspectRation) {
+        this.keepAspectRatio = keepAspectRation;
     }
 
-    public void setMaxValue(double MaxValue) {
-        this.MaxValue = MaxValue;
+    public void setMaxValue(double maxValue) {
+        this.MaxValue = maxValue;
     }
 
-    public void setMinValue(double MinValue) {
-        this.MinValue = MinValue;
+    public void setMinValue(double minValue) {
+        this.MinValue = minValue;
     }
 
-    public void setShowMeasuredMax(boolean ShowMeasuredMax) {
-        this.ShowMeasuredMax = ShowMeasuredMax;
+    public void setShowMeasuredMax(boolean showMeasuredMax) {
+        this.ShowMeasuredMax = showMeasuredMax;
     }
 
-    public void setShowMeasuredMin(boolean ShowMeasuredMin) {
-        this.ShowMeasuredMin = ShowMeasuredMin;
+    public void setShowMeasuredMin(boolean showMeasuredMin) {
+        this.ShowMeasuredMin = showMeasuredMin;
     }
 
     public void setTextMode(boolean newMode) {
-        _TextMode = newMode;
-        _LCD.setTextMode(newMode);
+        textMode = newMode;
+        lcd.setTextMode(newMode);
         if (newMode) {
-            _LCD.setDecimals(0);
+            lcd.setDecimals(0);
         } else {
-            _LCD.setDecimals(getDecimalPlaces());
+            lcd.setDecimals(getDecimalPlaces());
         }
     }
 
-    public void setUnitText(String UnitText) {
-        this.UnitText = UnitText;
+    public void setUnitText(String unitText) {
+        this.UnitText = unitText;
     }
 
     private boolean SetupLCD() {
-        if (!_TextMode) {
-            _LCD.setMinMeasuredValueVisible(ShowMeasuredMin);
-            _LCD.setMaxMeasuredValueVisible(ShowMeasuredMax);
-            _LCD.setMaxValue(getMaxValue());
-            _LCD.setKeepAspect(KeepAspectRatio);
-            _LCD.setDecimals(getDecimalPlaces());
+        if (!textMode) {
+            lcd.setMinMeasuredValueVisible(ShowMeasuredMin);
+            lcd.setMaxMeasuredValueVisible(ShowMeasuredMax);
+            lcd.setMaxValue(getMaxValue());
+            lcd.setKeepAspect(keepAspectRatio);
+            lcd.setDecimals(getDecimalPlaces());
         }
 
         if (getTitle().length() > 0) {
-            _LCD.setTitle(getTitle());
+            lcd.setTitle(getTitle());
         }
         if (null != getUnitsOverride()) {
-            _LCD.setUnit(getUnitsOverride());
+            lcd.setUnit(getUnitsOverride());
             LOGGER.config("Overriding Widget Units Text to " + getUnitsOverride());
         } else if (UnitText.length() > 0) {
-            _LCD.setUnit(UnitText);
+            lcd.setUnit(UnitText);
         }
 
-        _LCD.setCrystalOverlayVisible(true); // 'rgainy, LCD like overlay, very subtle
+        lcd.setCrystalOverlayVisible(true); // 'rgainy, LCD like overlay, very subtle
         return true;
     }
 
     public void SetValue(String newVal) {
 //        if (true || !_TextMode)
-        if (!_TextMode) {
+        if (!textMode) {
             double newDialValue;
             String strVal = newVal;
             try {
                 newDialValue = Double.parseDouble(strVal);
                 setTextMode(false);
             } catch (NumberFormatException ex) {
-                _LCD.setText(strVal);
+                lcd.setText(strVal);
                 return;
             }
-            _LCD.setValue(newDialValue);
+            lcd.setValue(newDialValue);
         } else {
-            _LCD.setText(newVal);
+            lcd.setText(newVal);
         }
     }
 
     @Override
     public void UpdateTitle(String strTitle) {
-        _LCD.setTitle(strTitle);
+        lcd.setTitle(strTitle);
     }
 
 }

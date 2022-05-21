@@ -30,9 +30,9 @@ import kutch.biff.marvin.logger.MarvinLogger;
 /**
  * @author Patrick Kutch
  */
-public class Version {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private static Properties _Props = null;
+public final class Version {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static Properties _Props;
 
     /**
      *
@@ -100,5 +100,8 @@ public class Version {
             return Version.getProperties().getProperty("Year_Version");
         }
         return "0";
+    }
+
+    private Version() {
     }
 }

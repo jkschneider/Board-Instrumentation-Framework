@@ -41,10 +41,10 @@ import kutch.biff.marvin.configuration.Configuration;
  */
 public class Prompt_InputBox extends BasePrompt {
 
-    private String _PrevVal = null;
+    private String prevVal;
 
-    public Prompt_InputBox(String ID) {
-        super(ID);
+    public Prompt_InputBox(String id) {
+        super(id);
     }
 
     @Override
@@ -59,8 +59,8 @@ public class Prompt_InputBox extends BasePrompt {
         Label lblSpacer = new Label("  ");
         lblMessage.setWrapText(true);
         TextField objPrompt = new TextField();
-        if (null != _PrevVal) {
-            objPrompt.setText(_PrevVal);
+        if (null != prevVal) {
+            objPrompt.setText(prevVal);
         }
         root.setAlignment(Pos.CENTER_LEFT);
 
@@ -87,22 +87,19 @@ public class Prompt_InputBox extends BasePrompt {
 
         dialog.centerOnScreen();
 
-        objPrompt.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent ke) {
-                KeyCode kc = ke.getCode();
-                if (kc.equals(KeyCode.ENTER)) {
-                    SetPromptedValue(objPrompt.getText());
-                    _PrevVal = objPrompt.getText();
-                    dialog.close();
-                }
+        objPrompt.setOnKeyPressed((KeyEvent ke) -> {
+            KeyCode kc = ke.getCode();
+            if (kc.equals(KeyCode.ENTER)) {
+                SetPromptedValue(objPrompt.getText());
+                prevVal = objPrompt.getText();
+                dialog.close();
             }
         });
 
         btn.setOnAction((ActionEvent event) ->
         {
             SetPromptedValue(objPrompt.getText());
-            _PrevVal = objPrompt.getText();
+            prevVal = objPrompt.getText();
             dialog.close();
         });
 

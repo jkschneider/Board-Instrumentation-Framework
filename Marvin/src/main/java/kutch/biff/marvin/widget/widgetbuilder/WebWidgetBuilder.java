@@ -31,16 +31,16 @@ import kutch.biff.marvin.widget.WebWidget;
 /**
  * @author Patrick Kutch
  */
-public class WebWidgetBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class WebWidgetBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static WebWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         WebWidget _widget = new WebWidget();
 
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
-            } else if (node.getNodeName().equalsIgnoreCase("#comment")) {
-            } else if (node.getNodeName().equalsIgnoreCase("ReverseContent")) {
+            } else if ("#comment".equalsIgnoreCase(node.getNodeName())) {
+            } else if ("ReverseContent".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("True")) {
                     _widget.SetReverseContent(true);
@@ -54,5 +54,8 @@ public class WebWidgetBuilder {
             }
         }
         return _widget;
+    }
+
+    private WebWidgetBuilder() {
     }
 }

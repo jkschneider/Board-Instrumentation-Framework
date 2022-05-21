@@ -16,11 +16,11 @@ import kutch.biff.marvin.task.TaskManager;
  * @author Patrick
  */
 public class CompoundConditional extends Conditional {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     private static Conditional ReadCompoundConditional(FrameworkNode condNode) {
         String strType = null;
-        boolean CaseSensitive = false;
+        boolean caseSensitive = false;
 
         Utility.ValidateAttributes(new String[]{"CaseSensitive", "Type"}, condNode);
         if (!condNode.hasAttribute("type")) {
@@ -28,7 +28,7 @@ public class CompoundConditional extends Conditional {
             return null;
         }
         if (condNode.hasAttribute("CaseSensitive")) {
-            CaseSensitive = condNode.getBooleanAttribute("CaseSensitive");
+            caseSensitive = condNode.getBooleanAttribute("CaseSensitive");
         }
 
         strType = condNode.getAttribute("type");
@@ -40,13 +40,13 @@ public class CompoundConditional extends Conditional {
 
         Conditional objConditional = Conditional.BuildConditional(type, condNode, false);
         if (null != objConditional) {
-            objConditional.setCaseSensitive(CaseSensitive);
+            objConditional.setCaseSensitive(caseSensitive);
         }
 
         return objConditional;
     }
 
-    private final TaskManager TASKMAN = TaskManager.getTaskManager();
+    private final TaskManager taskman = TaskManager.getTaskManager();
     protected ArrayList<Conditional> AndList;
     protected ArrayList<Conditional> OrList;
 
@@ -72,17 +72,14 @@ public class CompoundConditional extends Conditional {
         if (!Objects.equals(this.AndList, other.AndList)) {
             return false;
         }
-        if (!Objects.equals(this.OrList, other.OrList)) {
-            return false;
-        }
-        return true;
+        return !(!Objects.equals(this.OrList, other.OrList));
     }
 
     protected void Evaluated(boolean evaluation) {
         if (evaluation) {
-            TASKMAN.AddDeferredTask(getThenTask());
+            taskman.AddDeferredTask(getThenTask());
         } else if (getElseTask() != null) {
-            TASKMAN.AddDeferredTask(getElseTask());
+            taskman.AddDeferredTask(getElseTask());
         }
     }
 

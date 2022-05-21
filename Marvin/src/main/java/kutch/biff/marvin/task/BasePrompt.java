@@ -37,23 +37,24 @@ import kutch.biff.marvin.widget.BaseWidget;
 /**
  * @author Patrick Kutch
  */
-abstract public class BasePrompt {
-    protected final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public abstract class BasePrompt {
+    protected static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     private String _dlgTitle;
     private String _Message;
     private String _Prompt;
-    private String _PromptedValue;
-    private String _ID;
-    private double _Width, _Height;
+    private String promptedValue;
+    private String _id;
+    private double _Width;
+    private double _Height;
     private String _StyleOverride;
     private String _CssFile;
 
-    public BasePrompt(String ID) {
+    public BasePrompt(String id) {
         _dlgTitle = null;
         _Message = null;
         _Prompt = null;
-        _PromptedValue = null;
-        _ID = ID;
+        promptedValue = null;
+        _id = id;
         _Width = 0;
         _Height = 0;
         _CssFile = null;
@@ -75,10 +76,6 @@ abstract public class BasePrompt {
 
         if (null != cssFile) {
             String osIndepFN = BaseWidget.convertToFileOSSpecific(cssFile);
-
-            if (null == osIndepFN) {
-
-            }
             String strCSS = BaseWidget.convertToFileURL(osIndepFN);
 
             if (null != strCSS) {
@@ -127,7 +124,7 @@ abstract public class BasePrompt {
     }
 
     public String GetPromptedValue() {
-        return _PromptedValue;
+        return promptedValue;
     }
 
     public String getStyleOverride() {
@@ -143,7 +140,7 @@ abstract public class BasePrompt {
     }
 
     public boolean PerformPrompt() {
-        _PromptedValue = null;
+        promptedValue = null;
         Stage objStage = CreateDialog();
         if (null == objStage) {
             return false;
@@ -158,41 +155,41 @@ abstract public class BasePrompt {
         this._CssFile = _CssFile;
     }
 
-    public void setDlgTitle(String _dlgTitle) {
-        this._dlgTitle = _dlgTitle;
+    public void setDlgTitle(String dlgTitle) {
+        this._dlgTitle = dlgTitle;
     }
 
-    public void setHeight(double _Height) {
-        this._Height = _Height;
+    public void setHeight(double height) {
+        this._Height = height;
     }
 
-    public void setMessage(String _Message) {
-        this._Message = _Message;
+    public void setMessage(String message) {
+        this._Message = message;
     }
 
-    public void setPrompt(String _Prompt) {
-        this._Prompt = _Prompt;
+    public void setPrompt(String prompt) {
+        this._Prompt = prompt;
     }
 
     protected void SetPromptedValue(String newValue) {
-        _PromptedValue = newValue;
+        promptedValue = newValue;
     }
 
-    public void setStyleOverride(String _StyleOverride) {
-        this._StyleOverride = _StyleOverride;
+    public void setStyleOverride(String styleOverride) {
+        this._StyleOverride = styleOverride;
     }
 
     protected Pane SetupDialog(Stage dialog) {
         return null;
     }
 
-    public void setWidth(double _Width) {
-        this._Width = _Width;
+    public void setWidth(double width) {
+        this._Width = width;
     }
 
     @Override
     public String toString() {
-        return _ID;
+        return _id;
     }
 
 }

@@ -40,9 +40,9 @@ import kutch.biff.marvin.widget.StackedBarChartWidget;
 /**
  * @author Patrick Kutch
  */
-public class ChartWidgetBuilder {
+public final class ChartWidgetBuilder {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static AreaChartWidget BuildAreaChart(FrameworkNode masterNode, String widgetDefFilename) {
         AreaChartWidget objWidget = new AreaChartWidget();
@@ -132,7 +132,7 @@ public class ChartWidgetBuilder {
             if (BaseWidget.HandleCommonDefinitionFileConfig(chart, node)) {
                 continue;
             }
-            if (node.getNodeName().equalsIgnoreCase("Animated")) {
+            if ("Animated".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("True")) {
                     chart.setAnimated(true);
@@ -143,7 +143,7 @@ public class ChartWidgetBuilder {
                             "Invalid Chart Widget Definition File.  Animated should be True or False, not:" + str);
                     return false;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Synchronized")) {
+            } else if ("Synchronized".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"MaxSyncWait"}, node);
                 String str = node.getTextContent();
                 boolean flag;
@@ -169,7 +169,7 @@ public class ChartWidgetBuilder {
                 }
                 chart.SetSynchronizeInformation(flag, interval);
 
-            } else if (node.getNodeName().equalsIgnoreCase("xAxis")) {
+            } else if ("xAxis".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"MajorTickInterval", "MinorTickInterval", "TickLabelVisible",
                         "MajorTickCount", "MinorTickCount"}, node);
                 if (node.hasAttribute("MajorTickInterval")) {
@@ -231,7 +231,7 @@ public class ChartWidgetBuilder {
                         return false;
                     }
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("yAxis")) {
+            } else if ("yAxis".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"MajorTickInterval", "MinorTickInterval", "TickLabelVisible",
                         "MajorTickCount", "MinorTickCount"}, node);
                 if (node.hasAttribute("MajorTickInterval")) {
@@ -298,6 +298,9 @@ public class ChartWidgetBuilder {
         }
 
         return true;
+    }
+
+    private ChartWidgetBuilder() {
     }
 
 }

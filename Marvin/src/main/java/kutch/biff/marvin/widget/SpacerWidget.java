@@ -32,11 +32,11 @@ import kutch.biff.marvin.datamanager.DataManager;
  */
 public class SpacerWidget extends BaseWidget {
     // private final Rectangle _panel;
-    private final Label _panel;
+    private final Label panel;
 
     public SpacerWidget() {
         // _panel = new Rectangle();
-        _panel = new Label();
+        panel = new Label();
         if (CONFIG.isDebugMode()) {
             AddAdditionalStyleOverride("-fx-background-color:red;");
         }
@@ -52,28 +52,28 @@ public class SpacerWidget extends BaseWidget {
         ConfigureDimentions();
         ConfigureAlignment();
 
-        pane.add(_panel, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(panel, getColumn(), getRow(), getColumnSpan(), getRowSpan());
         SetupTaskAction();
         return ApplyCSS();
     }
 
     protected Label GetPanel() {
-        return _panel;
+        return panel;
     }
 
     @Override
     public Region getRegionObject() {
-        return _panel;
+        return panel;
     }
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return _panel;
+        return panel;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _panel.getStylesheets();
+        return panel.getStylesheets();
     }
 
     @Override
