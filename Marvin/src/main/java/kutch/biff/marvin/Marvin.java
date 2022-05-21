@@ -859,37 +859,27 @@ public class Marvin extends Application {
         Image iconImg = new Image(resource.toString());
 
         stage.getIcons().add(iconImg);
-        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent window) {
-                scene.heightProperty().addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneHeight,
-                                        Number newSceneHeight) {
-                        scene.heightProperty().removeListener(this);
-                        Point2D canvasInScene = canvasPane.localToScene(0.0, 0.0);
-                        int cvHeight;
-                        int cvWidth;
-                        if (tabSide == Side.TOP || tabSide == Side.BOTTOM) {
-                            cvHeight = (int) (scene.getHeight() - canvasInScene.getY());
-                            cvWidth = (int) scene.getWidth();
-                        } else {
-                            cvHeight = (int) (scene.getHeight() - canvasInScene.getY());
-                            cvWidth = (int) (scene.getWidth() - canvasInScene.getX());
-                        }
-                        basicConfig.setCanvasWidth(cvWidth);
-                        basicConfig.setCanvasHeight(cvHeight);
+        stage.addEventHandler(WindowEvent.WINDOW_SHOWN, window -> {
+            scene.heightProperty().addListener((observableValue, oldSceneHeight, newSceneHeight) -> {
+                scene.heightProperty().removeListener(this);
+                Point2D canvasInScene = canvasPane.localToScene(0.0, 0.0);
+                int cvHeight;
+                int cvWidth;
+                if (tabSide == Side.TOP || tabSide == Side.BOTTOM) {
+                    cvHeight = (int) (scene.getHeight() - canvasInScene.getY());
+                    cvWidth = (int) scene.getWidth();
+                } else {
+                    cvHeight = (int) (scene.getHeight() - canvasInScene.getY());
+                    cvWidth = (int) (scene.getWidth() - canvasInScene.getX());
+                }
+                basicConfig.setCanvasWidth(cvWidth);
+                basicConfig.setCanvasHeight(cvHeight);
 
-                        stage.setIconified(true);
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                FinishLoad(stage);
-                            }
-                        });
-                    }
+                stage.setIconified(true);
+                Platform.runLater(() -> {
+                    FinishLoad(stage);
                 });
-            }
+            });
         });
 
         stage.show();

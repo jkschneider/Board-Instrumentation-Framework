@@ -28,6 +28,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import javafx.collections.ObservableList;
+
+import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SingleSelectionModel;
@@ -315,7 +317,7 @@ public class TabWidget extends GridWidget {
             if (_tab.isSelected()) {
                 _IgnoreFirstSelect = true; // 1st tab will get the selection changed notification on startup, ignore it
             }
-            _tab.setOnSelectionChanged(e ->
+            _tab.setOnSelectionChanged((Event e) ->
             {
                 if (_tab.isSelected()) {
                     if (!_IgnoreFirstSelect) {
