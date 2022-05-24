@@ -40,88 +40,91 @@ public class DynamicItemInfoContainer {
         NAMESPACE, ID, VALUE, NONE
     }
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     private final Pair<ArrayList<String>, ArrayList<String>> __namespaceCriterea;
     private final Pair<ArrayList<String>, ArrayList<String>> __idCriterea;
     private FrameworkNode __node;
-    private final HashMap<String, Boolean> __PreviouslyChecked;
-    private int __NumberOfMatchesUsingThisPattern;
-    private String __TokenizerToken;
-    private String __MatchedSortString;
+    private final HashMap<String, Boolean> previouslyChecked;
+    private int numberOfMatchesUsingThisPattern;
+    private String tokenizerToken;
+    private String matchedSortString;
 
-    private Map<String, String> __AliasListSnapshot = null;
+    private Map<String, String> aliasListSnapshot;
     ;
     private SortMethod __SortMethod;
-    private List<String> _StyleOverrideEven, _StyleOverrideOdd;
-    private String _StyleOverrideFileEven, _StyleOverrideFileOdd;
-    private String _StyleOverrideIDEven, _StyleOverrideIDOdd;
+    private List<String> styleOverrideEven;
+    private List<String> styleOverrideOdd;
+    private String styleOverrideFileEven;
+    private String styleOverrideFileOdd;
+    private String styleOverrideIDEven;
+    private String styleOverrideIDOdd;
 
     public DynamicItemInfoContainer(Pair<ArrayList<String>, ArrayList<String>> namespaceCriterea,
                                     Pair<ArrayList<String>, ArrayList<String>> idCriterea) {
-        __PreviouslyChecked = new HashMap<>();
+        previouslyChecked = new HashMap<>();
         __namespaceCriterea = namespaceCriterea;
         __idCriterea = idCriterea;
         __node = null;
-        __TokenizerToken = null;
-        __NumberOfMatchesUsingThisPattern = 0;
-        __MatchedSortString = "";
+        tokenizerToken = null;
+        numberOfMatchesUsingThisPattern = 0;
+        matchedSortString = "";
         __SortMethod = SortMethod.NONE;
-        _StyleOverrideEven = new ArrayList<>();
-        _StyleOverrideOdd = new ArrayList<>();
-        _StyleOverrideFileEven = _StyleOverrideFileOdd = null;
-        _StyleOverrideIDEven = _StyleOverrideIDOdd = null;
+        styleOverrideEven = new ArrayList<>();
+        styleOverrideOdd = new ArrayList<>();
+        styleOverrideFileEven = styleOverrideFileOdd = null;
+        styleOverrideIDEven = styleOverrideIDOdd = null;
     }
 
     public void ApplyOddEvenStyle(BaseWidget objWidget, int number) {
         if (number % 2 == 0) // even style
         {
-            if (null != _StyleOverrideFileEven) {
-                objWidget.setBaseCSSFilename(_StyleOverrideFileEven);
+            if (null != styleOverrideFileEven) {
+                objWidget.setBaseCSSFilename(styleOverrideFileEven);
             }
-            if (null != _StyleOverrideIDEven) {
-                objWidget.setStyleID(_StyleOverrideIDEven);
+            if (null != styleOverrideIDEven) {
+                objWidget.setStyleID(styleOverrideIDEven);
             }
             objWidget.addOnDemandStyle(getStyleOverrideEven());
         } else {
-            if (null != _StyleOverrideFileOdd) {
-                objWidget.setBaseCSSFilename(_StyleOverrideFileOdd);
+            if (null != styleOverrideFileOdd) {
+                objWidget.setBaseCSSFilename(styleOverrideFileOdd);
             }
-            if (null != _StyleOverrideIDOdd) {
-                objWidget.setStyleID(_StyleOverrideIDOdd);
+            if (null != styleOverrideIDOdd) {
+                objWidget.setStyleID(styleOverrideIDOdd);
             }
             objWidget.addOnDemandStyle(getStyleOverrideOdd());
         }
     }
 
-    public void ApplyOddEvenStyle(TabWidget objWidget, int number, String Title) {
+    public void ApplyOddEvenStyle(TabWidget objWidget, int number, String title) {
         if (number % 2 == 0) // even style
         {
             // LOGGER.severe("Applying Even Style to Tab " + Title);
-            if (null != _StyleOverrideFileEven) {
-                objWidget.setBaseCSSFilename(_StyleOverrideFileEven);
+            if (null != styleOverrideFileEven) {
+                objWidget.setBaseCSSFilename(styleOverrideFileEven);
             }
-            if (null != _StyleOverrideIDEven) {
-                objWidget.setStyleID(_StyleOverrideIDEven);
+            if (null != styleOverrideIDEven) {
+                objWidget.setStyleID(styleOverrideIDEven);
             }
             objWidget.addOnDemandStyle(getStyleOverrideEven());
         } else {
             // LOGGER.severe("Applying Odd Style to Tab " + Title);
-            if (null != _StyleOverrideFileOdd) {
-                objWidget.setBaseCSSFilename(_StyleOverrideFileOdd);
+            if (null != styleOverrideFileOdd) {
+                objWidget.setBaseCSSFilename(styleOverrideFileOdd);
             }
-            if (null != _StyleOverrideIDOdd) {
-                objWidget.setStyleID(_StyleOverrideIDOdd);
+            if (null != styleOverrideIDOdd) {
+                objWidget.setStyleID(styleOverrideIDOdd);
             }
             objWidget.addOnDemandStyle(getStyleOverrideOdd());
         }
     }
 
     public String getLastMatchedSortStr() {
-        return __MatchedSortString;
+        return matchedSortString;
     }
 
     public int getMatchedCount() {
-        return __NumberOfMatchesUsingThisPattern;
+        return numberOfMatchesUsingThisPattern;
     }
 
     public FrameworkNode getNode() {
@@ -133,15 +136,15 @@ public class DynamicItemInfoContainer {
     }
 
     public List<String> getStyleOverrideEven() {
-        return _StyleOverrideEven;
+        return styleOverrideEven;
     }
 
     public List<String> getStyleOverrideOdd() {
-        return _StyleOverrideOdd;
+        return styleOverrideOdd;
     }
 
     public String getToken() {
-        return __TokenizerToken;
+        return tokenizerToken;
     }
 
     private boolean Matches(String compare, Pair<ArrayList<String>, ArrayList<String>> patternPair) {
@@ -164,36 +167,36 @@ public class DynamicItemInfoContainer {
         return false;
     }
 
-    public boolean Matches(String namespace, String ID, String Value) {
-        __MatchedSortString = "";
+    public boolean Matches(String namespace, String id, String value) {
+        matchedSortString = "";
         namespace = namespace.toUpperCase();
-        ID = ID.toUpperCase();
+        id = id.toUpperCase();
         // if already checked, no need to do it again
-        if (__PreviouslyChecked.containsKey(namespace + ID)) {
+        if (previouslyChecked.containsKey(namespace + id)) {
             return false;
         }
-        if (__idCriterea.getKey().isEmpty() && __PreviouslyChecked.containsKey(namespace)) {
+        if (__idCriterea.getKey().isEmpty() && previouslyChecked.containsKey(namespace)) {
             return false;
         }
 
         boolean matched = Matches(namespace, __namespaceCriterea);
         if (matched && !__idCriterea.getKey().isEmpty()) {
-            matched = Matches(ID, __idCriterea);
+            matched = Matches(id, __idCriterea);
 
-            __PreviouslyChecked.put(namespace + ID, matched);
+            previouslyChecked.put(namespace + id, matched);
         } else {
-            __PreviouslyChecked.put(namespace, matched);
+            previouslyChecked.put(namespace, matched);
         }
         if (matched) {
-            __NumberOfMatchesUsingThisPattern++;
+            numberOfMatchesUsingThisPattern++;
             if (getSortByMethod() == SortMethod.NAMESPACE) {
-                __MatchedSortString = namespace;
+                matchedSortString = namespace;
             } else if (getSortByMethod() == SortMethod.ID) {
-                __MatchedSortString = ID;
+                matchedSortString = id;
             } else if (getSortByMethod() == SortMethod.VALUE) {
-                __MatchedSortString = Value;
+                matchedSortString = value;
             } else {
-                __MatchedSortString = null;
+                matchedSortString = null;
             }
 
         }
@@ -201,22 +204,22 @@ public class DynamicItemInfoContainer {
     }
 
     public void putAliasListSnapshot() {
-        if (null == __AliasListSnapshot) {
+        if (null == aliasListSnapshot) {
             return;
         }
         AliasMgr aMgr = AliasMgr.getAliasMgr();
-        for (String key : __AliasListSnapshot.keySet()) {
-            aMgr.SilentAddAlias(key, __AliasListSnapshot.get(key));
+        for (String key : aliasListSnapshot.keySet()) {
+            aMgr.SilentAddAlias(key, aliasListSnapshot.get(key));
         }
     }
 
     private List<String> readStyleItems(FrameworkNode styleNode) {
         ArrayList<String> retList = new ArrayList<>();
         for (FrameworkNode node : styleNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
             }
-            if (node.getNodeName().equalsIgnoreCase("Item")) {
+            if ("Item".equalsIgnoreCase(node.getNodeName())) {
                 retList.add(node.getTextContent());
             } else {
                 LOGGER.severe("Unknown Tag under Selected : " + node.getNodeName());
@@ -228,26 +231,26 @@ public class DynamicItemInfoContainer {
     public void ReadStyles(FrameworkNode onDemandNode) {
         if (onDemandNode.hasChild("StyleOverride-Even")) {
             FrameworkNode evenNode = onDemandNode.getChild("StyleOverride-Even");
-            _StyleOverrideEven = readStyleItems(evenNode);
+            styleOverrideEven = readStyleItems(evenNode);
 
             if (evenNode.hasAttribute("File")) {
-                _StyleOverrideFileEven = evenNode.getAttribute("File");
+                styleOverrideFileEven = evenNode.getAttribute("File");
             }
             if (evenNode.hasAttribute("ID")) {
-                _StyleOverrideIDEven = evenNode.getAttribute("ID");
+                styleOverrideIDEven = evenNode.getAttribute("ID");
 
             }
         }
 
         if (onDemandNode.hasChild("StyleOverride-Odd")) {
             FrameworkNode oddNode = onDemandNode.getChild("StyleOverride-Odd");
-            _StyleOverrideOdd = readStyleItems(oddNode);
+            styleOverrideOdd = readStyleItems(oddNode);
 
             if (oddNode.hasAttribute("File")) {
-                _StyleOverrideFileOdd = oddNode.getAttribute("File");
+                styleOverrideFileOdd = oddNode.getAttribute("File");
             }
             if (oddNode.hasAttribute("ID")) {
-                _StyleOverrideIDOdd = oddNode.getAttribute("ID");
+                styleOverrideIDOdd = oddNode.getAttribute("ID");
             }
         }
     }
@@ -261,15 +264,15 @@ public class DynamicItemInfoContainer {
     }
 
     public void setToken(String strToken) {
-        __TokenizerToken = strToken;
+        tokenizerToken = strToken;
     }
 
     public void TakeAliasSnapshot() {
-        __AliasListSnapshot = AliasMgr.getAliasMgr().getSnapshot();
+        aliasListSnapshot = AliasMgr.getAliasMgr().getSnapshot();
     }
 
     public String[] tokenize(String ID) {
-        if (getToken().equalsIgnoreCase(".")) {
+        if (".".equalsIgnoreCase(getToken())) {
             return ID.split("\\.");
         }
         return ID.split(getToken());
@@ -285,8 +288,8 @@ public class DynamicItemInfoContainer {
         }
         int index = 1;
         for (String token : tokens) {
-            String Alias = "TriggeredIDPart." + Integer.toString(index++);
-            AliasMgr.getAliasMgr().AddAlias(Alias, token);
+            String alias = "TriggeredIDPart." + Integer.toString(index++);
+            AliasMgr.getAliasMgr().AddAlias(alias, token);
         }
         return true;
     }

@@ -27,8 +27,11 @@ import kutch.biff.marvin.widget.SpacerWidget;
 /**
  * @author Patrick Kutch
  */
-public class SpacerWidgetBuilder {
+public final class SpacerWidgetBuilder {
     public static SpacerWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         return new SpacerWidget();
+    }
+
+    private SpacerWidgetBuilder() {
     }
 }

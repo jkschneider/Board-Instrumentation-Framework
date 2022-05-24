@@ -35,27 +35,27 @@ import kutch.biff.marvin.logger.MarvinLogger;
 import kutch.biff.marvin.widget.BaseWidget;
 
 public abstract class MarvinChangeListener implements ChangeListener<Object> {
-    protected final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private ValueRange __valueRange;
-    private boolean __ProcessRanges;
+    protected static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private ValueRange valueRange;
+    private boolean processRanges;
     private String __tokenChar;
 
     public MarvinChangeListener(ValueRange objRange, String tokenChar) {
-        __valueRange = objRange;
+        valueRange = objRange;
         __tokenChar = tokenChar;
-        if (__valueRange.getMinimum() > -1) {
-            __ProcessRanges = true;
+        if (valueRange.getMinimum() > -1) {
+            processRanges = true;
         } else {
-            __ProcessRanges = false;
+            processRanges = false;
         }
     }
 
     @Override
     public void changed(ObservableValue<?> arg0, Object arg1, Object arg2) {
-        if (!__ProcessRanges) {
+        if (!processRanges) {
             onChanged(arg2.toString());
         } else {
-            String retStr = BaseWidget.ProcessIndexDataRequest(__valueRange, __tokenChar, arg2.toString());
+            String retStr = BaseWidget.ProcessIndexDataRequest(valueRange, __tokenChar, arg2.toString());
             if (null != retStr) {
                 onChanged(retStr);
             } else {

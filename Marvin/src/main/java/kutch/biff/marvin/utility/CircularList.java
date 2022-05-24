@@ -32,35 +32,35 @@ public class CircularList<T> extends ArrayList<T> {
      *
      */
     private static final long serialVersionUID = -6542607529993640355L;
-    private int _LastUsedIndex = 0;
+    private int lastUsedIndex;
 
     @Override
     public T get(int index) {
         if (index < 0) {
-            _LastUsedIndex = size() - 1;
+            lastUsedIndex = size() - 1;
         } else if (index >= size()) {
-            _LastUsedIndex = 0;
+            lastUsedIndex = 0;
         } else if (index < size()) {
-            _LastUsedIndex = index;
+            lastUsedIndex = index;
         }
 
-        return super.get(_LastUsedIndex);
+        return super.get(lastUsedIndex);
     }
 
-    public T get(String ID) {
-        ID = ID.toLowerCase();
-        if (contains(ID)) {
-            _LastUsedIndex = lastIndexOf(ID);
+    public T get(String id) {
+        id = id.toLowerCase();
+        if (contains(id)) {
+            lastUsedIndex = lastIndexOf(id);
         }
-        return get(_LastUsedIndex);
+        return get(lastUsedIndex);
     }
 
     public T GetNext() {
-        return get(_LastUsedIndex + 1);
+        return get(lastUsedIndex + 1);
     }
 
     public T GetPrevious() {
-        return get(_LastUsedIndex - 1);
+        return get(lastUsedIndex - 1);
     }
 
     public boolean IsLast(String ID) {

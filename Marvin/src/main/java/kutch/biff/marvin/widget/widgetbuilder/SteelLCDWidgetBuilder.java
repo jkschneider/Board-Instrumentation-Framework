@@ -31,8 +31,8 @@ import kutch.biff.marvin.widget.SteelLCDWidget;
 /**
  * @author Patrick Kutch
  */
-public class SteelLCDWidgetBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class SteelLCDWidgetBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static SteelLCDWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         SteelLCDWidget lcd = new SteelLCDWidget();
@@ -40,7 +40,7 @@ public class SteelLCDWidgetBuilder {
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(lcd, node)) {
                 continue;
-            } else if (node.getNodeName().equalsIgnoreCase("MinValue")) {
+            } else if ("MinValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     lcd.setMinValue(Double.parseDouble(str));
@@ -48,7 +48,7 @@ public class SteelLCDWidgetBuilder {
                     LOGGER.severe("Invalid MinValue in Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MaxValue")) {
+            } else if ("MaxValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     lcd.setMaxValue(Double.parseDouble(str));
@@ -56,7 +56,7 @@ public class SteelLCDWidgetBuilder {
                     LOGGER.severe("Invalid MaxValue in SteelSimpleGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Decimals")) {
+            } else if ("Decimals".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     lcd.setDecimalPlaces(Integer.parseInt(str));
@@ -64,13 +64,13 @@ public class SteelLCDWidgetBuilder {
                     LOGGER.severe("Invalid Decimals in SteelSimpleGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("UnitText")) {
+            } else if ("UnitText".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 lcd.setUnitText(str);
-            } else if (node.getNodeName().equalsIgnoreCase("UnitText")) {
+            } else if ("UnitText".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 lcd.setUnitText(str);
-            } else if (node.getNodeName().equalsIgnoreCase("KeepAspectRatio")) {
+            } else if ("KeepAspectRatio".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("False")) {
                     lcd.setKeepAspectRatio(false);
@@ -81,7 +81,7 @@ public class SteelLCDWidgetBuilder {
                             + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("ShowMaxMeasuredValue")) {
+            } else if ("ShowMaxMeasuredValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("True")) {
                     lcd.setShowMeasuredMax(true);
@@ -93,7 +93,7 @@ public class SteelLCDWidgetBuilder {
                                     + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("ShowMinMeasuredValue")) {
+            } else if ("ShowMinMeasuredValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("True")) {
                     lcd.setShowMeasuredMin(true);
@@ -111,5 +111,8 @@ public class SteelLCDWidgetBuilder {
             }
         }
         return lcd;
+    }
+
+    private SteelLCDWidgetBuilder() {
     }
 }

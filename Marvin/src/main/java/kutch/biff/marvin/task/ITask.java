@@ -31,5 +31,5 @@ public interface ITask {
 
     void PerformTask();
 
-    public void setPostponePeriod(long Period);
+    public void setPostponePeriod(long period);
 }

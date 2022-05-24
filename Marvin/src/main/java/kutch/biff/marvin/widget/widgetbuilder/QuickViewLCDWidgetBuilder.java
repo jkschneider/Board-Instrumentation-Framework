@@ -32,16 +32,16 @@ import kutch.biff.marvin.widget.QuickViewWidget;
 /**
  * @author Patrick Kutch
  */
-public class QuickViewLCDWidgetBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class QuickViewLCDWidgetBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static QuickViewLCDWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         QuickViewLCDWidget _widget = new QuickViewLCDWidget();
 
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
-            } else if (node.getNodeName().equalsIgnoreCase("#comment")) {
-            } else if (node.getNodeName().equalsIgnoreCase("RowWidth")) {
+            } else if ("#comment".equalsIgnoreCase(node.getNodeName())) {
+            } else if ("RowWidth".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     _widget.setRowWidth(Integer.parseInt(str));
@@ -49,23 +49,23 @@ public class QuickViewLCDWidgetBuilder {
                     LOGGER.severe("Invalid <RowWidth> in QuickViewWidget Widget Definition File : " + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("EvenBackgroundStyle")) {
+            } else if ("EvenBackgroundStyle".equalsIgnoreCase(node.getNodeName())) {
                 _widget.setEvenBackgroundStyle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("EvenStyle")) {
-                String ID = "";
+            } else if ("EvenStyle".equalsIgnoreCase(node.getNodeName())) {
+                String id = "";
                 if (node.hasAttribute("ID")) {
-                    ID = node.getAttribute("ID");
+                    id = node.getAttribute("ID");
                 }
-                _widget.setEvenStyle(ID, node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("OddBackgroundStyle")) {
+                _widget.setEvenStyle(id, node.getTextContent());
+            } else if ("OddBackgroundStyle".equalsIgnoreCase(node.getNodeName())) {
                 _widget.setOddBackgroundStyle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("OddStyle")) {
+            } else if ("OddStyle".equalsIgnoreCase(node.getNodeName())) {
                 String ID = "";
                 if (node.hasAttribute("ID")) {
                     ID = node.getAttribute("ID");
                 }
                 _widget.setOddStyle(ID, node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("Order")) {
+            } else if ("Order".equalsIgnoreCase(node.getNodeName())) {
                 String strVal = node.getTextContent();
                 if (strVal.equalsIgnoreCase(QuickViewWidget.SortMode.Ascending.toString())) {
                     _widget.setSortMode(QuickViewLCDWidget.SortMode.Ascending);
@@ -84,6 +84,9 @@ public class QuickViewLCDWidgetBuilder {
 
         }
         return _widget;
+    }
+
+    private QuickViewLCDWidgetBuilder() {
     }
 
 }

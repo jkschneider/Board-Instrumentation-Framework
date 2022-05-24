@@ -28,17 +28,17 @@ import kutch.biff.marvin.datamanager.DataManager;
  */
 
 public class DataPointGenerator {
-    private String __Namespace;
-    private String __ID;
+    private String namespace;
+    private String __id;
     private String __Value;
 
-    public DataPointGenerator(String Namesace, String ID, String Value) {
-        __Namespace = Namesace;
-        __ID = ID;
-        __Value = Value;
+    public DataPointGenerator(String namesace, String id, String value) {
+        namespace = namesace;
+        __id = id;
+        __Value = value;
     }
 
     public void generate() {
-        DataManager.getDataManager().ChangeValue(__ID, __Namespace, __Value);
+        DataManager.getDataManager().ChangeValue(__id, namespace, __Value);
     }
 }

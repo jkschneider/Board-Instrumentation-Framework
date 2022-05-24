@@ -30,72 +30,72 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class PanelSideInfo {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private String ButtonText;
-    private String CSSFile;
-    private String StyleID;
-    private Pos Position;
-    private boolean ButtonOnTop;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private String buttonText;
+    private String cSSFile;
+    private String styleID;
+    private Pos position;
+    private boolean buttonOnTop;
 
-    public PanelSideInfo(String loc, String text, String ID, String file) {
-        ButtonText = text;
-        StyleID = ID;
-        CSSFile = file;
-        ButtonOnTop = true;
-        Position = setButtonAlignment(loc);
+    public PanelSideInfo(String loc, String text, String id, String file) {
+        buttonText = text;
+        styleID = id;
+        cSSFile = file;
+        buttonOnTop = true;
+        position = setButtonAlignment(loc);
     }
 
     public Pos GetButtonAlignment() {
-        return this.Position;
+        return this.position;
     }
 
     public String getButtonText() {
-        if (null == ButtonText) {
+        if (null == buttonText) {
             return "";
         }
-        return ButtonText;
+        return buttonText;
     }
 
     public String getCSSFile() {
-        if (null == CSSFile) {
+        if (null == cSSFile) {
             return "";
         }
-        return CSSFile;
+        return cSSFile;
     }
 
     public String getStyleID() {
-        return StyleID;
+        return styleID;
     }
 
     public boolean IsButtonOnTop() {
-        return ButtonOnTop;
+        return buttonOnTop;
     }
 
     private Pos setButtonAlignment(String alignString) {
         if (0 == alignString.compareToIgnoreCase("Center")) {
-            return (Pos.CENTER);
+            return Pos.CENTER;
         } else if (0 == alignString.compareToIgnoreCase("N")) {
-            return (Pos.TOP_CENTER);
+            return Pos.TOP_CENTER;
         } else if (0 == alignString.compareToIgnoreCase("NE")) {
-            return (Pos.TOP_RIGHT);
+            return Pos.TOP_RIGHT;
         } else if (0 == alignString.compareToIgnoreCase("E")) {
-            return (Pos.CENTER_RIGHT);
+            return Pos.CENTER_RIGHT;
         } else if (0 == alignString.compareToIgnoreCase("SE")) {
-            ButtonOnTop = false;
-            return (Pos.BOTTOM_RIGHT);
+            buttonOnTop = false;
+            return Pos.BOTTOM_RIGHT;
         } else if (0 == alignString.compareToIgnoreCase("S")) {
-            ButtonOnTop = false;
-            return (Pos.BOTTOM_CENTER);
+            buttonOnTop = false;
+            return Pos.BOTTOM_CENTER;
         } else if (0 == alignString.compareToIgnoreCase("SW")) {
-            ButtonOnTop = false;
-            return (Pos.BOTTOM_LEFT);
+            buttonOnTop = false;
+            return Pos.BOTTOM_LEFT;
         } else if (0 == alignString.compareToIgnoreCase("W")) {
-            return (Pos.CENTER_LEFT);
+            return Pos.CENTER_LEFT;
         } else if (0 == alignString.compareToIgnoreCase("NW")) {
-            return (Pos.TOP_LEFT);
+            return Pos.TOP_LEFT;
         } else {
             LOGGER.severe("Invalid FlipPanel Button in config file: " + alignString + ". Ignoring.");
-            return (Pos.CENTER_LEFT);
+            return Pos.CENTER_LEFT;
         }
     }
 }

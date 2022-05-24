@@ -33,9 +33,9 @@ import kutch.biff.marvin.widget.FlipPanelWidget;
 /**
  * @author Patrick Kutch
  */
-public class FlipPanelWidgetBuilder {
+public final class FlipPanelWidgetBuilder {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static FlipPanelWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         FlipPanelWidget _panel = new FlipPanelWidget();
@@ -43,7 +43,7 @@ public class FlipPanelWidgetBuilder {
             if (BaseWidget.HandleCommonDefinitionFileConfig(_panel, node)) {
                 continue;
             }
-            if (node.getNodeName().equalsIgnoreCase("AnimationDuration")) {
+            if ("AnimationDuration".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     _panel.setAnimationDuration(Double.parseDouble(str));
@@ -51,7 +51,7 @@ public class FlipPanelWidgetBuilder {
                     LOGGER.severe("Invlid value for <AnimationDuration> tag for FlipPanel Widget");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("RotationDirection")) {
+            } else if ("RotationDirection".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("Horizontal")) {
                     _panel.setOrientation(Orientation.HORIZONTAL);
@@ -63,41 +63,41 @@ public class FlipPanelWidgetBuilder {
                                     + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("FrontButton")
-                    || node.getNodeName().equalsIgnoreCase("BackButton")) {
-                String BtnText = null;
-                String StyleFile = null;
-                String StyleID = null;
-                String Location = null;
+            } else if ("FrontButton".equalsIgnoreCase(node.getNodeName())
+                    || "BackButton".equalsIgnoreCase(node.getNodeName())) {
+                String btnText = null;
+                String styleFile = null;
+                String styleID = null;
+                String location = null;
 
                 if (node.hasAttribute("Text")) {
-                    BtnText = node.getAttribute("Text");
+                    btnText = node.getAttribute("Text");
                 }
                 if (node.hasAttribute("Position")) {
-                    Location = node.getAttribute("Position");
+                    location = node.getAttribute("Position");
                 } else {
                     LOGGER.severe("No Position set for FlipPanel Button");
                     return null;
                 }
                 for (FrameworkNode iNode : node.getChildNodes()) {
-                    if (iNode.getNodeName().equalsIgnoreCase("#text")
-                            || iNode.getNodeName().equalsIgnoreCase("#comment")) {
+                    if ("#text".equalsIgnoreCase(iNode.getNodeName())
+                            || "#comment".equalsIgnoreCase(iNode.getNodeName())) {
                         continue;
                     }
-                    if (iNode.getNodeName().equalsIgnoreCase("Style")) {
-                        StyleFile = iNode.getTextContent();
+                    if ("Style".equalsIgnoreCase(iNode.getNodeName())) {
+                        styleFile = iNode.getTextContent();
                         if (iNode.hasAttribute("ID")) {
-                            StyleID = iNode.getAttribute("ID");
+                            styleID = iNode.getAttribute("ID");
                         }
                     }
                 }
-                if (null == Location || null == StyleFile) {
+                if (null == location || null == styleFile) {
                     LOGGER.severe("Invalid Flip Panel side definition :" + node.getNodeName());
                     return null;
                 }
 
-                PanelSideInfo panel = new PanelSideInfo(Location, BtnText, StyleID, StyleFile);
-                if (node.getNodeName().equalsIgnoreCase("FrontButton")) {
+                PanelSideInfo panel = new PanelSideInfo(location, btnText, styleID, styleFile);
+                if ("FrontButton".equalsIgnoreCase(node.getNodeName())) {
                     _panel.setFrontInfo(panel);
                 } else {
                     _panel.setBackInfo(panel);
@@ -108,6 +108,9 @@ public class FlipPanelWidgetBuilder {
             }
         }
         return _panel;
+    }
+
+    private FlipPanelWidgetBuilder() {
     }
 
 }

@@ -52,40 +52,41 @@ public abstract class MediaPlayerWidget extends BaseWidget {
         }
     }
 
-    private HashMap<String, String> _MediaURI;
-    private HashMap<String, String> _MediaFilesAndTags;
+    private HashMap<String, String> mediaURI;
+    private HashMap<String, String> mediaFilesAndTags;
     protected HashMap<String, String> _TaskMap;
-    private CircularList<String> _ListOfIDs;
+    private CircularList<String> listOfIDs;
     protected String _CurrentMediaID;
     private MediaPlayer _mediaPlayer;
     private boolean _RepeatList;
     private boolean _RepeatSingleMedia;
-    private final String _WidgetType;
-    private String _PlaybackControlID, _PlaybackControl_Namespace;
+    private final String widgetType;
+    private String playbackControlID;
+    private String playbackControlNamespace;
     private boolean _AutoStart;
     private double _VolumeLevel;
 
-    private HashMap<String, List<Pair<String, String>>> _EventMarkerMap; // each Media (in has by ID) has a potiential
+    private HashMap<String, List<Pair<String, String>>> eventMarkerMap; // each Media (in has by ID) has a potiential
     // list of Markers
 
     public MediaPlayerWidget(String strType) {
-        _WidgetType = strType;
-        _ListOfIDs = new CircularList<>();
-        _MediaURI = new HashMap<>();
+        widgetType = strType;
+        listOfIDs = new CircularList<>();
+        mediaURI = new HashMap<>();
         _CurrentMediaID = null;
-        _PlaybackControlID = null;
-        _PlaybackControlID = null;
+        playbackControlID = null;
+        playbackControlID = null;
         _RepeatList = false;
         _RepeatSingleMedia = false;
         _mediaPlayer = null;
-        _MediaFilesAndTags = new HashMap<>();
+        mediaFilesAndTags = new HashMap<>();
         _TaskMap = new HashMap<>();
         _AutoStart = false;
         _VolumeLevel = 50;
-        _EventMarkerMap = new HashMap<>();
+        eventMarkerMap = new HashMap<>();
     }
 
-    public boolean AddMediaFile(String newFile, String ID) {
+    public boolean AddMediaFile(String newFile, String id) {
         if (null == newFile) {
             return false;
         }
@@ -102,12 +103,12 @@ public abstract class MediaPlayerWidget extends BaseWidget {
                 Media objMedia = getMedia(uriFile); // just a test
 
                 if (null != objMedia) {
-                    if (false == _MediaURI.containsKey(ID)) {
-                        _MediaURI.put(ID, uriFile); // has of uri's
-                        _ListOfIDs.add(ID);
+                    if (false == mediaURI.containsKey(id)) {
+                        mediaURI.put(id, uriFile); // has of uri's
+                        listOfIDs.add(id);
                         return true;
                     }
-                    LOGGER.severe("Duplicate media ID specified for " + _WidgetType + " Widget:" + ID);
+                    LOGGER.severe("Duplicate media ID specified for " + widgetType + " Widget:" + id);
                 }
             } catch (Exception ex) {
                 LOGGER.severe(newFile + " is not a valid or supported media file ");
@@ -123,17 +124,15 @@ public abstract class MediaPlayerWidget extends BaseWidget {
     }
 
     private void ConfigurePlayback(DataManager dataMgr) {
-        dataMgr.AddListener(_PlaybackControlID, _PlaybackControl_Namespace, new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                String strPlaybackCmd = newVal.toString();
-                if (strPlaybackCmd.equalsIgnoreCase("Play")) {
-                    OnPlay();
-                } else if (strPlaybackCmd.equalsIgnoreCase("Pause")) {
-                    OnPause();
-                } else if (strPlaybackCmd.equalsIgnoreCase("Stop")) {
-                    OnStop();
-                } else if (strPlaybackCmd.contains(":")) // could be Volume or JumpTo
+        dataMgr.AddListener(playbackControlID, playbackControlNamespace, (ObservableValue o, Object oldVal, Object newVal) -> {
+            String strPlaybackCmd = newVal.toString();
+            if ("Play".equalsIgnoreCase(strPlaybackCmd)) {
+                OnPlay();
+            } else if ("Pause".equalsIgnoreCase(strPlaybackCmd)) {
+                OnPause();
+            } else if ("Stop".equalsIgnoreCase(strPlaybackCmd)) {
+                OnStop();
+            } else if (strPlaybackCmd.contains(":")) // could be Volume or JumpTo
                 {
                     String[] parts = strPlaybackCmd.split(":");
                     double dVal;
@@ -142,21 +141,20 @@ public abstract class MediaPlayerWidget extends BaseWidget {
                         try {
                             dVal = Double.parseDouble(parts[1]);
                         } catch (NumberFormatException ex) {
-                            LOGGER.severe(_WidgetType + " received invalid command --> " + strPlaybackCmd);
+                            LOGGER.severe(widgetType + " received invalid command --> " + strPlaybackCmd);
                             return;
                         }
-                        if (strTask.equalsIgnoreCase("Volume")) {
+                        if ("Volume".equalsIgnoreCase(strTask)) {
                             OnSetVolume(dVal);
-                        } else if (strTask.equalsIgnoreCase("JumpTo")) {
+                        } else if ("JumpTo".equalsIgnoreCase(strTask)) {
                             OnJumpTo(dVal);
                         } else {
-                            LOGGER.severe(_WidgetType + " received invalid command --> " + strPlaybackCmd);
+                            LOGGER.severe(widgetType + " received invalid command --> " + strPlaybackCmd);
                         }
                     } else {
-                        LOGGER.severe(_WidgetType + " received invalid command --> " + strPlaybackCmd);
+                        LOGGER.severe(widgetType + " received invalid command --> " + strPlaybackCmd);
                     }
                 }
-            }
         });
     }
 
@@ -171,37 +169,34 @@ public abstract class MediaPlayerWidget extends BaseWidget {
             return true;
         }
 
-        if (_ListOfIDs.size() == 1) {
-            _CurrentMediaID = _ListOfIDs.get(0);
+        if (listOfIDs.size() == 1) {
+            _CurrentMediaID = listOfIDs.get(0);
         }
-        if (null != _PlaybackControlID && null != _PlaybackControl_Namespace) {
+        if (null != playbackControlID && null != playbackControlNamespace) {
             ConfigurePlayback(dataMgr);
         }
 
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                String strVal = newVal.toString().replaceAll("(\\r|\\n)", "");
-                String key;
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+            String strVal = newVal.toString().replaceAll("(\\r|\\n)", "");
+            String key;
 
-                if (strVal.equalsIgnoreCase("Next")) // go to next media in the list
+            if ("Next".equalsIgnoreCase(strVal)) // go to next media in the list
                 {
-                    key = _ListOfIDs.GetNext();
-                } else if (strVal.equalsIgnoreCase("Previous")) // go to previous media in the list
+                    key = listOfIDs.GetNext();
+                } else if ("Previous".equalsIgnoreCase(strVal)) // go to previous media in the list
                 {
-                    key = _ListOfIDs.GetPrevious();
+                    key = listOfIDs.GetPrevious();
                 } else {
-                    key = strVal; // expecting an ID
-                    _ListOfIDs.get(key); // just to keep next/prev alignment
-                }
-
-                key = key.toLowerCase();
-                PlayMedia(key);
+                key = strVal; // expecting an ID
+                listOfIDs.get(key); // just to keep next/prev alignment
             }
+
+            key = key.toLowerCase();
+            PlayMedia(key);
         });
 
         if (null != _CurrentMediaID) {
-            _ListOfIDs.get(_CurrentMediaID);
+            listOfIDs.get(_CurrentMediaID);
             if (!PlayMedia(_CurrentMediaID)) {
                 return false;
             }
@@ -217,7 +212,7 @@ public abstract class MediaPlayerWidget extends BaseWidget {
     }
 
     private MediaPlayer CreateMediaPlayer(String strID) {
-        if (false == _MediaURI.containsKey(strID)) {
+        if (false == mediaURI.containsKey(strID)) {
             LOGGER.severe("Tried to read media with ID of " + strID);
             return null;
         }
@@ -225,7 +220,7 @@ public abstract class MediaPlayerWidget extends BaseWidget {
             return null;
         }
         String strFileID = BaseWidget.convertToFileOSSpecific(strID);
-        Media objMedia = getMedia(_MediaURI.get(strFileID)); // just a test
+        Media objMedia = getMedia(mediaURI.get(strFileID)); // just a test
         MediaPlayer objPlayer;
         try {
             objPlayer = new MediaPlayer(objMedia);
@@ -233,10 +228,10 @@ public abstract class MediaPlayerWidget extends BaseWidget {
             objPlayer.setOnError(() ->
             {
                 if (null != objMedia && null != objMedia.getError()) {
-                    LOGGER.severe("Unable to play media file: " + _MediaURI.get(strFileID) + ". "
+                    LOGGER.severe("Unable to play media file: " + mediaURI.get(strFileID) + ". "
                             + objMedia.getError().getMessage());
                 } else {
-                    LOGGER.severe("Unable to play media file: " + _MediaURI.get(strFileID) + ". ");
+                    LOGGER.severe("Unable to play media file: " + mediaURI.get(strFileID) + ". ");
                 }
                 OnErrorOcurred();
             });
@@ -247,15 +242,15 @@ public abstract class MediaPlayerWidget extends BaseWidget {
             });
             objPlayer.setOnPaused(() ->
             {
-                LOGGER.info(_WidgetType + " [" + strID + "] --> Paused");
+                LOGGER.info(widgetType + " [" + strID + "] --> Paused");
             });
             objPlayer.setOnPlaying(() ->
             {
-                LOGGER.info(_WidgetType + " [" + strID + "] --> Playing");
+                LOGGER.info(widgetType + " [" + strID + "] --> Playing");
             });
             objPlayer.setOnStopped(() ->
             {
-                LOGGER.info(_WidgetType + " [" + strID + "] --> Stopped");
+                LOGGER.info(widgetType + " [" + strID + "] --> Stopped");
             });
         } catch (Exception ex) {
             LOGGER.severe(ex.toString());
@@ -267,18 +262,18 @@ public abstract class MediaPlayerWidget extends BaseWidget {
     private boolean GetMarkers(FrameworkNode mediaNode, String inputType, List<Pair<String, String>> markers) {
         if (mediaNode.hasChild("Task")) {
             for (FrameworkNode node : mediaNode.getChildNodes()) {
-                if (node.getNodeName().equalsIgnoreCase("Task")) {
-                    String Task = node.getTextContent();
+                if ("Task".equalsIgnoreCase(node.getNodeName())) {
+                    String task = node.getTextContent();
                     if (node.hasAttribute("Marker")) {
                         String strMarker = node.getAttribute("Marker");
                         if (VerifyMarker(strMarker)) {
-                            markers.add(new Pair<>(strMarker, Task)); // add the marker and the task to the list
+                            markers.add(new Pair<>(strMarker, task)); // add the marker and the task to the list
                         } else {
-                            LOGGER.severe(_WidgetType + "has invalid Marker associated with Task: " + strMarker);
+                            LOGGER.severe(widgetType + "has invalid Marker associated with Task: " + strMarker);
                             return false;
                         }
                     } else {
-                        LOGGER.severe(_WidgetType + "has invalid no Marker associated with Task");
+                        LOGGER.severe(widgetType + "has invalid no Marker associated with Task");
                         return false;
                     }
                 }
@@ -308,43 +303,43 @@ public abstract class MediaPlayerWidget extends BaseWidget {
     }
 
     public String getWidgetType() {
-        return _WidgetType;
+        return widgetType;
     }
 
     protected boolean HandleWidgetSpecificSettings(FrameworkNode node, String inputType) {
-        if (node.getNodeName().equalsIgnoreCase("Initial")) {
+        if ("Initial".equalsIgnoreCase(node.getNodeName())) {
             if (node.hasAttribute("ID")) {
                 _CurrentMediaID = node.getAttribute("ID");
                 return true;
             }
-            LOGGER.config("No ID for <Initial> tag for " + _WidgetType + " ignoring");
-        } else if (node.getNodeName().equalsIgnoreCase("AutoStart")) {
+            LOGGER.config("No ID for <Initial> tag for " + widgetType + " ignoring");
+        } else if ("AutoStart".equalsIgnoreCase(node.getNodeName())) {
             _AutoStart = node.getBooleanValue();
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("PlaybackControl")) {
+        } else if ("PlaybackControl".equalsIgnoreCase(node.getNodeName())) {
             if (node.hasAttribute("ID")) {
-                _PlaybackControlID = node.getAttribute("ID");
+                playbackControlID = node.getAttribute("ID");
             }
             if (node.hasAttribute("Namespace")) {
-                _PlaybackControl_Namespace = node.getAttribute("Namespace");
+                playbackControlNamespace = node.getAttribute("Namespace");
             }
-            if (null == _PlaybackControl_Namespace && null == _PlaybackControlID) {
-                LOGGER.severe(_WidgetType + "has tag invalid <PlaybackControl> tag");
+            if (null == playbackControlNamespace && null == playbackControlID) {
+                LOGGER.severe(widgetType + "has tag invalid <PlaybackControl> tag");
                 return false;
             }
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("Repeat")) {
+        } else if ("Repeat".equalsIgnoreCase(node.getNodeName())) {
             boolean bVal = node.getBooleanValue();
             if (bVal) {
                 if (node.hasAttribute("Mode")) {
-                    if (node.getAttribute("Mode").equalsIgnoreCase("LoopList")) {
+                    if ("LoopList".equalsIgnoreCase(node.getAttribute("Mode"))) {
                         _RepeatList = true;
                         _RepeatSingleMedia = false;
-                    } else if (node.getAttribute("Mode").equalsIgnoreCase("Single")) {
+                    } else if ("Single".equalsIgnoreCase(node.getAttribute("Mode"))) {
                         _RepeatList = false;
                         _RepeatSingleMedia = true;
                     } else {
-                        LOGGER.severe(_WidgetType
+                        LOGGER.severe(widgetType
                                 + "has tag invalid <Repeat> Mide Attribute tag, expecting either LoopList or Single, got "
                                 + node.getAttribute("Mode"));
                         return false;
@@ -361,14 +356,14 @@ public abstract class MediaPlayerWidget extends BaseWidget {
             String strID = node.getAttribute("ID");
             if (null != strSrc && null != strID) {
                 String key = strID.toLowerCase(); // store keys in lower case
-                if (_MediaFilesAndTags.containsKey(key)) {
-                    LOGGER.severe(_WidgetType + " had duplicate source " + inputType + " ID of " + strID);
+                if (mediaFilesAndTags.containsKey(key)) {
+                    LOGGER.severe(widgetType + " had duplicate source " + inputType + " ID of " + strID);
                     return false;
                 }
-                _MediaFilesAndTags.put(key, strSrc);
+                mediaFilesAndTags.put(key, strSrc);
 
                 List<Pair<String, String>> markers = new ArrayList<>(); // list of markers of tasks
-                _EventMarkerMap.put(key, markers);
+                eventMarkerMap.put(key, markers);
 
                 if (node.hasAttribute("Task")) {
                     String taskID = node.getAttribute("task");
@@ -379,7 +374,7 @@ public abstract class MediaPlayerWidget extends BaseWidget {
 
                 return GetMarkers(node, inputType, markers);
             }
-            LOGGER.severe(_WidgetType + "has tag invalid <" + inputType + "> tag");
+            LOGGER.severe(widgetType + "has tag invalid <" + inputType + "> tag");
         }
 
         return false;
@@ -454,8 +449,8 @@ public abstract class MediaPlayerWidget extends BaseWidget {
             return;
         }
         String strNextID = "";
-        if (_RepeatList && _ListOfIDs.size() > 1) {
-            strNextID = _ListOfIDs.GetNext();
+        if (_RepeatList && listOfIDs.size() > 1) {
+            strNextID = listOfIDs.GetNext();
             PlayMedia(strNextID);
         } else // must repeat current media
         {
@@ -493,7 +488,7 @@ public abstract class MediaPlayerWidget extends BaseWidget {
 
     private boolean PlayMedia(String strKey) {
         strKey = strKey.toLowerCase();
-        if (_MediaFilesAndTags.containsKey(strKey)) {
+        if (mediaFilesAndTags.containsKey(strKey)) {
             if (!strKey.equalsIgnoreCase(_CurrentMediaID) || _mediaPlayer == null) // may be just repeating existing
             // media, no reason to re-load
             {
@@ -501,9 +496,9 @@ public abstract class MediaPlayerWidget extends BaseWidget {
                 MediaPlayer objPlayer = CreateMediaPlayer(strKey);
                 if (null == objPlayer) {
                     if (!IsValid()) {
-                        LOGGER.severe("Platform does not support Media Player: " + _WidgetType);
+                        LOGGER.severe("Platform does not support Media Player: " + widgetType);
                     } else {
-                        LOGGER.warning("Error creating MediaPlayer ID for " + _WidgetType + "[" + getNamespace() + ":"
+                        LOGGER.warning("Error creating MediaPlayer ID for " + widgetType + "[" + getNamespace() + ":"
                                 + getMinionID() + "] : " + strKey);
                     }
                     return false;
@@ -512,8 +507,8 @@ public abstract class MediaPlayerWidget extends BaseWidget {
                 // SetupMarkers(objPlayer, strKey);
                 _mediaPlayer = objPlayer;
                 _CurrentMediaID = strKey;
-                _ListOfIDs.get(strKey);
-                if (!_EventMarkerMap.get(strKey).isEmpty()) {
+                listOfIDs.get(strKey);
+                if (!eventMarkerMap.get(strKey).isEmpty()) {
                     _mediaPlayer.totalDurationProperty().addListener(new TotalDurationListener());
                 }
             }
@@ -521,7 +516,7 @@ public abstract class MediaPlayerWidget extends BaseWidget {
             OnSetVolume(_VolumeLevel);
             return true;
         }
-        LOGGER.warning("Received unknown ID for " + _WidgetType + "[" + getNamespace() + ":" + getMinionID() + "] : "
+        LOGGER.warning("Received unknown ID for " + widgetType + "[" + getNamespace() + ":" + getMinionID() + "] : "
                 + strKey);
 
         return false;
@@ -534,26 +529,26 @@ public abstract class MediaPlayerWidget extends BaseWidget {
         }
     }
 
-    public void setAutoStart(boolean _AutoStart) {
-        this._AutoStart = _AutoStart;
+    public void setAutoStart(boolean autoStart) {
+        this._AutoStart = autoStart;
     }
 
-    protected abstract void setHasBeenVerified(boolean _HasBeenVerified);
+    protected abstract void setHasBeenVerified(boolean hasBeenVerified);
 
     protected abstract void SetIsValid(boolean flag);
 
-    public void setRepeatList(boolean _RepeatList) {
-        this._RepeatList = _RepeatList;
+    public void setRepeatList(boolean repeatList) {
+        this._RepeatList = repeatList;
     }
 
-    public void setRepeatSingleMedia(boolean _RepeatSingleMedia) {
-        this._RepeatSingleMedia = _RepeatSingleMedia;
+    public void setRepeatSingleMedia(boolean repeatSingleMedia) {
+        this._RepeatSingleMedia = repeatSingleMedia;
     }
 
-    private void SetupMarkers(MediaPlayer objPlayer, String PlayerID) {
-        if (_EventMarkerMap.containsKey(PlayerID.toLowerCase())) // should never fail
+    private void SetupMarkers(MediaPlayer objPlayer, String playerID) {
+        if (eventMarkerMap.containsKey(playerID.toLowerCase())) // should never fail
         {
-            List<Pair<String, String>> markers = _EventMarkerMap.get(PlayerID.toLowerCase());
+            List<Pair<String, String>> markers = eventMarkerMap.get(playerID.toLowerCase());
             if (!markers.isEmpty()) {
                 for (Pair<String, String> item : markers) {
                     String strMarker = item.getKey();
@@ -563,9 +558,9 @@ public abstract class MediaPlayerWidget extends BaseWidget {
                     double tDuration = objPlayer.getTotalDuration().toMillis();
                     try {
                         // LOGGER.severe(Double.toString(tDuration));
-                        if (strMarker.equalsIgnoreCase("end")) {
+                        if ("end".equalsIgnoreCase(strMarker)) {
                             msMarker = tDuration;
-                        } else if (strMarker.equalsIgnoreCase("start")) {
+                        } else if ("start".equalsIgnoreCase(strMarker)) {
                             msMarker = 0;
                         } else if (strMarker.contains("%")) {
                             msMarker = tDuration * (Double.parseDouble(strMarker.replace("%", "")) / 100);
@@ -575,7 +570,7 @@ public abstract class MediaPlayerWidget extends BaseWidget {
 
                         if (msMarker > tDuration) {
                             LOGGER.config(
-                                    _WidgetType + " has task [" + strTask + "] marker > length of media.  Ignoring");
+                                    widgetType + " has task [" + strTask + "] marker > length of media.  Ignoring");
                             continue;
                         }
                         if (this instanceof AudioPlayerWidget) // For some reason, audio won't trigger events at end of
@@ -602,13 +597,13 @@ public abstract class MediaPlayerWidget extends BaseWidget {
         }
     }
 
-    public void setVolumeLevel(double _VolumeLevel) {
-        this._VolumeLevel = _VolumeLevel;
+    public void setVolumeLevel(double volumeLevel) {
+        this._VolumeLevel = volumeLevel;
     }
 
     @Override
     public void UpdateTitle(String strTitle) {
-        LOGGER.warning("Tried to update Title of a " + _WidgetType + " to " + strTitle);
+        LOGGER.warning("Tried to update Title of a " + widgetType + " to " + strTitle);
     }
 
     protected String VerifyFilename(String strFile) {
@@ -625,16 +620,16 @@ public abstract class MediaPlayerWidget extends BaseWidget {
 
     private boolean VerifyInputFiles() {
         boolean retVal = true;
-        if (_MediaFilesAndTags.isEmpty()) {
-            LOGGER.severe(_WidgetType + " No Media files specified.");
+        if (mediaFilesAndTags.isEmpty()) {
+            LOGGER.severe(widgetType + " No Media files specified.");
             retVal = false;
         } else {
-            LOGGER.info("Verifying " + _WidgetType + " input files");
+            LOGGER.info("Verifying " + widgetType + " input files");
         }
-        for (String strKey : _MediaFilesAndTags.keySet()) {
-            String strFile = _MediaFilesAndTags.get(strKey);
+        for (String strKey : mediaFilesAndTags.keySet()) {
+            String strFile = mediaFilesAndTags.get(strKey);
             if (!AddMediaFile(strFile, strKey)) {
-                LOGGER.severe(_WidgetType + " Invalid media file: " + strFile);
+                LOGGER.severe(widgetType + " Invalid media file: " + strFile);
                 retVal = false;
             }
         }
@@ -642,27 +637,28 @@ public abstract class MediaPlayerWidget extends BaseWidget {
     }
 
     private boolean VerifyMarker(String strMarker) {
-        String Test = strMarker;
-        if (Test.equalsIgnoreCase("end")) {
+        String test = strMarker;
+        if ("end".equalsIgnoreCase(test)) {
             return true;
         }
-        if (Test.equalsIgnoreCase("start")) {
+        if ("start".equalsIgnoreCase(test)) {
             return true;
         }
 
-        if (Test.contains("%")) {
-            Test = Test.trim().replace("%", "");
+        if (test.contains("%")) {
+            test = test.trim().replace("%", "");
         }
         try {
-            int iMarker = Integer.parseInt(Test);
+            int iMarker = Integer.parseInt(test);
             if (strMarker.contains("%") && iMarker > 100) {
+                if (iMarker >= 0) {
+                    return true;
+                }
 
-            } else if (iMarker >= 0) {
-                return true;
             }
         } catch (NumberFormatException ex) {
         }
-        LOGGER.severe("Invalid Marker specified for " + _WidgetType + ": " + strMarker);
+        LOGGER.severe("Invalid Marker specified for " + widgetType + ": " + strMarker);
 
         return false;
     }
@@ -674,13 +670,13 @@ public abstract class MediaPlayerWidget extends BaseWidget {
             return true; // should be OK, because on 1st failure below, init should stop
         }
         setHasBeenVerified(true);
-        LOGGER.info("Verifying that the OS has support for " + _WidgetType);
+        LOGGER.info("Verifying that the OS has support for " + widgetType);
         try {
             // try to create a media player with 1st file
             String strFileID = BaseWidget
-                    .convertToFileOSSpecific(_MediaFilesAndTags.keySet().iterator().next().toLowerCase());
+                    .convertToFileOSSpecific(mediaFilesAndTags.keySet().iterator().next().toLowerCase());
             Media objMedia; // just a test
-            objMedia = getMedia(_MediaURI.get(strFileID));
+            objMedia = getMedia(mediaURI.get(strFileID));
 
             @SuppressWarnings("unused")
             MediaPlayer mediaPlayer = new MediaPlayer(objMedia); // will throw exception if not valid
@@ -688,7 +684,7 @@ public abstract class MediaPlayerWidget extends BaseWidget {
             return true;
         } catch (Exception ex) {
         }
-        LOGGER.severe("Unable to create " + _WidgetType
+        LOGGER.severe("Unable to create " + widgetType
                 + " - not supported by the Operating System (likely need to install it)");
         return false;
     }

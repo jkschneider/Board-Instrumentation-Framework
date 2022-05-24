@@ -68,12 +68,12 @@ public class StackedBarChartWidget extends BarChartWidget {
         }
 
         getAxis_X().setCategories(FXCollections.observableArrayList(list));
-        return new StackedBarChart<String, Number>(getAxis_X(), getyAxis());
+        return new StackedBarChart<>(getAxis_X(), getyAxis());
     }
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return ((getChart()));
+        return getChart();
     }
 
     @Override
@@ -108,27 +108,23 @@ public class StackedBarChartWidget extends BarChartWidget {
 
                 objSeries.getData().add(objData);
 
-                dataMgr.AddListener(objDs.getID(), objDs.getNamespace(), new ChangeListener<Object>() {
-
-                    @Override
-                    public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                        if (IsPaused()) {
-                            return;
-                        }
-                        String strVal = newVal.toString();
-                        double newValue;
-                        try {
-                            newValue = Double.parseDouble(strVal);
-                            HandleSteppedRange(newValue);
-                        } catch (Exception ex) {
-                            LOGGER.severe("Invalid data for Line Chart received: " + strVal);
-                            return;
-                        }
-                        if (isHorizontal()) {
-                            objData.XValueProperty().set(newValue);
-                        } else {
-                            objData.YValueProperty().set(newValue);
-                        }
+                dataMgr.AddListener(objDs.getID(), objDs.getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+                    if (IsPaused()) {
+                        return;
+                    }
+                    String strVal = newVal.toString();
+                    double newValue;
+                    try {
+                        newValue = Double.parseDouble(strVal);
+                        HandleSteppedRange(newValue);
+                    } catch (Exception ex) {
+                        LOGGER.severe("Invalid data for Line Chart received: " + strVal);
+                        return;
+                    }
+                    if (isHorizontal()) {
+                        objData.XValueProperty().set(newValue);
+                    } else {
+                        objData.YValueProperty().set(newValue);
                     }
                 });
 

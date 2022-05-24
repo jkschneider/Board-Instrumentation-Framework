@@ -54,22 +54,22 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick Kutch
  */
 public class Prompt_ListBox extends BasePrompt {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private final List<String> _DisplayTextList;
-    private final List<String> _ParamList;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private final List<String> displayTextList;
+    private final List<String> paramList;
     private final List<List<DataPointGenerator>> _DataPoints;
-    private int _PrevSelection = 0;
+    private int prevSelection;
 
-    public Prompt_ListBox(String ID) {
-        super(ID);
-        _DisplayTextList = new ArrayList<>();
-        _ParamList = new ArrayList<>();
+    public Prompt_ListBox(String id) {
+        super(id);
+        displayTextList = new ArrayList<>();
+        paramList = new ArrayList<>();
         _DataPoints = new ArrayList<>();
     }
 
     public void AddListItem(String strDisplayText, String strParam, List<DataPointGenerator> dps) {
-        _DisplayTextList.add(strDisplayText);
-        _ParamList.add(strParam);
+        displayTextList.add(strDisplayText);
+        paramList.add(strParam);
         _DataPoints.add(dps);
     }
 
@@ -79,13 +79,13 @@ public class Prompt_ListBox extends BasePrompt {
      */
     @Override
     public boolean HandlePromptSpecificConfig(FrameworkNode baseNode) {
-        if (baseNode.getNodeName().equalsIgnoreCase("List")) {
+        if ("List".equalsIgnoreCase(baseNode.getNodeName())) {
             int itemIndex = 0;
             for (FrameworkNode node : baseNode.getChildNodes(true)) {
-                if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#Comment")) {
+                if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#Comment".equalsIgnoreCase(node.getNodeName())) {
                     continue;
                 }
-                if (node.getNodeName().equalsIgnoreCase("Item")) {
+                if ("Item".equalsIgnoreCase(node.getNodeName())) {
                     @SuppressWarnings("unused")
                     String strDisplayText;
                     if (node.hasAttribute("Text")) {
@@ -117,7 +117,7 @@ public class Prompt_ListBox extends BasePrompt {
 
     @Override
     protected Pane SetupDialog(Stage dialog) {
-        if (_ParamList.isEmpty()) {
+        if (paramList.isEmpty()) {
             LOGGER.severe("Listbox Prompt [" + toString() + "] had no <List> items.");
             //return null;
         }
@@ -132,16 +132,16 @@ public class Prompt_ListBox extends BasePrompt {
 
         lblMessage.setWrapText(true);
         ListView<String> listBox = new ListView<>();
-        ObservableList<String> items = FXCollections.observableArrayList(_DisplayTextList);
+        ObservableList<String> items = FXCollections.observableArrayList(displayTextList);
         listBox.setItems(items);
-        listBox.getSelectionModel().select(_PrevSelection);
+        listBox.getSelectionModel().select(prevSelection);
 
         Text t = new Text(getMessage());
-        Double MaxWidth = t.getLayoutBounds().getWidth();
+        Double maxWidth = t.getLayoutBounds().getWidth();
         for (String strCheck : items) {
             t = new Text(strCheck);
-            if (t.getLayoutBounds().getWidth() > MaxWidth) {
-                MaxWidth = t.getLayoutBounds().getWidth();
+            if (t.getLayoutBounds().getWidth() > maxWidth) {
+                maxWidth = t.getLayoutBounds().getWidth();
             }
         }
 
@@ -155,17 +155,17 @@ public class Prompt_ListBox extends BasePrompt {
             len = 8;
         }
         // len++;
-        double Height = 24 * len; // hack! (but recommended from javafx community
+        double height = 24 * len; // hack! (but recommended from javafx community
 
         if (getWidth() > 0) {
-            MaxWidth = getWidth();
+            maxWidth = getWidth();
         }
         if (getHeight() > 0) {
-            Height = getHeight();
+            height = getHeight();
         }
 
-        listBox.setPrefHeight(Height + 10); // +10 pushes box down enough to not hae scroll
-        listBox.setPrefWidth(MaxWidth + 30); // add some padding at end
+        listBox.setPrefHeight(height + 10); // +10 pushes box down enough to not hae scroll
+        listBox.setPrefWidth(maxWidth + 30); // add some padding at end
 
         root.add(listBox, 0, 2);
         GridPane.setHalignment(btn, HPos.CENTER);
@@ -181,15 +181,15 @@ public class Prompt_ListBox extends BasePrompt {
 
         btn.setOnAction((ActionEvent event) ->
         {
-            int Selection = listBox.getSelectionModel().getSelectedIndex();
-            List<DataPointGenerator> dataPoints = _DataPoints.get(Selection);
+            int selection = listBox.getSelectionModel().getSelectedIndex();
+            List<DataPointGenerator> dataPoints = _DataPoints.get(selection);
             if (null != dataPoints) {
                 for (DataPointGenerator dp : dataPoints) {
                     dp.generate();
                 }
             }
-            SetPromptedValue(_ParamList.get(Selection));
-            _PrevSelection = Selection;
+            SetPromptedValue(paramList.get(selection));
+            prevSelection = selection;
             dialog.close();
         });
 

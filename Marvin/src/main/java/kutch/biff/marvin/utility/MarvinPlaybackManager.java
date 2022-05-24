@@ -30,32 +30,32 @@ import kutch.biff.marvin.logger.MarvinLogger;
 /**
  * @author Patrick.Kutch@gmail.com
  */
-public class MarvinPlaybackManager {
+public final class MarvinPlaybackManager {
     @SuppressWarnings("unused")
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private final static MarvinPlaybackManager _inst = new MarvinPlaybackManager();
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final MarvinPlaybackManager _inst = new MarvinPlaybackManager();
 
     public static MarvinPlayback getMarvinPlayback(String strName) {
-        if (!_inst._PlaybackInstancesMap.containsKey(strName.toUpperCase())) {
+        if (!_inst.playbackInstancesMap.containsKey(strName.toUpperCase())) {
             MarvinPlayback mp = new MarvinPlayback(strName);
-            _inst._PlaybackInstancesMap.put(strName.toUpperCase(), mp);
+            _inst.playbackInstancesMap.put(strName.toUpperCase(), mp);
         }
-        return _inst._PlaybackInstancesMap.get(strName.toUpperCase());
+        return _inst.playbackInstancesMap.get(strName.toUpperCase());
     }
 
-    private Map<String, MarvinPlayback> _PlaybackInstancesMap;
+    private Map<String, MarvinPlayback> playbackInstancesMap;
 
     private MarvinPlaybackManager() {
-        _PlaybackInstancesMap = new HashMap<String, MarvinPlayback>();
+        playbackInstancesMap = new HashMap<>();
     }
 
     public int getCount() {
-        return _inst._PlaybackInstancesMap.size();
+        return _inst.playbackInstancesMap.size();
     }
 
     public void stopAll() {
-        for (String key : _inst._PlaybackInstancesMap.keySet()) {
-            MarvinPlayback mp = _inst._PlaybackInstancesMap.get(key);
+        for (String key : _inst.playbackInstancesMap.keySet()) {
+            MarvinPlayback mp = _inst.playbackInstancesMap.get(key);
             if (null != mp) {
                 mp.stopPlayback();
             }

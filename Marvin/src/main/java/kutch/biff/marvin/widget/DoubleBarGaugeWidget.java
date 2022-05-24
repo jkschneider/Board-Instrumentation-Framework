@@ -36,19 +36,20 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick Kutch
  */
 public class DoubleBarGaugeWidget extends BaseWidget {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     private double MinValue;
     private double MaxValue;
-    private AvGauge _Gauge;
-    private double _InitialValue;
-    private String _OuterID, _OuterNamespace;
+    private AvGauge gauge;
+    private double initialValue;
+    private String outerID;
+    private String outerNamespace;
 
     public DoubleBarGaugeWidget() {
         MinValue = 0;
         MaxValue = 0;
-        _OuterID = null;
-        _OuterNamespace = null;
-        _Gauge = new AvGauge();
+        outerID = null;
+        outerNamespace = null;
+        gauge = new AvGauge();
     }
 
     public boolean Create(GridPane pane, DataManager dataMgr) {
@@ -56,67 +57,61 @@ public class DoubleBarGaugeWidget extends BaseWidget {
         if (false == SetupGauge()) {
             return false;
         }
-        _Gauge.setInnerValue(_InitialValue);
-        _Gauge.setOuterValue(_InitialValue);
+        gauge.setInnerValue(initialValue);
+        gauge.setOuterValue(initialValue);
 
         ConfigureAlignment();
         SetupPeekaboo(dataMgr);
         ConfigureDimentions();
 
-        pane.add(_Gauge, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(gauge, getColumn(), getRow(), getColumnSpan(), getRowSpan());
 
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
-
-                double newDialValue = 0;
-                String strVal = newVal.toString();
-                try {
-                    newDialValue = Double.parseDouble(strVal);
-                } catch (NumberFormatException ex) {
-                    LOGGER.severe("Invalid data for BarGauge received: " + strVal);
-                    return;
-                }
-                _Gauge.setInnerValue(newDialValue);
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
             }
+
+            double newDialValue = 0;
+            String strVal = newVal.toString();
+            try {
+                newDialValue = Double.parseDouble(strVal);
+            } catch (NumberFormatException ex) {
+                LOGGER.severe("Invalid data for BarGauge received: " + strVal);
+                return;
+            }
+            gauge.setInnerValue(newDialValue);
         });
 
-        if (null == _OuterID || null == _OuterNamespace) {
+        if (null == outerID || null == outerNamespace) {
             LOGGER.severe("No Outter Data source defined for BarGauge");
             return false;
         }
-        dataMgr.AddListener(_OuterID, _OuterNamespace, new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
-
-                double newDialValue = 0;
-                String strVal = newVal.toString();
-                try {
-                    newDialValue = Double.parseDouble(strVal);
-                } catch (NumberFormatException ex) {
-                    LOGGER.severe("Invalid data for BarGauge received: " + strVal);
-                    return;
-                }
-                _Gauge.setOuterValue(newDialValue);
+        dataMgr.AddListener(outerID, outerNamespace, (ObservableValue o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
             }
+
+            double newDialValue = 0;
+            String strVal = newVal.toString();
+            try {
+                newDialValue = Double.parseDouble(strVal);
+            } catch (NumberFormatException ex) {
+                LOGGER.severe("Invalid data for BarGauge received: " + strVal);
+                return;
+            }
+            gauge.setOuterValue(newDialValue);
         });
         return true;
     }
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return _Gauge;
+        return gauge;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _Gauge.getStylesheets();
+        return gauge.getStylesheets();
     }
 
     /**
@@ -128,28 +123,28 @@ public class DoubleBarGaugeWidget extends BaseWidget {
 
     @Override
     public boolean HandleValueRange(FrameworkNode rangeNode) {
-        double Min = -1234.5678;
-        double Max = -1234.5678;
+        double min = -1234.5678;
+        double max = -1234.5678;
         if (rangeNode.hasAttribute("Min")) {
-            Min = rangeNode.getDoubleAttribute("Min", Min);
-            if (Min == -1234.5678) {
+            min = rangeNode.getDoubleAttribute("Min", min);
+            if (min == -1234.5678) {
                 return false;
             }
-            this.MinValue = Min;
+            this.MinValue = min;
         }
         if (rangeNode.hasAttribute("Max")) {
-            Max = rangeNode.getDoubleAttribute("Max", Max);
-            if (Max == -1234.5678) {
+            max = rangeNode.getDoubleAttribute("Max", max);
+            if (max == -1234.5678) {
                 return false;
             }
-            this.MaxValue = Max;
+            this.MaxValue = max;
         }
         return true;
     }
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode node) {
-        if (node.getNodeName().equalsIgnoreCase("InnerMinionSrc")) {
+        if ("InnerMinionSrc".equalsIgnoreCase(node.getNodeName())) {
             if (node.hasAttribute("ID")) {
                 setMinionID(node.getAttribute("ID"));
             } else {
@@ -164,15 +159,15 @@ public class DoubleBarGaugeWidget extends BaseWidget {
             }
             return true;
         }
-        if (node.getNodeName().equalsIgnoreCase("OuterMinionSrc")) {
+        if ("OuterMinionSrc".equalsIgnoreCase(node.getNodeName())) {
             if (node.hasAttribute("ID")) {
-                _OuterID = node.getAttribute("ID");
+                outerID = node.getAttribute("ID");
             } else {
                 LOGGER.severe("BarGauge defined with invalid OuterMinionSrc, no ID");
                 return false;
             }
             if (node.hasAttribute("Namespace")) {
-                _OuterNamespace = node.getAttribute("Namespace");
+                outerNamespace = node.getAttribute("Namespace");
             } else {
                 LOGGER.severe("Conditional defined with invalid OuterMinionSrc, no Namespace");
                 return false;
@@ -185,39 +180,39 @@ public class DoubleBarGaugeWidget extends BaseWidget {
     @Override
     public void SetInitialValue(String value) {
         try {
-            _InitialValue = Double.parseDouble(value);
+            initialValue = Double.parseDouble(value);
         } catch (NumberFormatException ex) {
             LOGGER.severe("Invalid Default Value data for BarGauge: " + value);
         }
     }
 
-    public void setMaxValue(double MaxValue) {
-        this.MaxValue = MaxValue;
+    public void setMaxValue(double maxValue) {
+        this.MaxValue = maxValue;
     }
 
-    public void setMinValue(double MinValue) {
-        _InitialValue = MinValue;
-        this.MinValue = MinValue;
+    public void setMinValue(double minValue) {
+        initialValue = minValue;
+        this.MinValue = minValue;
     }
 
     private boolean SetupGauge() {
-        _Gauge.setMinValue(MinValue);
-        _Gauge.setMaxValue(MaxValue);
+        gauge.setMinValue(MinValue);
+        gauge.setMaxValue(MaxValue);
 
         if (getTitle().length() > 0) {
-            _Gauge.setTitle(getTitle());
+            gauge.setTitle(getTitle());
         }
 
-        _Gauge.setDecimals(getDecimalPlaces());
+        gauge.setDecimals(getDecimalPlaces());
 
         SetupTaskAction();
 
-        return false != ApplyCSS();
+                return ApplyCSS();
     }
 
     @Override
     public void UpdateTitle(String strTitle) {
-        _Gauge.setTitle(getTitle());
+        gauge.setTitle(getTitle());
     }
 
 }

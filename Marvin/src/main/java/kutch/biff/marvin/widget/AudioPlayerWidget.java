@@ -34,14 +34,14 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick Kutch
  */
 public class AudioPlayerWidget extends MediaPlayerWidget {
-    private static boolean _HasBeenVerified = false;
-    private static boolean _IsValid = true;
-    private Button _objDummyButton;
+    private static boolean _HasBeenVerified;
+    private static boolean isValid = true;
+    private Button objDummyButton;
 
     public AudioPlayerWidget() {
         super("AudioPlayerWidget");
-        _objDummyButton = new Button();
-        _objDummyButton.setVisible(false);
+        objDummyButton = new Button();
+        objDummyButton.setVisible(false);
     }
 
     @Override
@@ -52,12 +52,12 @@ public class AudioPlayerWidget extends MediaPlayerWidget {
 
     @Override
     public Node getStylableObject() {
-        return _objDummyButton;
+        return objDummyButton;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _objDummyButton.getStylesheets();
+        return objDummyButton.getStylesheets();
     }
 
     @Override
@@ -72,7 +72,7 @@ public class AudioPlayerWidget extends MediaPlayerWidget {
 
     @Override
     public boolean IsValid() {
-        return _IsValid;
+        return isValid;
     }
 
     @Override
@@ -81,13 +81,13 @@ public class AudioPlayerWidget extends MediaPlayerWidget {
     }
 
     @Override
-    public void setHasBeenVerified(boolean _HasBeenVerified) {
-        AudioPlayerWidget._HasBeenVerified = _HasBeenVerified;
+    public void setHasBeenVerified(boolean hasBeenVerified) {
+        AudioPlayerWidget._HasBeenVerified = hasBeenVerified;
     }
 
     @Override
     public void SetIsValid(boolean flag) {
-        _IsValid = flag;
+        isValid = flag;
     }
 
     @Override

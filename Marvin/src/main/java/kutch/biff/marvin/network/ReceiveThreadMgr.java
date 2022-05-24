@@ -52,52 +52,52 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick Kutch
  */
 public class ReceiveThreadMgr implements Runnable {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private final static Configuration CONFIG = Configuration.getConfig();
-    private final TaskManager TASKMAN = TaskManager.getTaskManager();
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Configuration CONFIG = Configuration.getConfig();
+    private final TaskManager taskman = TaskManager.getTaskManager();
 
-    private boolean _fStopped;
+    private boolean fStopped;
     private boolean fKillRequested;
-    private final DatagramSocket _socket;
-    private final DataManager _DataManager;
-    private final HashMap<String, String> LastMarvinTaskReceived;
-    private final LinkedBlockingQueue<HashMap<InetAddress, String>> _DataQueue;
-    private final AtomicInteger _WorkerThreadCount;
+    private final DatagramSocket socket;
+    private final DataManager dataManager;
+    private final HashMap<String, String> lastMarvinTaskReceived;
+    private final LinkedBlockingQueue<HashMap<InetAddress, String>> dataQueue;
+    private final AtomicInteger workerThreadCount;
 
-    public ReceiveThreadMgr(DatagramSocket sock, DataManager DM) {
-        _fStopped = false;
+    public ReceiveThreadMgr(DatagramSocket sock, DataManager dm) {
+        fStopped = false;
         fKillRequested = false;
-        _socket = sock;
-        _DataManager = DM;
-        LastMarvinTaskReceived = new HashMap<>();
-        _DataQueue = new LinkedBlockingQueue<HashMap<InetAddress, String>>();
-        _WorkerThreadCount = new AtomicInteger();
-        _WorkerThreadCount.set(0);
+        socket = sock;
+        dataManager = dm;
+        lastMarvinTaskReceived = new HashMap<>();
+        dataQueue = new LinkedBlockingQueue<>();
+        workerThreadCount = new AtomicInteger();
+        workerThreadCount.set(0);
     }
 
     private void HandleIncomingDatapoint(Node dpNode) {
         NodeList Children = dpNode.getChildNodes();
-        String ID = null;
-        String Namespace = null;
-        String Data = null;
+        String id = null;
+        String namespace = null;
+        String data = null;
         for (int iLoop = 0; iLoop < Children.getLength(); iLoop++) {
             Node node = Children.item(iLoop);
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
-            } else if (node.getNodeName().equalsIgnoreCase("Version")) {
+            } else if ("Version".equalsIgnoreCase(node.getNodeName())) {
 
-            } else if (node.getNodeName().equalsIgnoreCase("Namespace")) {
-                Namespace = node.getTextContent();
-            } else if (node.getNodeName().equalsIgnoreCase("ID")) {
-                ID = node.getTextContent();
-            } else if (node.getNodeName().equalsIgnoreCase("Value")) {
-                Data = node.getTextContent();
+            } else if ("Namespace".equalsIgnoreCase(node.getNodeName())) {
+                namespace = node.getTextContent();
+            } else if ("ID".equalsIgnoreCase(node.getNodeName())) {
+                id = node.getTextContent();
+            } else if ("Value".equalsIgnoreCase(node.getNodeName())) {
+                data = node.getTextContent();
                 FrameworkNode objNode = new FrameworkNode(node);
                 if (objNode.hasAttribute("LiveData")) {
                     String strLive = objNode.getAttribute("LiveData");
-                    if (strLive.equalsIgnoreCase("True")) {
+                    if ("True".equalsIgnoreCase(strLive)) {
                         CONFIG.OnLiveDataReceived();
-                    } else if (strLive.equalsIgnoreCase("False")) {
+                    } else if ("False".equalsIgnoreCase(strLive)) {
                         CONFIG.OnRecordedDataReceived();
                     } else {
                         LOGGER.warning("Received Data packet with unknown LiveData attribute: " + strLive);
@@ -109,8 +109,8 @@ public class ReceiveThreadMgr implements Runnable {
             }
         }
 
-        if (ID != null && Namespace != null && Data != null) {
-            _DataManager.ChangeValue(ID, Namespace, Data);
+        if (id != null && namespace != null && data != null) {
+            dataManager.ChangeValue(id, namespace, data);
         } else {
             LOGGER.severe("Malformed Data Received: " + dpNode.getTextContent());
         }
@@ -123,7 +123,7 @@ public class ReceiveThreadMgr implements Runnable {
             return;
         }
         String type = node.getAttribute("Type");
-        if (type.equalsIgnoreCase("RemoteMarvinTask")) {
+        if ("RemoteMarvinTask".equalsIgnoreCase(type)) {
             HandleIncomingRemoteMarvinTaskPacket(objNode);
         } else {
             LOGGER.severe("Received Oscar Packet with unknown Type: " + type);
@@ -133,32 +133,32 @@ public class ReceiveThreadMgr implements Runnable {
 
     private void HandleIncomingOscarConnectionInfoPacket(Node adminNode, InetAddress address) {
         NodeList Children = adminNode.getChildNodes();
-        String OscarID = null;
-        String OscarVersion = "Unknown";
-        int Port = 0;
+        String oscarID = null;
+        String oscarVersion = "Unknown";
+        int port = 0;
 
         for (int iLoop = 0; iLoop < Children.getLength(); iLoop++) {
             Node node = Children.item(iLoop);
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
-            } else if (node.getNodeName().equals("Version")) {
+            } else if ("Version".equals(node.getNodeName())) {
                 continue;
-            } else if (node.getNodeName().equals("OscarVersion")) {
-                OscarVersion = node.getTextContent();
-            } else if (node.getNodeName().equals("ID")) {
-                OscarID = node.getTextContent();
+            } else if ("OscarVersion".equals(node.getNodeName())) {
+                oscarVersion = node.getTextContent();
+            } else if ("ID".equals(node.getNodeName())) {
+                oscarID = node.getTextContent();
             }
-            if (node.getNodeName().equalsIgnoreCase("Port")) {
+            if ("Port".equalsIgnoreCase(node.getNodeName())) {
                 String strPort = node.getTextContent();
                 try {
-                    Port = Integer.parseInt(strPort);
+                    port = Integer.parseInt(strPort);
                 } catch (NumberFormatException ex) {
                     LOGGER.severe("Received invalid Connection Information packet from Oscar " + node.toString());
                 }
             }
         }
-        if (OscarID != null) {
-            TASKMAN.OscarAnnouncementReceived(OscarID, address.getHostAddress(), Port, OscarVersion);
+        if (oscarID != null) {
+            taskman.OscarAnnouncementReceived(oscarID, address.getHostAddress(), port, oscarVersion);
         }
     }
 
@@ -182,9 +182,9 @@ public class ReceiveThreadMgr implements Runnable {
             return;
         }
         String type = node.getAttribute("Type");
-        if (type.equalsIgnoreCase("Data")) {
+        if ("Data".equalsIgnoreCase(type)) {
             HandleIncomingDatapoint(objNode);
-        } else if (type.equalsIgnoreCase("ConnectionInformation")) {
+        } else if ("ConnectionInformation".equalsIgnoreCase(type)) {
             HandleIncomingOscarConnectionInfoPacket(objNode, address);
         } else {
             LOGGER.severe("Received Oscar Packet with unknown Type: " + type);
@@ -199,29 +199,29 @@ public class ReceiveThreadMgr implements Runnable {
          */
         FrameworkNode node = new FrameworkNode(baseNode);
         try {
-            String Version = node.getChild("Version").getTextContent();
-            String Remote = node.getChild("Requester").getTextContent();
-            String MarvinID = node.getChild("MarvinID").getTextContent();
+            String version = node.getChild("Version").getTextContent();
+            String remote = node.getChild("Requester").getTextContent();
+            String marvinID = node.getChild("MarvinID").getTextContent();
             String Task = node.getChild("Task").getTextContent();
 //	    if (!Version.equalsIgnoreCase("1.0"))
             {
-                String RequestNumber = node.getChild("RequestNumber").getTextContent();
-                if (LastMarvinTaskReceived.containsKey(Remote)) {
-                    if (LastMarvinTaskReceived.get(Remote).equalsIgnoreCase(RequestNumber)) {
+                String requestNumber = node.getChild("RequestNumber").getTextContent();
+                if (lastMarvinTaskReceived.containsKey(remote)) {
+                    if (lastMarvinTaskReceived.get(remote).equalsIgnoreCase(requestNumber)) {
                         return; // Already received this one, remember is UDP so it is sent a few times
                     }
                 }
-                LastMarvinTaskReceived.put(Remote, RequestNumber);
+                lastMarvinTaskReceived.put(remote, requestNumber);
             }
 
-            if (false == MarvinID.equalsIgnoreCase(CONFIG.GetApplicationID())
-                    && false == MarvinID.equalsIgnoreCase("Broadcast")) {
+            if (false == marvinID.equalsIgnoreCase(CONFIG.GetApplicationID())
+                    && false == "Broadcast".equalsIgnoreCase(marvinID)) {
                 LOGGER.info(
-                        "Received Remote Marvin Task, but is not targeted at this Marvin, is going to :" + MarvinID);
+                        "Received Remote Marvin Task, but is not targeted at this Marvin, is going to :" + marvinID);
                 return;
             }
-            LOGGER.info("Received RemoteMarvinTask [" + Task + " ]from [" + Remote + "]");
-            TASKMAN.AddDeferredTask(Task); // can't run it here, because in worker thread, so queue it up for later
+            LOGGER.info("Received RemoteMarvinTask [" + Task + " ]from [" + remote + "]");
+            taskman.AddDeferredTask(Task); // can't run it here, because in worker thread, so queue it up for later
         } catch (Exception ex) {
             LOGGER.warning("Received invalid RemoteMarvinTask:" + baseNode.toString());
         }
@@ -251,15 +251,16 @@ public class ReceiveThreadMgr implements Runnable {
         NodeList Children = doc.getChildNodes(); // convert to my node
         for (int iLoop = 0; iLoop < Children.getLength(); iLoop++) {
             Node node = Children.item(iLoop);
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
-            } else if (node.getNodeName().equalsIgnoreCase("Oscar")) {
-                HandleIncomingOscarPacket(node, address);
-            } else if (node.getNodeName().equalsIgnoreCase("OscarGroup")) {
-                HandleIncomingOscarGroupPacket(node, address);
-            } else if (node.getNodeName().equalsIgnoreCase("Marvin")) {
-                HandleIncomingMarvinPacket(node);
-            } else {
-                LOGGER.warning("Unknown Packet received: " + node.getNodeName());
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
+                if ("Oscar".equalsIgnoreCase(node.getNodeName())) {
+                    HandleIncomingOscarPacket(node, address);
+                } else if ("OscarGroup".equalsIgnoreCase(node.getNodeName())) {
+                    HandleIncomingOscarGroupPacket(node, address);
+                } else if ("Marvin".equalsIgnoreCase(node.getNodeName())) {
+                    HandleIncomingMarvinPacket(node);
+                } else {
+                    LOGGER.warning("Unknown Packet received: " + node.getNodeName());
+                }
             }
         }
     }
@@ -267,56 +268,53 @@ public class ReceiveThreadMgr implements Runnable {
     @SuppressWarnings({"deprecation", "serial"})
     @Override
     public void run() {
-        Runnable processQueuedDataThread = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (false == fKillRequested) {
-                        if (!_DataQueue.isEmpty()) {
-                            HashMap<InetAddress, String> dataItem = (HashMap<InetAddress, String>) _DataQueue.take();
-                            // dataItem[dataItem.keySet()[0]]
-                            InetAddress addr = dataItem.keySet().iterator().next();
-                            Process(dataItem.get(addr).getBytes(), addr);
-                        } else {
-                            if (_WorkerThreadCount.get() > 1) {
-                                _WorkerThreadCount.decrementAndGet();
-                                // LOGGER.info("Reducing processing Thread Count");
-                                return;
-                            }
-                            try {
-                                Thread.sleep(2); // didn't read anything, socket read timed out, so take a nap
-                            } catch (InterruptedException ex1) {
-                            }
+        Runnable processQueuedDataThread = () -> {
+            try {
+                while (false == fKillRequested) {
+                    if (!dataQueue.isEmpty()) {
+                        HashMap<InetAddress, String> dataItem = (HashMap<InetAddress, String>) dataQueue.take();
+                        // dataItem[dataItem.keySet()[0]]
+                        InetAddress addr = dataItem.keySet().iterator().next();
+                        Process(dataItem.get(addr).getBytes(), addr);
+                    } else {
+                        if (workerThreadCount.get() > 1) {
+                            workerThreadCount.decrementAndGet();
+                            // LOGGER.info("Reducing processing Thread Count");
+                            return;
+                        }
+                        try {
+                            Thread.sleep(2); // didn't read anything, socket read timed out, so take a nap
+                        } catch (InterruptedException ex1) {
                         }
                     }
-                    _WorkerThreadCount.decrementAndGet();
-                    // LOGGER.info("Receive Queue Processing Thread successfully terminated.");
-                } catch (InterruptedException e) {
-                    LOGGER.severe(e.toString());
                 }
+                workerThreadCount.decrementAndGet();
+                // LOGGER.info("Receive Queue Processing Thread successfully terminated.");
+            } catch (InterruptedException e) {
+                LOGGER.severe(e.toString());
             }
         };
 
         Thread procThread = new Thread(processQueuedDataThread, ">>>> Base Process Queue Thread <<<<<");
 
         procThread.start();
-        _WorkerThreadCount.set(1);
+        workerThreadCount.set(1);
 
         while (false == fKillRequested) {
             byte[] buffer = new byte[CONFIG.getMaxPacketSize()];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             try {
-                _socket.receive(packet);
+                socket.receive(packet);
                 if (false == fKillRequested) {
                     String trimmed = new String(packet.getData(), 0, packet.getLength());
 
-                    _DataQueue.add(new HashMap<InetAddress, String>() {
+                    dataQueue.add(new HashMap<InetAddress, String>() {
                         {
                             put(packet.getAddress(), trimmed);
-                            if (_WorkerThreadCount.get() < 1 || _DataQueue.size() / _WorkerThreadCount.get() > 200) {
+                            if (workerThreadCount.get() < 1 || dataQueue.size() / workerThreadCount.get() > 200) {
                                 LOGGER.info("Traffic burst - adding processing Thread Count, there are "
-                                        + Integer.toString(_DataQueue.size()) + " packets to process.");
-                                int threadNum = _WorkerThreadCount.incrementAndGet();
+                                        + Integer.toString(dataQueue.size()) + " packets to process.");
+                                int threadNum = workerThreadCount.incrementAndGet();
                                 Thread procThread = new Thread(processQueuedDataThread,
                                         ">>>> Additionial Process Queue Thread #" + Integer.toString(threadNum)
                                                 + " <<<<<");
@@ -340,11 +338,11 @@ public class ReceiveThreadMgr implements Runnable {
         }
 
         procThread.stop();
-        _fStopped = true;
+        fStopped = true;
     }
 
     public void Stop() {
-        _fStopped = false;
+        fStopped = false;
         fKillRequested = true;
         try {
             Thread.sleep(50); // let the worker theads have a chance to end
@@ -352,7 +350,7 @@ public class ReceiveThreadMgr implements Runnable {
 
         }
         int tryCount = 0;
-        while (false == _fStopped || _WorkerThreadCount.get() > 1) {
+        while (false == fStopped || workerThreadCount.get() > 1) {
             tryCount += 1;
 
             try {

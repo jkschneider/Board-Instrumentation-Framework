@@ -36,7 +36,7 @@ public class PulseTask extends BaseTask {
     }
 
     public boolean isValid() {
-        return (_ID != null && _Namespace != null);
+        return _ID != null && _Namespace != null;
     }
 
     @Override
@@ -60,8 +60,8 @@ public class PulseTask extends BaseTask {
         }
     }
 
-    public void SetNamespaceAndID(String ns, String ID) {
-        _ID = ID;
+    public void SetNamespaceAndID(String ns, String id) {
+        _ID = id;
         _Namespace = ns;
     }
 }

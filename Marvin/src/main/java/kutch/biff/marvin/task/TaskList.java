@@ -30,7 +30,7 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class TaskList {
-    protected final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    protected static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     protected ArrayList<BaseTask> _TaskItems;
     protected TaskManager TASKMAN = TaskManager.getTaskManager();
     protected double Interval;

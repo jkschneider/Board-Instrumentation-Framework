@@ -55,31 +55,31 @@ import kutch.biff.marvin.widget.Widget;
 /**
  * @author Patrick Kutch
  */
-public class WidgetBuilder {
+public final class WidgetBuilder {
     // private final static Configuration CONFIG = Configuration.getConfig();
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     // private final static MySplash SPLASH = MySplash.getSplash();
-    private static int FileDepth = 1;
-    private static String FileTree = "";
+    private static int fileDepth = 1;
+    private static String fileTree = "";
 
     public static Widget Build(FrameworkNode node) {
-        if (node.getNodeName().equalsIgnoreCase("Widget")) {
+        if ("Widget".equalsIgnoreCase(node.getNodeName())) {
             return BuildWidget(node);
-        } else if (node.getNodeName().equalsIgnoreCase("Grid")) {
+        } else if ("Grid".equalsIgnoreCase(node.getNodeName())) {
             Widget objGrid = BuildGrid(node, false);
             if (node.hasAttribute("OnDemandTask") && null != objGrid) {
                 ((GridWidget) (objGrid)).setOnDemandTask(node.getAttribute("OnDemandTask"));
             }
 
             return objGrid;
-        } else if (node.getNodeName().equalsIgnoreCase("ListGrid")) {
+        } else if ("ListGrid".equalsIgnoreCase(node.getNodeName())) {
             Widget objGrid = BuildGrid(node, false);
             if (node.hasAttribute("OnDemandTask") && null != objGrid) {
                 ((GridWidget) (objGrid)).setOnDemandTask(node.getAttribute("OnDemandTask"));
             }
 
             return objGrid;
-        } else if (node.getNodeName().equalsIgnoreCase("DynamicGrid")) {
+        } else if ("DynamicGrid".equalsIgnoreCase(node.getNodeName())) {
             Widget objDynaGrid = BuildDynamicGrid(node);
             if (node.hasAttribute("OnDemandTask") && null != objDynaGrid) {
                 ((GridWidget) (objDynaGrid)).setOnDemandTask(node.getAttribute("OnDemandTask"));
@@ -98,7 +98,7 @@ public class WidgetBuilder {
         String colSpan = "1";
         String strRow = "0";
         String strColumn = "0";
-        String WhatIsIt = "DynamicGrid";
+        String whatIsIt = "DynamicGrid";
 
         if (false == dynaGridNode.hasAttribute("row")) {
             LOGGER.severe("DynamicGrid with no row");
@@ -122,13 +122,13 @@ public class WidgetBuilder {
         if (dynaGridNode.hasAttribute("columnspan")) {
             colSpan = dynaGridNode.getAttribute("columnspan");
         }
-        if (true == dynaGridNode.hasAttribute("Height")) {
+        if (dynaGridNode.hasAttribute("Height")) {
             if (!retWidget.parseHeight(dynaGridNode)) {
                 LOGGER.severe("Invalid Height for Grid in Application.xml");
                 return null;
             }
         }
-        if (true == dynaGridNode.hasAttribute("Width")) {
+        if (dynaGridNode.hasAttribute("Width")) {
             if (!retWidget.parseWidth(dynaGridNode)) {
                 LOGGER.severe("Invalid Width for Grid in Application.xml");
                 return null;
@@ -138,11 +138,11 @@ public class WidgetBuilder {
         strRow = dynaGridNode.getAttribute("row");
         strColumn = dynaGridNode.getAttribute("column");
         if (strRow == null) {
-            LOGGER.severe("Invalid " + WhatIsIt + " definition in Configuration file. no row defined");
+            LOGGER.severe("Invalid " + whatIsIt + " definition in Configuration file. no row defined");
             return null;
         }
         if (strColumn == null) {
-            LOGGER.severe("Invalid " + WhatIsIt + " definition in Configuration file. no row defined");
+            LOGGER.severe("Invalid " + whatIsIt + " definition in Configuration file. no row defined");
             return null;
         }
 
@@ -155,28 +155,28 @@ public class WidgetBuilder {
             AliasMgr.getAliasMgr().UpdateCurrentRow(Integer.parseInt(strRow));
             AliasMgr.getAliasMgr().PushAliasList(true);
         } catch (NumberFormatException ex) {
-            LOGGER.severe("Invalid " + WhatIsIt + " definition in Configuration file. ");
+            LOGGER.severe("Invalid " + whatIsIt + " definition in Configuration file. ");
             return null;
         }
         if (dynaGridNode.hasAttribute("hgap")) {
             try {
                 retWidget.sethGap(Integer.parseInt(dynaGridNode.getAttribute("hgap")));
-                LOGGER.config("Setting hGap for " + WhatIsIt + " :" + dynaGridNode.getAttribute("hgap"));
+                LOGGER.config("Setting hGap for " + whatIsIt + " :" + dynaGridNode.getAttribute("hgap"));
             } catch (NumberFormatException ex) {
                 LOGGER.warning(
-                        "hgap for " + WhatIsIt + "  invalid: " + dynaGridNode.getAttribute("hgap") + ".  Ignoring");
+                        "hgap for " + whatIsIt + "  invalid: " + dynaGridNode.getAttribute("hgap") + ".  Ignoring");
             }
         }
         if (dynaGridNode.hasAttribute("vgap")) {
             try {
                 retWidget.setvGap(Integer.parseInt(dynaGridNode.getAttribute("vgap")));
-                LOGGER.config("Setting vGap for " + WhatIsIt + " :" + dynaGridNode.getAttribute("vgap"));
+                LOGGER.config("Setting vGap for " + whatIsIt + " :" + dynaGridNode.getAttribute("vgap"));
             } catch (NumberFormatException ex) {
                 LOGGER.warning(
-                        "vgap for " + WhatIsIt + " invalid: " + dynaGridNode.getAttribute("vgap") + ".  Ignoring");
+                        "vgap for " + whatIsIt + " invalid: " + dynaGridNode.getAttribute("vgap") + ".  Ignoring");
             }
         }
-        if (true == dynaGridNode.hasAttribute("Align")) {
+        if (dynaGridNode.hasAttribute("Align")) {
             String str = dynaGridNode.getAttribute("Align");
             retWidget.setAlignment(str);
         } else { // if not an external declaration, check for known options
@@ -203,7 +203,7 @@ public class WidgetBuilder {
         boolean isOnDemand = false;
         DynamicItemInfoContainer info = null;
 
-        if (true == isFlipPanelGrid) {
+        if (isFlipPanelGrid) {
             WhatIsIt = "FlipPanel";
         }
 
@@ -248,12 +248,12 @@ public class WidgetBuilder {
             info.setNode(gridNode);
         }
 
-        if (true == gridNode.hasAttribute("Height")) {
+        if (gridNode.hasAttribute("Height")) {
             if (!retWidget.parseHeight(gridNode)) {
                 return null;
             }
         }
-        if (true == gridNode.hasAttribute("Width")) {
+        if (gridNode.hasAttribute("Width")) {
             if (!retWidget.parseWidth(gridNode)) {
                 return null;
             }
@@ -308,7 +308,7 @@ public class WidgetBuilder {
 
         AliasMgr.getAliasMgr().PushAliasList(true);
 
-        if (true == gridNode.hasAttribute("File")) {
+        if (gridNode.hasAttribute("File")) {
             String strFileName = gridNode.getAttribute("File");
             StartReadingExternalFile(gridNode);
             AliasMgr.getAliasMgr().PushAliasList(true);
@@ -369,7 +369,8 @@ public class WidgetBuilder {
 
     public static List<Widget> BuildRepeatList(FrameworkNode repeatNode) {
         ArrayList<Widget> objWidgetList = new ArrayList<>();
-        int count, start;
+        int count;
+        int start;
         String strCountAlias = "";
         String strValueAlias = "";
 
@@ -413,11 +414,11 @@ public class WidgetBuilder {
             AliasMgr.getAliasMgr().AddAlias("CurrentCountAlias", Integer.toString(iLoop));
 
             for (FrameworkNode node : repeatNode.getChildNodes()) {
-                if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+                if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                     continue;
                 }
-                if (node.getNodeName().equalsIgnoreCase("Widget") || node.getNodeName().equalsIgnoreCase("Grid")
-                        || node.getNodeName().equalsIgnoreCase("DynamicGrid")) {
+                if ("Widget".equalsIgnoreCase(node.getNodeName()) || "Grid".equalsIgnoreCase(node.getNodeName())
+                        || "DynamicGrid".equalsIgnoreCase(node.getNodeName())) {
                     Widget widget = WidgetBuilder.Build(node);
 
                     if (null != widget) {
@@ -426,10 +427,10 @@ public class WidgetBuilder {
                         LOGGER.severe("Error creating " + node.getNodeName() + " in <Repeat>");
                         return null;
                     }
-                } else if (node.getNodeName().equalsIgnoreCase("GridMacro")
-                        || node.getNodeName().equalsIgnoreCase("MacroGrid")) {
+                } else if ("GridMacro".equalsIgnoreCase(node.getNodeName())
+                        || "MacroGrid".equalsIgnoreCase(node.getNodeName())) {
                     ReadGridMacro(node);
-                } else if (node.getNodeName().equalsIgnoreCase("For")) // embedded <Repeat>s - kewl!
+                } else if ("For".equalsIgnoreCase(node.getNodeName())) // embedded <Repeat>s - kewl!
                 {
                     objWidgetList.addAll(BuildRepeatList(node));
                 } else {
@@ -497,13 +498,13 @@ public class WidgetBuilder {
 
         retWidget.HandleWidgetSpecificAttributes(widgetNode);
 
-        if (true == widgetNode.hasAttribute("Enabled")) {
+        if (widgetNode.hasAttribute("Enabled")) {
             String str = widgetNode.getAttribute("Enabled");
-            boolean Enabled = true;
-            if (str.equalsIgnoreCase("True")) {
-                Enabled = true;
-            } else if (str.equalsIgnoreCase("False")) {
-                Enabled = false;
+            boolean enabled = true;
+            if ("True".equalsIgnoreCase(str)) {
+                enabled = true;
+            } else if ("False".equalsIgnoreCase(str)) {
+                enabled = false;
             } else {
                 LOGGER.severe(
                         "Invalid option for Enabled attribute for widget, only True or False is valid, not: " + str);
@@ -511,7 +512,7 @@ public class WidgetBuilder {
             }
 
             if (retWidget.SupportsEnableDisable()) {
-                retWidget.setInitiallyEnabled(Enabled);
+                retWidget.setInitiallyEnabled(enabled);
             } else {
                 LOGGER.warning("Widget set Enabled attribute, but it is not supported by the widget.  Ignoring");
             }
@@ -521,12 +522,12 @@ public class WidgetBuilder {
             retWidget.setTaskID(widgetNode.getAttribute("Task"));
         }
 
-        if (true == widgetNode.hasAttribute("Height")) {
+        if (widgetNode.hasAttribute("Height")) {
             if (!retWidget.parseHeight(widgetNode)) {
                 return null;
             }
         }
-        if (true == widgetNode.hasAttribute("Width")) {
+        if (widgetNode.hasAttribute("Width")) {
             if (false == retWidget.parseWidth(widgetNode)) {
                 return null;
             }
@@ -560,45 +561,45 @@ public class WidgetBuilder {
             return null;
         }
 
-        if (true == widgetNode.hasAttribute("Align")) {
+        if (widgetNode.hasAttribute("Align")) {
             String str = widgetNode.getAttribute("Align");
             retWidget.setAlignment(str);
         }
 //        ArrayList<MyNode> Children = widgetNode.getChildNodes();
         for (FrameworkNode node : widgetNode.getChildNodes(true)) {
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
             }
 
-            if (node.getNodeName().equalsIgnoreCase("Title")) {
+            if ("Title".equalsIgnoreCase(node.getNodeName())) {
                 retWidget.setTitle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("Decimals")) {
+            } else if ("Decimals".equalsIgnoreCase(node.getNodeName())) {
                 try {
                     retWidget.setDecimalPlaces(node.getIntegerContent());
                 } catch (Exception ex) {
                     LOGGER.severe("Invalid Decimals option: " + node.getTextContent() + ". Ignoring");
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("StyleOverride")) {
+            } else if ("StyleOverride".equalsIgnoreCase(node.getNodeName())) {
                 HandleStyleOverride(retWidget, node);
-            } else if (node.getNodeName().equalsIgnoreCase("UnitsOverride")) {
+            } else if ("UnitsOverride".equalsIgnoreCase(node.getNodeName())) {
                 retWidget.setUnitsOverride(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("InitialValue")) {
+            } else if ("InitialValue".equalsIgnoreCase(node.getNodeName())) {
                 retWidget.SetInitialValue(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("ValueRange")) {
+            } else if ("ValueRange".equalsIgnoreCase(node.getNodeName())) {
                 if (false == retWidget.HandleValueRange(node)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("ToolTip")) {
+            } else if ("ToolTip".equalsIgnoreCase(node.getNodeName())) {
                 if (false == retWidget.HandleToolTipConfig(node)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("SelectedStyle")) {
+            } else if ("SelectedStyle".equalsIgnoreCase(node.getNodeName())) {
                 if (false == retWidget.HandleSelectionConfig(node)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("ClickThroughTransparent")) {
+            } else if ("ClickThroughTransparent".equalsIgnoreCase(node.getNodeName())) {
                 retWidget.SetClickThroughTransparentRegion(node.getBooleanValue());
-            } else if (node.getNodeName().equalsIgnoreCase("MinionSrc")) {
+            } else if ("MinionSrc".equalsIgnoreCase(node.getNodeName())) {
                 if (node.hasAttributes()) {
                     Utility.ValidateAttributes(new String[]{"Namespace", "ID", "Scale", "DataIndex", "Separator"},
                             node);
@@ -630,20 +631,20 @@ public class WidgetBuilder {
                         return null;
                     }
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Peekaboo")) {
+            } else if ("Peekaboo".equalsIgnoreCase(node.getNodeName())) {
                 if (!HandlePeekaboo(retWidget, node)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Size")) {
+            } else if ("Size".equalsIgnoreCase(node.getNodeName())) {
                 if (false == HandleSizeSection(node, retWidget)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MaxSteppedRange")) {
+            } else if ("MaxSteppedRange".equalsIgnoreCase(node.getNodeName())) {
                 if (!retWidget.HandleMaxSteppedRange(node)) {
                     return null;
                 }
 
-            } else if (node.getNodeName().equalsIgnoreCase("MinSteppedRange")) {
+            } else if ("MinSteppedRange".equalsIgnoreCase(node.getNodeName())) {
                 if (!retWidget.HandleMinSteppedRange(node)) {
                     return null;
                 }
@@ -662,15 +663,15 @@ public class WidgetBuilder {
     }
 
     public static void DoneReadingExternalFile() {
-        FileDepth--;
+        fileDepth--;
     }
 
     public static String GetFileTree() {
-        return FileTree;
+        return fileTree;
     }
 
     public static boolean HandlePeekaboo(BaseWidget widget, FrameworkNode widgetNode) {
-        if (widgetNode.getNodeName().equalsIgnoreCase("Peekaboo")) {
+        if ("Peekaboo".equalsIgnoreCase(widgetNode.getNodeName())) {
             if (widgetNode.hasAttributes()) {
                 Utility.ValidateAttributes(new String[]{"Namespace", "ID", "Hide", "Show", "Default"}, widgetNode);
                 if (widgetNode.hasAttribute("ID") && widgetNode.hasAttribute("Namespace")) {
@@ -694,7 +695,7 @@ public class WidgetBuilder {
                             || 0 == strDef.compareToIgnoreCase(widget.getPeekabooHideStr())) {
                         widget.setPeekabooShowDefault(false);
                     } else {
-                        String validOpts[] = {"Pause", "Resume", "Remove", "Insert", "Disable", "Enable", "Select",
+                        String[] validOpts = {"Pause", "Resume", "Remove", "Insert", "Disable", "Enable", "Select",
                                 "Deselected"};
                         boolean found = false;
 
@@ -706,7 +707,7 @@ public class WidgetBuilder {
                             }
                         }
                         if (!found) {
-                            if (!strDef.substring(0, "Marvin:".length()).equalsIgnoreCase("Marvin:")) {
+                            if (!"Marvin:".equalsIgnoreCase(strDef.substring(0, "Marvin:".length()))) {
                                 LOGGER.severe(
                                         "Malformed Widget Peekaboo Definition in Application.XML.  Default is unknown : "
                                                 + strDef);
@@ -796,10 +797,10 @@ public class WidgetBuilder {
         widget.HandleCustomStyleOverride(styleNode);
 
         for (FrameworkNode node : styleNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
             }
-            if (node.getNodeName().equalsIgnoreCase("Item")) {
+            if ("Item".equalsIgnoreCase(node.getNodeName())) {
                 widget.AddAdditionalStyleOverride(node.getTextContent());
             } else {
                 LOGGER.severe("Unknown Tag under <StyleOverride>: " + node.getNodeName());
@@ -809,8 +810,8 @@ public class WidgetBuilder {
         return true;
     }
 
-    public static FrameworkNode OpenDefinitionFile(String inputFilename, String DesiredNode) {
-        LOGGER.config("Opening [" + DesiredNode + "] file: " + inputFilename);
+    public static FrameworkNode OpenDefinitionFile(String inputFilename, String desiredNode) {
+        LOGGER.config("Opening [" + desiredNode + "] file: " + inputFilename);
 
         Document doc = ConfigurationReader.OpenXMLFile(inputFilename);
         if (null == doc) {
@@ -819,7 +820,7 @@ public class WidgetBuilder {
         boolean foundRequiredRoot = false;
         NodeList nodes = doc.getChildNodes();
         for (int iLoop = 0; iLoop < nodes.getLength(); iLoop++) {
-            if (nodes.item(iLoop).getNodeName().equalsIgnoreCase("MarvinExternalFile")) {
+            if ("MarvinExternalFile".equalsIgnoreCase(nodes.item(iLoop).getNodeName())) {
                 nodes = nodes.item(iLoop).getChildNodes();
                 foundRequiredRoot = true;
                 break;
@@ -833,8 +834,8 @@ public class WidgetBuilder {
 
         for (int iLoop = 0; iLoop < nodes.getLength(); iLoop++) {
             Node node = nodes.item(iLoop);
-            if (null != DesiredNode) {
-                if (node.getNodeName().equalsIgnoreCase(DesiredNode)) {
+            if (null != desiredNode) {
+                if (node.getNodeName().equalsIgnoreCase(desiredNode)) {
                     return new FrameworkNode(node);
                 }
             } else if (node.hasChildNodes()) // only root should have children, so should be good
@@ -895,85 +896,85 @@ public class WidgetBuilder {
                 return null;
             }
 
-            if (strWidget.equalsIgnoreCase("SteelGauge")) {
+            if ("SteelGauge".equalsIgnoreCase(strWidget)) {
                 retWidget = SteelGaugeBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("SteelGaugeRadial")) {
+            } else if ("SteelGaugeRadial".equalsIgnoreCase(strWidget)) {
                 retWidget = SteelGaugeRadialBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("SteelGaugeRadialSteel")) {
+            } else if ("SteelGaugeRadialSteel".equalsIgnoreCase(strWidget)) {
                 retWidget = SteelGaugeRadialSteelBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("Steel180Gauge")) {
+            } else if ("Steel180Gauge".equalsIgnoreCase(strWidget)) {
                 retWidget = SteelGauge180Builder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("SteelSimpleGauge")) {
+            } else if ("SteelSimpleGauge".equalsIgnoreCase(strWidget)) {
                 retWidget = SteelSimpleGaugeBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("SteelLCD")) {
+            } else if ("SteelLCD".equalsIgnoreCase(strWidget)) {
                 retWidget = SteelLCDWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("LedBargraph")) {
+            } else if ("LedBargraph".equalsIgnoreCase(strWidget)) {
                 retWidget = SteelLedBarGraphBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("StaticImage")) {
+            } else if ("StaticImage".equalsIgnoreCase(strWidget)) {
                 retWidget = StaticImageBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("DynamicImage")) {
+            } else if ("DynamicImage".equalsIgnoreCase(strWidget)) {
                 retWidget = DynamicImageBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("Text")) {
+            } else if ("Text".equalsIgnoreCase(strWidget)) {
                 retWidget = TextBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("ProgressBar")) {
+            } else if ("ProgressBar".equalsIgnoreCase(strWidget)) {
                 retWidget = ProgressBarBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("ProgressIndicator")) {
+            } else if ("ProgressIndicator".equalsIgnoreCase(strWidget)) {
                 retWidget = ProgressIndicatorBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("Button")) {
+            } else if ("Button".equalsIgnoreCase(strWidget)) {
                 retWidget = ButtonWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("MenuButton")) {
+            } else if ("MenuButton".equalsIgnoreCase(strWidget)) {
                 retWidget = ButtonWidgetBuilder.BuildMenuButton(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("ToggleButton")) {
+            } else if ("ToggleButton".equalsIgnoreCase(strWidget)) {
                 retWidget = ButtonWidgetBuilder.BuildToggleButton(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("MultiSourceLineChart")) {
+            } else if ("MultiSourceLineChart".equalsIgnoreCase(strWidget)) {
                 retWidget = ChartWidgetBuilder.BuildMultiSourceLineChart(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("LineChart")) {
+            } else if ("LineChart".equalsIgnoreCase(strWidget)) {
                 retWidget = ChartWidgetBuilder.BuildLineChart(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("AreaChart")) {
+            } else if ("AreaChart".equalsIgnoreCase(strWidget)) {
                 retWidget = ChartWidgetBuilder.BuildAreaChart(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("MultiSourceAreaChart")) {
+            } else if ("MultiSourceAreaChart".equalsIgnoreCase(strWidget)) {
                 retWidget = ChartWidgetBuilder.BuildMultiSourceAreaChart(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("MultiSourceStackedAreaChart")) {
+            } else if ("MultiSourceStackedAreaChart".equalsIgnoreCase(strWidget)) {
                 retWidget = ChartWidgetBuilder.BuildMultiSourceStackedAreaChart(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("StackedAreaChart")) {
+            } else if ("StackedAreaChart".equalsIgnoreCase(strWidget)) {
                 retWidget = ChartWidgetBuilder.BuildStackedAreaChart(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("PieChart")) {
+            } else if ("PieChart".equalsIgnoreCase(strWidget)) {
                 retWidget = PieChartWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("BarChart")) {
+            } else if ("BarChart".equalsIgnoreCase(strWidget)) {
                 retWidget = ChartWidgetBuilder.BuildBarChart(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("StackedBarChart")) {
+            } else if ("StackedBarChart".equalsIgnoreCase(strWidget)) {
                 retWidget = ChartWidgetBuilder.BuildStackedlBarChart(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("HorizontalBarChart")) {
+            } else if ("HorizontalBarChart".equalsIgnoreCase(strWidget)) {
                 retWidget = ChartWidgetBuilder.BuildHorizontalBarChart(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("FlipPanel")) {
+            } else if ("FlipPanel".equalsIgnoreCase(strWidget)) {
                 retWidget = FlipPanelWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("FileWriter")) {
+            } else if ("FileWriter".equalsIgnoreCase(strWidget)) {
                 retWidget = FileWriterWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("Spacer")) {
+            } else if ("Spacer".equalsIgnoreCase(strWidget)) {
                 retWidget = SpacerWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("SVG")) {
+            } else if ("SVG".equalsIgnoreCase(strWidget)) {
                 retWidget = SVG_WidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("PDF_Reader")) {
+            } else if ("PDF_Reader".equalsIgnoreCase(strWidget)) {
                 LOGGER.severe("PDF Reader not currently supported");
                 retWidget = null;
                 // retWidget = PDF_ReaderWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("AudioPlayer")) {
+            } else if ("AudioPlayer".equalsIgnoreCase(strWidget)) {
                 retWidget = AudioPlayerWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("VideoPlayer")) {
+            } else if ("VideoPlayer".equalsIgnoreCase(strWidget)) {
                 retWidget = VideoPlayerWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("Web")) {
+            } else if ("Web".equalsIgnoreCase(strWidget)) {
                 retWidget = WebWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("QuickView")) {
+            } else if ("QuickView".equalsIgnoreCase(strWidget)) {
                 retWidget = QuickViewWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("QuickViewLCD")) {
+            } else if ("QuickViewLCD".equalsIgnoreCase(strWidget)) {
                 retWidget = QuickViewLCDWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("DoubleBarGauge")) {
+            } else if ("DoubleBarGauge".equalsIgnoreCase(strWidget)) {
                 retWidget = DoubleBarGaugeWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("BarGauge")) {
+            } else if ("BarGauge".equalsIgnoreCase(strWidget)) {
                 retWidget = BarGaugeWidgetBuilder.Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("ListBoxText")) {
+            } else if ("ListBoxText".equalsIgnoreCase(strWidget)) {
                 retWidget = TextBuilder.ListBoxText_Build(baseNode, Filename);
-            } else if (strWidget.equalsIgnoreCase("TableChart")) {
+            } else if ("TableChart".equalsIgnoreCase(strWidget)) {
                 retWidget = TableChartBuilder.Build(baseNode, Filename);
             } else {
                 LOGGER.severe("Unknown Widget type : " + strWidget + " in :" + Filename);
@@ -1000,12 +1001,12 @@ public class WidgetBuilder {
         } else if (gridNode.hasAttribute("columnSpan")) {
             objGridWidget.setColumnSpan(gridNode.getIntegerAttribute("columnspan", 1));
         }
-        if (true == gridNode.hasAttribute("Height")) {
+        if (gridNode.hasAttribute("Height")) {
             if (!objGridWidget.parseHeight(gridNode)) {
                 return false;
             }
         }
-        if (true == gridNode.hasAttribute("Width")) {
+        if (gridNode.hasAttribute("Width")) {
             if (!objGridWidget.parseWidth(gridNode)) {
                 return false;
             }
@@ -1028,7 +1029,7 @@ public class WidgetBuilder {
             }
         }
 
-        if (true == gridNode.hasAttribute("Align")) {
+        if (gridNode.hasAttribute("Align")) {
             String str = gridNode.getAttribute("Align");
             if (false == objGridWidget.setAlignment(str)) {
                 return false;
@@ -1049,26 +1050,26 @@ public class WidgetBuilder {
             return null;
         }
         for (FrameworkNode node : gridNode.getChildNodes(true)) {
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
             }
 
-            if (node.getNodeName().equalsIgnoreCase("PaddingOverride")
-                    || node.getNodeName().equalsIgnoreCase("Padding")) {
+            if ("PaddingOverride".equalsIgnoreCase(node.getNodeName())
+                    || "Padding".equalsIgnoreCase(node.getNodeName())) {
                 retWidget.HandleWidgetSpecificSettings(node);
-            } else if (node.getNodeName().equalsIgnoreCase("Widget") || node.getNodeName().equalsIgnoreCase("Grid")) {
+            } else if ("Widget".equalsIgnoreCase(node.getNodeName()) || "Grid".equalsIgnoreCase(node.getNodeName())) {
                 Widget subWidget = WidgetBuilder.Build(node);
                 if (null != subWidget) {
                     retWidget.AddWidget(subWidget);
                 } else {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("GridMacro")
-                    || node.getNodeName().equalsIgnoreCase("MacroGrid")) {
+            } else if ("GridMacro".equalsIgnoreCase(node.getNodeName())
+                    || "MacroGrid".equalsIgnoreCase(node.getNodeName())) {
                 if (!ReadGridMacro(node)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("For")) {
+            } else if ("For".equalsIgnoreCase(node.getNodeName())) {
                 List<Widget> repeatList = WidgetBuilder.BuildRepeatList(node);
                 if (null == repeatList) {
                     return null;
@@ -1076,7 +1077,7 @@ public class WidgetBuilder {
                 for (Widget objWidget : repeatList) {
                     retWidget.AddWidget(objWidget);
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MinionSrc")) {
+            } else if ("MinionSrc".equalsIgnoreCase(node.getNodeName())) {
                 if (node.hasAttributes()) {
                     Utility.ValidateAttributes(new String[]{"Namespace", "ID"}, node);
                     if (node.hasAttribute("ID") && node.hasAttribute("Namespace")) {
@@ -1087,14 +1088,14 @@ public class WidgetBuilder {
                 }
                 LOGGER.severe("Malformed DynamicGrid Widget MinionSrc Definition in Application.XML");
                 return null;
-            } else if (node.getNodeName().equalsIgnoreCase("StyleOverride")) {
+            } else if ("StyleOverride".equalsIgnoreCase(node.getNodeName())) {
                 HandleStyleOverride(retWidget, node);
-            } else if (node.getNodeName().equalsIgnoreCase("Peekaboo")) // for external grid files
+            } else if ("Peekaboo".equalsIgnoreCase(node.getNodeName())) // for external grid files
             {
                 if (!HandlePeekaboo(retWidget, node)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("ClickThroughTransparent")) {
+            } else if ("ClickThroughTransparent".equalsIgnoreCase(node.getNodeName())) {
                 retWidget.SetClickThroughTransparentRegion(node.getBooleanValue());
                 if (node.hasAttribute("Propagate") && node.getBooleanAttribute("Propagate")) {
                     retWidget.setExplicitPropagate(true);
@@ -1126,35 +1127,35 @@ public class WidgetBuilder {
 
         for (FrameworkNode node : gridNode.getChildNodes()) {
             String name = node.getNodeName();
-            if (name.equalsIgnoreCase("#Text") || name.equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(name) || "#comment".equalsIgnoreCase(name)) {
                 continue;
             }
 
-            if (name.equalsIgnoreCase("PaddingOverride") || name.equalsIgnoreCase("Padding")) {
+            if ("PaddingOverride".equalsIgnoreCase(name) || "Padding".equalsIgnoreCase(name)) {
                 if (false == retWidget.HandleWidgetSpecificSettings(node)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Tasklist")) {
+            } else if ("Tasklist".equalsIgnoreCase(node.getNodeName())) {
                 if (!ConfigurationReader.ReadTaskList(node)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("GenerateDataPoint")) {
+            } else if ("GenerateDataPoint".equalsIgnoreCase(node.getNodeName())) {
                 if (!ConfigurationReader.ReadGenerateDataPoints(node)) {
                     return null;
                 }
-            } else if (name.equalsIgnoreCase("Widget") || name.equalsIgnoreCase("Grid")
-                    || name.equalsIgnoreCase("DynamicGrid")) {
+            } else if ("Widget".equalsIgnoreCase(name) || "Grid".equalsIgnoreCase(name)
+                    || "DynamicGrid".equalsIgnoreCase(name)) {
                 Widget subWidget = WidgetBuilder.Build(node);
                 if (null != subWidget) {
                     retWidget.AddWidget(subWidget);
                 } else {
                     return null;
                 }
-            } else if (name.equalsIgnoreCase("GridMacro") || name.equalsIgnoreCase("MacroGrid")) {
+            } else if ("GridMacro".equalsIgnoreCase(name) || "MacroGrid".equalsIgnoreCase(name)) {
                 if (!ReadGridMacro(node)) {
                     return null;
                 }
-            } else if (name.equalsIgnoreCase("ListView")) {
+            } else if ("ListView".equalsIgnoreCase(name)) {
                 retWidget.setUseListView(true);
                 if (node.hasChild("StyleOverride")) {
                     FrameworkNode styleNode = node.getChild("StyleOverride");
@@ -1167,11 +1168,11 @@ public class WidgetBuilder {
                     }
                     List<String> itemList = new ArrayList<>();
                     for (FrameworkNode sNode : styleNode.getChildNodes()) {
-                        if (sNode.getNodeName().equalsIgnoreCase("#Text")
-                                || sNode.getNodeName().equalsIgnoreCase("#comment")) {
+                        if ("#Text".equalsIgnoreCase(sNode.getNodeName())
+                                || "#comment".equalsIgnoreCase(sNode.getNodeName())) {
                             continue;
                         }
-                        if (sNode.getNodeName().equalsIgnoreCase("Item")) {
+                        if ("Item".equalsIgnoreCase(sNode.getNodeName())) {
                             itemList.add(sNode.getTextContent());
                         } else {
                             LOGGER.severe("Unknown Tag under <StyleOverride>: " + sNode.getNodeName());
@@ -1180,7 +1181,7 @@ public class WidgetBuilder {
                     retWidget.setListStyleOverride(itemList);
                 }
 
-            } else if (node.getNodeName().equalsIgnoreCase("For")) {
+            } else if ("For".equalsIgnoreCase(node.getNodeName())) {
                 List<Widget> repeatList = WidgetBuilder.BuildRepeatList(node);
                 if (null == repeatList) {
                     return null;
@@ -1188,33 +1189,33 @@ public class WidgetBuilder {
                 for (Widget objWidget : repeatList) {
                     retWidget.AddWidget(objWidget);
                 }
-            } else if (name.equalsIgnoreCase("StyleOverride")) {
+            } else if ("StyleOverride".equalsIgnoreCase(name)) {
                 HandleStyleOverride(retWidget, node);
-            } else if (node.getNodeName().equalsIgnoreCase("ClickThroughTransparent")) {
+            } else if ("ClickThroughTransparent".equalsIgnoreCase(node.getNodeName())) {
                 retWidget.SetClickThroughTransparentRegion(node.getBooleanValue());
                 if (node.hasAttribute("Propagate") && node.getBooleanAttribute("Propagate")) {
                     retWidget.setExplicitPropagate(true);
                 }
-            } else if (name.equalsIgnoreCase("Peekaboo")) // for external grid files
+            } else if ("Peekaboo".equalsIgnoreCase(name)) // for external grid files
             {
                 if (!HandlePeekaboo(retWidget, node)) {
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("ToolTip")) {
+            } else if ("ToolTip".equalsIgnoreCase(node.getNodeName())) {
                 if (false == retWidget.HandleToolTipConfig(node)) {
                     return null;
                 }
-            } else if (name.equalsIgnoreCase("Size")) {
+            } else if ("Size".equalsIgnoreCase(name)) {
                 if (false == HandleSizeSection(node, retWidget)) {
                     return null;
                 }
-            } else if (name.equalsIgnoreCase("AliasList")) // TODO, should specifically search for this 1st, as might want
+            } else if ("AliasList".equalsIgnoreCase(name)) // TODO, should specifically search for this 1st, as might want
             // to place this anywhere in grid
             {
                 AliasMgr.HandleAliasNode(node);
-            } else if (node.getNodeName().equalsIgnoreCase("ClickThroughTransparent")) {
+            } else if ("ClickThroughTransparent".equalsIgnoreCase(node.getNodeName())) {
                 retWidget.SetClickThroughTransparentRegion(node.getBooleanValue());
-            } else if (node.getNodeName().equalsIgnoreCase("Conditional")) {
+            } else if ("Conditional".equalsIgnoreCase(node.getNodeName())) {
 
             } else {
                 LOGGER.severe("Unknown Grid Item [" + name + "] in Config file: " + filename);
@@ -1236,7 +1237,8 @@ public class WidgetBuilder {
 
     public static Pair<ValueRange, String> ReadMinionSrcIndexInfo(FrameworkNode node) {
         String cRet = ",";
-        int iStart = -1, iEnd = -1;
+        int iStart = -1;
+        int iEnd = -1;
 
         if (node.hasAttribute("DataIndex")) {
             String strIndex = node.getAttribute("DataIndex");
@@ -1271,7 +1273,7 @@ public class WidgetBuilder {
                 iStart = -1;
                 iEnd = iStart;
             } else {
-                if (strVal.equalsIgnoreCase(".")) {
+                if (".".equalsIgnoreCase(strVal)) {
                     strVal = "\\.";
                 }
                 cRet = strVal;
@@ -1280,17 +1282,20 @@ public class WidgetBuilder {
         }
         ValueRange retRange = ValueRange.of(iStart, iEnd);
 
-        return new Pair<ValueRange, String>(retRange, cRet);
+        return new Pair<>(retRange, cRet);
     }
 
     public static void StartReadingExternalFile(FrameworkNode node) {
-        String strPrint = Integer.toString(FileDepth) + ": ";
-        for (int iLoop = 0; iLoop < FileDepth; iLoop++) {
+        String strPrint = Integer.toString(fileDepth) + ": ";
+        for (int iLoop = 0; iLoop < fileDepth; iLoop++) {
             strPrint += "....";
         }
 
         strPrint += node.getAttributeList() + "\n";
-        FileTree += strPrint;
-        FileDepth++;
+        fileTree += strPrint;
+        fileDepth++;
+    }
+
+    private WidgetBuilder() {
     }
 }

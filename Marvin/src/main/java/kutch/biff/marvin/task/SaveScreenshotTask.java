@@ -44,11 +44,11 @@ public class SaveScreenshotTask extends BaseTask {
         OVERWRITE, SEQUENCE, PROMPT
     }
 
-    private String _strFileName;
+    private String strFileName;
     private SaveMode _mode;
 
     public SaveScreenshotTask(String fName, SaveMode mode) {
-        _strFileName = fName;
+        strFileName = fName;
         _mode = mode;
     }
 
@@ -91,8 +91,8 @@ public class SaveScreenshotTask extends BaseTask {
 
     @Override
     public void PerformTask() {
-        String fname = getDataValue(_strFileName);
-        fname = convertToFileOSSpecific(_strFileName);
+        String fname = getDataValue(strFileName);
+        fname = convertToFileOSSpecific(strFileName);
 
         if (_mode == SaveMode.OVERWRITE) {
             WriteToFile(fname);
@@ -106,8 +106,8 @@ public class SaveScreenshotTask extends BaseTask {
     }
 
     private void WriteToFile(String fName) {
-        Configuration CONFIG = Configuration.getConfig();
-        WritableImage image = CONFIG.getAppScene().getRoot().snapshot(new SnapshotParameters(), null);
+        Configuration config = Configuration.getConfig();
+        WritableImage image = config.getAppScene().getRoot().snapshot(new SnapshotParameters(), null);
         if (image == null) {
             LOGGER.severe("Unknown error taking snapsot in SaveScreenshotTask: " + _mode.toString());
             return;

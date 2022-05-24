@@ -25,21 +25,21 @@ package kutch.biff.marvin.task;
  * @author Patrick
  */
 public class LaunchProgramTask extends BaseTask {
-    private String _Application;
+    private String application;
 
     public LaunchProgramTask() {
-        _Application = null;
+        application = null;
     }
 
     public boolean isValid() {
-        return null != _Application;
+        return null != application;
     }
 
     @Override
     public void PerformTask() {
         Runtime rt = Runtime.getRuntime();
         String[] execString = new String[getParams().size() + 1];
-        execString[0] = _Application;
+        execString[0] = application;
         for (int iLoop = 0; iLoop < getParams().size(); iLoop++) {
             execString[iLoop + 1] = getParams().get(iLoop).toString();
         }
@@ -53,11 +53,11 @@ public class LaunchProgramTask extends BaseTask {
     }
 
     public boolean SetApplication(String strApplication) {
-        if (null != _Application) {
+        if (null != application) {
             LOGGER.severe("Application already defined for RunProgram Task");
             return false;
         }
-        _Application = strApplication;
+        application = strApplication;
         return true;
     }
 

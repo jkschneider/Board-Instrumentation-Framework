@@ -62,24 +62,24 @@ public class FileWriterWidget extends BaseWidget {
 
     ;
 
-    private static HashMap<String, HashMap<String, String>> _FileToDataMap = new HashMap<String, HashMap<String, String>>();
-    private HashMap<String, String> _DataPointMap;
-    private String _outFile;
-    private WriteMode _writeMode;
-    private WriteFormat _writeFormat;
-    private String _prefixStr;
+    private static HashMap<String, HashMap<String, String>> fileToDataMap = new HashMap<>();
+    private HashMap<String, String> dataPointMap;
+    private String outFile;
+    private WriteMode writeMode;
+    private WriteFormat writeFormat;
+    private String prefixStr;
 
     public FileWriterWidget() {
-        _DataPointMap = null; // new HashMap<>(); // for quick lookup as new data comes in
-        _outFile = null;
-        _writeMode = WriteMode.Overwrite;
-        _writeFormat = WriteFormat.KeyPairIDValue;
-        _prefixStr = "";
+        dataPointMap = null; // new HashMap<>(); // for quick lookup as new data comes in
+        outFile = null;
+        writeMode = WriteMode.Overwrite;
+        writeFormat = WriteFormat.KeyPairIDValue;
+        prefixStr = "";
     }
 
     private void Append() {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(_outFile, true));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outFile, true));
             writeMap(writer);
             writer.close();
         } catch (IOException ex) {
@@ -91,38 +91,35 @@ public class FileWriterWidget extends BaseWidget {
     public boolean Create(GridPane pane, DataManager dataMgr) {
         SetParent(pane);
 
-        if (null == _outFile) {
+        if (null == outFile) {
             LOGGER.severe("Invalid FileWriterWidget, no <File> specified.");
             return false;
         }
 
-        dataMgr.AddWildcardListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
+        dataMgr.AddWildcardListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
+            }
 
-                String strVal = newVal.toString();
-                String[] parts = strVal.split(":");
-                if (parts.length > 1) // check to see if we have already created the widget
+            String strVal = newVal.toString();
+            String[] parts = strVal.split(":");
+            if (parts.length > 1) // check to see if we have already created the widget
                 {
-                    String ID = parts[0];
+                    String id = parts[0];
                     String Value = parts[1];
-                    String key = _prefixStr;
-                    if (_writeFormat == WriteFormat.KeyPairNamespaceIDValue) {
+                    String key = prefixStr;
+                    if (writeFormat == WriteFormat.KeyPairNamespaceIDValue) {
                         key += getNamespace() + ".";
                     }
-                    key += ID;
+                    key += id;
 
-                    _DataPointMap.put(key, Value);
-                    if (_writeMode == WriteMode.Append) {
+                    dataPointMap.put(key, Value);
+                    if (writeMode == WriteMode.Append) {
                         Append();
-                    } else if (_writeMode == WriteMode.Overwrite) {
+                    } else if (writeMode == WriteMode.Overwrite) {
                         Overwrite();
                     }
                 }
-            }
         });
         SetupPeekaboo(dataMgr);
 
@@ -145,40 +142,40 @@ public class FileWriterWidget extends BaseWidget {
      */
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode node) {
-        if (node.getNodeName().equalsIgnoreCase("File")) {
-            _outFile = node.getTextContent();
-            if (!_FileToDataMap.containsKey(_outFile)) {
-                _DataPointMap = new HashMap<String, String>();
-                _FileToDataMap.put(_outFile, _DataPointMap);
+        if ("File".equalsIgnoreCase(node.getNodeName())) {
+            outFile = node.getTextContent();
+            if (!fileToDataMap.containsKey(outFile)) {
+                dataPointMap = new HashMap<>();
+                fileToDataMap.put(outFile, dataPointMap);
             } else {
-                _DataPointMap = _FileToDataMap.get(_outFile);
+                dataPointMap = fileToDataMap.get(outFile);
             }
 
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("Format")) {
+        } else if ("Format".equalsIgnoreCase(node.getNodeName())) {
             String strVal = node.getTextContent();
-            if (strVal.equalsIgnoreCase("KeyPair-ID-Value")) {
-                _writeFormat = WriteFormat.KeyPairIDValue;
-            } else if (strVal.equalsIgnoreCase("KeyPairIDValue")) {
-                _writeFormat = WriteFormat.KeyPairIDValue;
-            } else if (strVal.equalsIgnoreCase("KeyPair-Namespace-ID-Value")) {
-                _writeFormat = WriteFormat.KeyPairNamespaceIDValue;
-            } else if (strVal.equalsIgnoreCase("KeyPairNamespaceIDValue")) {
-                _writeFormat = WriteFormat.KeyPairNamespaceIDValue;
+            if ("KeyPair-ID-Value".equalsIgnoreCase(strVal)) {
+                writeFormat = WriteFormat.KeyPairIDValue;
+            } else if ("KeyPairIDValue".equalsIgnoreCase(strVal)) {
+                writeFormat = WriteFormat.KeyPairIDValue;
+            } else if ("KeyPair-Namespace-ID-Value".equalsIgnoreCase(strVal)) {
+                writeFormat = WriteFormat.KeyPairNamespaceIDValue;
+            } else if ("KeyPairNamespaceIDValue".equalsIgnoreCase(strVal)) {
+                writeFormat = WriteFormat.KeyPairNamespaceIDValue;
             } else {
                 LOGGER.severe("Invalid <Format> in FileWriterWidget : " + strVal);
                 return false;
             }
             if (node.hasAttribute("Prefix")) {
-                _prefixStr = node.getAttribute("Prefix");
+                prefixStr = node.getAttribute("Prefix");
             }
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("Mode")) {
+        } else if ("Mode".equalsIgnoreCase(node.getNodeName())) {
             String strVal = node.getTextContent();
-            if (strVal.equalsIgnoreCase("Append")) {
-                _writeMode = WriteMode.Append;
-            } else if (strVal.equalsIgnoreCase("Overwrite")) {
-                _writeMode = WriteMode.Overwrite;
+            if ("Append".equalsIgnoreCase(strVal)) {
+                writeMode = WriteMode.Append;
+            } else if ("Overwrite".equalsIgnoreCase(strVal)) {
+                writeMode = WriteMode.Overwrite;
             } else {
                 LOGGER.severe("Invalid <Mode> in FileWriterWidget : " + strVal);
                 return false;
@@ -190,7 +187,7 @@ public class FileWriterWidget extends BaseWidget {
 
     private void Overwrite() {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(_outFile));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outFile));
             writer.write("");
             writeMap(writer);
             writer.close();
@@ -205,14 +202,14 @@ public class FileWriterWidget extends BaseWidget {
     }
 
     private void writeMap(BufferedWriter writer) throws IOException {
-        for (String key : _DataPointMap.keySet()) {
+        for (String key : dataPointMap.keySet()) {
             // writer.append(_prefixStr);
             // if (_writeFormat == WriteFormat.KeyPairNamespaceIDValue)
             // {
 //                writer.append(getNamespace());
 //            }
             writer.append(key + "=");
-            writer.append(_DataPointMap.get(key));
+            writer.append(dataPointMap.get(key));
             writer.newLine();
         }
     }

@@ -31,9 +31,9 @@ import kutch.biff.marvin.widget.PDF_ReaderWidget;
 /**
  * @author Patrick
  */
-public class PDF_ReaderWidgetBuilder {
+public final class PDF_ReaderWidgetBuilder {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static PDF_ReaderWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         PDF_ReaderWidget _widget = new PDF_ReaderWidget();
@@ -45,5 +45,8 @@ public class PDF_ReaderWidgetBuilder {
             }
         }
         return _widget;
+    }
+
+    private PDF_ReaderWidgetBuilder() {
     }
 }

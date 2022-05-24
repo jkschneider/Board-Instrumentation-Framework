@@ -31,15 +31,13 @@ import kutch.biff.marvin.widget.ProgressBarWidget;
 /**
  * @author Patrick Kutch
  */
-public class ProgressBarBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class ProgressBarBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static ProgressBarWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         kutch.biff.marvin.widget.ProgressBarWidget _widget = new kutch.biff.marvin.widget.ProgressBarWidget();
         for (FrameworkNode node : masterNode.getChildNodes()) {
-            if (BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
-                continue;
-            } else {
+            if (!BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
                 LOGGER.severe("Unknown Progress Bar setting in Widget Definition file: " + node.getNodeName());
                 return null;
             }
@@ -47,6 +45,9 @@ public class ProgressBarBuilder {
 
         return _widget;
 
+    }
+
+    private ProgressBarBuilder() {
     }
 
 }

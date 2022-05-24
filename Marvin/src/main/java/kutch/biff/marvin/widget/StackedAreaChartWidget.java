@@ -55,7 +55,7 @@ public class StackedAreaChartWidget extends AreaChartWidget {
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return ((StackedAreaChart<?, ?>) (getChart()));
+        return (StackedAreaChart<?, ?>) (getChart());
     }
 
     @Override

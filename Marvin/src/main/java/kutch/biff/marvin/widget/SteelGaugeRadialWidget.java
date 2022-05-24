@@ -36,7 +36,7 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick Kutch
  */
 public class SteelGaugeRadialWidget extends BaseWidget {
-    protected static String DumpDimensions(String ID, Radial objGauge) {
+    protected static String DumpDimensions(String id, Radial objGauge) {
         String prefWidth = "Pref Width: " + objGauge.getPrefWidth() + " ";
         String prefHeight = "Pref Height: " + objGauge.getPrefHeight() + " ";
         String maxWidth = "MAX Width: " + objGauge.getMaxWidth() + " ";
@@ -46,7 +46,7 @@ public class SteelGaugeRadialWidget extends BaseWidget {
         String currWidth = "Curr Width: " + objGauge.getWidth() + " ";
         String currHeight = "Curr Height: " + objGauge.getHeight() + " ";
 
-        String retString = "Dimensions for " + ID + " Widget\n";
+        String retString = "Dimensions for " + id + " Widget\n";
         retString += "Current";
         retString += "\t" + currWidth + "\t" + currHeight;
         retString += "\nPreferred";
@@ -72,10 +72,10 @@ public class SteelGaugeRadialWidget extends BaseWidget {
     private TickLabelOrientation eOrientation;
     @SuppressWarnings("unused")
     private boolean EnhancedRateText;
-    private Radial _Gauge;
+    private Radial gauge;
     @SuppressWarnings("unused")
-    private GridPane _ParentGridPane;
-    private double _InitialValue = 0;
+    private GridPane parentGridPane;
+    private double initialValue = 0;
     private double MajorTickCount = 0;
 
     private double MinorTickCount = 0;
@@ -93,8 +93,8 @@ public class SteelGaugeRadialWidget extends BaseWidget {
         MinorTick = 0;
         eOrientation = TickLabelOrientation.HORIZONTAL;
         EnhancedRateText = true;
-        _Gauge = new Radial();
-        _Gauge.setAnimationDuration(400);
+        gauge = new Radial();
+        gauge.setAnimationDuration(400);
         // _Gauge.setAnimated(false);
 
     }
@@ -102,34 +102,31 @@ public class SteelGaugeRadialWidget extends BaseWidget {
     @Override
     public boolean Create(GridPane pane, DataManager dataMgr) {
         SetParent(pane);
-        _ParentGridPane = pane;
+        parentGridPane = pane;
         if (false == SetupGauge()) {
             return false;
         }
-        _Gauge.setValue(_InitialValue);
+        gauge.setValue(initialValue);
         SetupPeekaboo(dataMgr);
 
-        pane.add(_Gauge, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(gauge, getColumn(), getRow(), getColumnSpan(), getRowSpan());
 
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
-
-                double newDialValue = 0;
-                String strVal = newVal.toString();
-                try {
-                    newDialValue = Double.parseDouble(strVal);
-                    HandleSteppedRange(newDialValue);
-                } catch (Exception ex) {
-                    LOGGER.severe("Invalid data for Gauge received: " + strVal);
-                    return;
-                }
-
-                _Gauge.setValue(newDialValue);
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
             }
+
+            double newDialValue = 0;
+            String strVal = newVal.toString();
+            try {
+                newDialValue = Double.parseDouble(strVal);
+                HandleSteppedRange(newDialValue);
+            } catch (Exception ex) {
+                LOGGER.severe("Invalid data for Gauge received: " + strVal);
+                return;
+            }
+
+            gauge.setValue(newDialValue);
         });
 
         return ApplyCSS();
@@ -145,12 +142,12 @@ public class SteelGaugeRadialWidget extends BaseWidget {
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return _Gauge;
+        return gauge;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _Gauge.getStylesheets();
+        return gauge.getStylesheets();
     }
 
     protected void HandleSteppedRange(double newValue) {
@@ -173,43 +170,43 @@ public class SteelGaugeRadialWidget extends BaseWidget {
      */
     @Override
     public boolean HandleValueRange(FrameworkNode rangeNode) {
-        double Min = -1234.5678;
-        double Max = -1234.5678;
+        double min = -1234.5678;
+        double max = -1234.5678;
         if (rangeNode.hasAttribute("Min")) {
-            Min = rangeNode.getDoubleAttribute("Min", Min);
-            if (Min == -1234.5678) {
+            min = rangeNode.getDoubleAttribute("Min", min);
+            if (min == -1234.5678) {
                 return false;
             }
-            this.MinValue = Min;
+            this.MinValue = min;
         }
         if (rangeNode.hasAttribute("Max")) {
-            Max = rangeNode.getDoubleAttribute("Max", Max);
-            if (Max == -1234.5678) {
+            max = rangeNode.getDoubleAttribute("Max", max);
+            if (max == -1234.5678) {
                 return false;
             }
-            this.MaxValue = Max;
+            this.MaxValue = max;
         }
         for (FrameworkNode node : rangeNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
             }
-            if (node.getNodeName().equalsIgnoreCase("TickCount")) {
-                double MajorTickVal = -1234;
-                double MinorTickVal = -1234;
+            if ("TickCount".equalsIgnoreCase(node.getNodeName())) {
+                double majorTickVal = -1234;
+                double minorTickVal = -1234;
 
                 if (node.hasAttribute("Major")) {
-                    MajorTickVal = node.getDoubleAttribute("Major", MajorTickVal);
-                    if (MajorTickVal != -1234) {
-                        setMajorTickCount(MajorTickVal);
+                    majorTickVal = node.getDoubleAttribute("Major", majorTickVal);
+                    if (majorTickVal != -1234) {
+                        setMajorTickCount(majorTickVal);
                     } else {
                         LOGGER.severe("Invalid TickCount:Major ->" + node.getAttribute("Major"));
                         return false;
                     }
                 }
                 if (node.hasAttribute("Minor")) {
-                    MinorTickVal = node.getDoubleAttribute("Minor", MinorTickVal);
-                    if (MinorTickVal != -1234) {
-                        setMinorTickCount(MinorTickVal);
+                    minorTickVal = node.getDoubleAttribute("Minor", minorTickVal);
+                    if (minorTickVal != -1234) {
+                        setMinorTickCount(minorTickVal);
                     } else {
                         LOGGER.severe("Invalid TickCount:Minor ->" + node.getAttribute("Minor"));
                         return false;
@@ -221,110 +218,110 @@ public class SteelGaugeRadialWidget extends BaseWidget {
     }
 
     private void makeNewGauge() {
-        Radial oldGauge = _Gauge;
-        _Gauge = new Radial();
-        _Gauge.setVisible(oldGauge.isVisible());
+        Radial oldGauge = gauge;
+        gauge = new Radial();
+        gauge.setVisible(oldGauge.isVisible());
 
         GridPane pane = getParentPane();
         pane.getChildren().remove(oldGauge);
 
         if (false == SetupGauge()) {
             LOGGER.severe("Tried to re-create Radial for Stepped Range, but something bad happened.");
-            _Gauge = oldGauge;
+            gauge = oldGauge;
             return;
         }
-        pane.add(_Gauge, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(gauge, getColumn(), getRow(), getColumnSpan(), getRowSpan());
         ApplyCSS();
     }
 
-    public void setDialRangeAngle(int DialRangeAngle) {
-        this.DialRangeAngle = DialRangeAngle;
+    public void setDialRangeAngle(int dialRangeAngle) {
+        this.DialRangeAngle = dialRangeAngle;
     }
 
-    public void setDialStartAngle(int DialStartAngle) {
-        this.DialStartAngle = DialStartAngle;
+    public void setDialStartAngle(int dialStartAngle) {
+        this.DialStartAngle = dialStartAngle;
     }
 
-    public void setEnhancedRateText(boolean EnhancedRateText) {
-        this.EnhancedRateText = EnhancedRateText;
+    public void setEnhancedRateText(boolean enhancedRateText) {
+        this.EnhancedRateText = enhancedRateText;
     }
 
     @Override
     public void SetInitialValue(String value) {
         try {
-            _InitialValue = Double.parseDouble(value);
+            initialValue = Double.parseDouble(value);
         } catch (NumberFormatException ex) {
             LOGGER.severe("Invalid Default Value data for SteelGaugeRadial  Gauge: " + value);
         }
     }
 
-    public void setMajorTick(double MajorTick) {
-        this.MajorTick = MajorTick;
+    public void setMajorTick(double majorTick) {
+        this.MajorTick = majorTick;
     }
 
-    public void setMajorTickCount(double MajorTickCount) {
-        this.MajorTickCount = MajorTickCount;
+    public void setMajorTickCount(double majorTickCount) {
+        this.MajorTickCount = majorTickCount;
     }
 
-    public void setMaxValue(double MaxValue) {
-        this.MaxValue = MaxValue;
+    public void setMaxValue(double maxValue) {
+        this.MaxValue = maxValue;
     }
 
-    public void setMinorTick(double MinorTick) {
-        this.MinorTick = MinorTick;
+    public void setMinorTick(double minorTick) {
+        this.MinorTick = minorTick;
     }
 
-    public void setMinorTickCount(double MinorTickCount) {
-        this.MinorTickCount = MinorTickCount;
+    public void setMinorTickCount(double minorTickCount) {
+        this.MinorTickCount = minorTickCount;
     }
 
-    public void setMinValue(double MinValue) {
-        this.MinValue = MinValue;
+    public void setMinValue(double minValue) {
+        this.MinValue = minValue;
     }
 
     public void setOrientation(TickLabelOrientation eOrientation) {
         this.eOrientation = eOrientation;
     }
 
-    public void setRangeAngle(int DialEndAngle) {
-        this.DialRangeAngle = DialEndAngle;
+    public void setRangeAngle(int dialEndAngle) {
+        this.DialRangeAngle = dialEndAngle;
     }
 
-    public void setUnitText(String UnitText) {
-        this.UnitText = UnitText;
+    public void setUnitText(String unitText) {
+        this.UnitText = unitText;
     }
 
     private boolean SetupGauge() {
-        _Gauge.setMinValue(MinValue);
-        _Gauge.setMaxValue(MaxValue);
+        gauge.setMinValue(MinValue);
+        gauge.setMaxValue(MaxValue);
         // For some reason there is a bug in this gauge, so going to IGNORE this field
         // for now
 //        _Gauge.setStartAngle(DialStartAngle);
 //        _Gauge.setAngleRange(DialRangeAngle);
-        _Gauge.setTickLabelOrientation(eOrientation);
+        gauge.setTickLabelOrientation(eOrientation);
 
         if (getTitle().length() > 0) {
-            _Gauge.setTitle(getTitle());
+            gauge.setTitle(getTitle());
         }
         SetupTicksFromTickCount();
         if (MajorTick > 0) {
-            _Gauge.setMajorTickSpace(MajorTick);
+            gauge.setMajorTickSpace(MajorTick);
         }
         if (MinorTick > 0) {
-            _Gauge.setMinorTickSpace(MinorTick);
+            gauge.setMinorTickSpace(MinorTick);
         }
         if (null != getUnitsOverride()) {
-            _Gauge.setUnit(getUnitsOverride());
+            gauge.setUnit(getUnitsOverride());
             LOGGER.config("Overriding Widget Units Text to " + getUnitsOverride());
         } else if (UnitText.length() > 0) {
-            _Gauge.setUnit(UnitText);
+            gauge.setUnit(UnitText);
         }
 //        if (null != Sections)
 //        {
 //            _Gauge.setSections(Sections);
 //        }
 
-        _Gauge.setDecimals(getDecimalPlaces());
+        gauge.setDecimals(getDecimalPlaces());
         ConfigureDimentions();
         SetupTaskAction();
         ConfigureAlignment();
@@ -354,7 +351,7 @@ public class SteelGaugeRadialWidget extends BaseWidget {
 
     @Override
     public void UpdateTitle(String strTitle) {
-        _Gauge.setTitle(getTitle());
+        gauge.setTitle(getTitle());
     }
 
     @Override

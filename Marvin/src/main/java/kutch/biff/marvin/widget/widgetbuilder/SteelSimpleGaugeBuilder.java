@@ -36,8 +36,8 @@ import kutch.biff.marvin.widget.SteelSimpleGaugeWidget;
 /**
  * @author Patrick Kutch
  */
-public class SteelSimpleGaugeBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class SteelSimpleGaugeBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static SteelSimpleGaugeWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         SteelSimpleGaugeWidget sg = new SteelSimpleGaugeWidget();
@@ -45,7 +45,7 @@ public class SteelSimpleGaugeBuilder {
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(sg, node)) {
                 continue;
-            } else if (node.getNodeName().equalsIgnoreCase("MinValue")) {
+            } else if ("MinValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     sg.setMinValue(Double.parseDouble(str));
@@ -53,7 +53,7 @@ public class SteelSimpleGaugeBuilder {
                     LOGGER.severe("Invalid MinValue in Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MaxValue")) {
+            } else if ("MaxValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     sg.setMaxValue(Double.parseDouble(str));
@@ -61,7 +61,7 @@ public class SteelSimpleGaugeBuilder {
                     LOGGER.severe("Invalid MaxValue in SteelSimpleGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Decimals")) {
+            } else if ("Decimals".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     sg.setDecimalPlaces(Integer.parseInt(str));
@@ -69,10 +69,10 @@ public class SteelSimpleGaugeBuilder {
                     LOGGER.severe("Invalid Decimals in SteelSimpleGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("UnitText")) {
+            } else if ("UnitText".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 sg.setUnitText(str);
-            } else if (node.getNodeName().equalsIgnoreCase("Sections")) {
+            } else if ("Sections".equalsIgnoreCase(node.getNodeName())) {
                 List<Pair<Double, Double>> percentSections = ProcessPercentageSections(node);
                 if (null != percentSections) {
                     sg.setPercentageSections(percentSections);
@@ -96,13 +96,14 @@ public class SteelSimpleGaugeBuilder {
         ArrayList<Pair<Double, Double>> sectList = new ArrayList<>();
 
         for (FrameworkNode node : sections.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("#Text")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName())) {
 
-            } else if (node.getNodeName().equalsIgnoreCase("Section")) {
+            } else if ("Section".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"start", "end"}, node);
                 if (node.hasAttribute("start") && node.hasAttribute("end")) {
                     try {
-                        double start, end;
+                        double start;
+                        double end;
                         String str = node.getAttribute("start");
                         if (str.contains("%")) {
                             str = str.replace("%", "");
@@ -117,7 +118,7 @@ public class SteelSimpleGaugeBuilder {
                             return null;
                         }
                         end = Double.parseDouble(str);
-                        sectList.add(new Pair<Double, Double>(start, end));
+                        sectList.add(new Pair<>(start, end));
                     } catch (Exception ex) {
                         // LOGGER.severe("Invalid <Sections> in SteelGauge Widget Definition File.");
                         return null;
@@ -133,11 +134,11 @@ public class SteelSimpleGaugeBuilder {
     }
 
     private static ArrayList<Section> ProcessSections(FrameworkNode sections) {
-        ArrayList<Section> sectList = new ArrayList<Section>();
+        ArrayList<Section> sectList = new ArrayList<>();
         for (FrameworkNode node : sections.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("#Text")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName())) {
                 continue;
-            } else if (node.getNodeName().equalsIgnoreCase("Section")) {
+            } else if ("Section".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"start", "end"}, node);
                 if (node.hasAttribute("start") && node.hasAttribute("end")) {
                     Section objSect = new Section();
@@ -162,6 +163,9 @@ public class SteelSimpleGaugeBuilder {
             }
         }
         return sectList;
+    }
+
+    private SteelSimpleGaugeBuilder() {
     }
 
 }

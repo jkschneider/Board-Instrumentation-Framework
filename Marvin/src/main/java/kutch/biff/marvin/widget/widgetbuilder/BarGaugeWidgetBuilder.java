@@ -31,15 +31,15 @@ import kutch.biff.marvin.widget.BaseWidget;
 /**
  * @author Patrick Kutch
  */
-public class BarGaugeWidgetBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class BarGaugeWidgetBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static BarGaugeWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         BarGaugeWidget gauge = new BarGaugeWidget();
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(gauge, node)) {
                 continue;
-            } else if (node.getNodeName().equalsIgnoreCase("MinValue")) {
+            } else if ("MinValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     gauge.setMinValue(Double.parseDouble(str));
@@ -47,7 +47,7 @@ public class BarGaugeWidgetBuilder {
                     LOGGER.severe("Invalid MinValue in BarGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MaxValue")) {
+            } else if ("MaxValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     gauge.setMaxValue(Double.parseDouble(str));
@@ -55,7 +55,7 @@ public class BarGaugeWidgetBuilder {
                     LOGGER.severe("Invalid MaxValue in BarGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Decimals")) {
+            } else if ("Decimals".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     gauge.setDecimalPlaces(Integer.parseInt(str));
@@ -63,7 +63,7 @@ public class BarGaugeWidgetBuilder {
                     LOGGER.severe("Invalid Decimals in Bareauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("UnitText")) {
+            } else if ("UnitText".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 gauge.setUnitText(str);
             } else {
@@ -73,5 +73,8 @@ public class BarGaugeWidgetBuilder {
 
         }
         return gauge;
+    }
+
+    private BarGaugeWidgetBuilder() {
     }
 }

@@ -51,7 +51,7 @@ public interface Widget {
 
     public void resetState(String strParam);
 
-    public void SetClickThroughTransparentRegion(boolean _CanClickOnTransparent);
+    public void SetClickThroughTransparentRegion(boolean canClickOnTransparent);
 
     public boolean SupportsEnableDisable();
 

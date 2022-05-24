@@ -42,26 +42,26 @@ import kutch.biff.marvin.widget.TabWidget;
  */
 public class OnDemandTabBuilder implements OnDemandWidgetBuilder {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     private String __tabID;
-    private int __builtCount = 0;
-    private FrameworkNode __node;
-    private int __tabIndex;
+    private int builtCount;
+    private FrameworkNode node;
+    private int tabIndex;
     DynamicItemInfoContainer __onDemandTrigger;
-    private List<TabWidget> __createdTabs;
+    private List<TabWidget> createdTabs;
 
     public OnDemandTabBuilder(String tabID, int index, DynamicItemInfoContainer info) {
         __tabID = tabID;
-        __tabIndex = index;
+        tabIndex = index;
         __onDemandTrigger = info;
-        __node = null;
-        __createdTabs = new ArrayList<TabWidget>();
+        node = null;
+        createdTabs = new ArrayList<>();
     }
 
     public void ApplyOddEvenStyle() {
         int iIndex = 1;
         for (TabWidget tabWidget : ConfigurationReader.GetConfigReader().getTabs()) {
-            if (__createdTabs.contains(tabWidget)) // on demand tab, that was created by this builder
+            if (createdTabs.contains(tabWidget)) // on demand tab, that was created by this builder
             {
                 __onDemandTrigger.ApplyOddEvenStyle(tabWidget, iIndex, tabWidget.getTitle());
             }
@@ -70,30 +70,30 @@ public class OnDemandTabBuilder implements OnDemandWidgetBuilder {
     }
 
     @Override
-    public boolean Build(String Namespace, String ID, String Value, String strSortValue) {
-        LOGGER.info("Creating OnDemand Tab for namespace: " + Namespace + ",  using Tab template ID: " + __tabID);
+    public boolean Build(String namespace, String id, String value, String strSortValue) {
+        LOGGER.info("Creating OnDemand Tab for namespace: " + namespace + ",  using Tab template ID: " + __tabID);
         Configuration config = Configuration.getConfig();
         TabPane parentPane = config.getPane();
 
-        __builtCount++;
+        builtCount++;
 
-        String strTabID = __tabID + "." + Integer.toString(__builtCount);
+        String strTabID = __tabID + "." + Integer.toString(builtCount);
         AliasMgr.getAliasMgr().PushAliasList(true);
         TabWidget tab = new TabWidget(strTabID);
-        __createdTabs.add(tab);
+        createdTabs.add(tab);
         tab.setOnDemandSortBy(strSortValue);
-        AliasMgr.getAliasMgr().AddAlias("TriggeredNamespace", Namespace); // So tab knows namespace
-        AliasMgr.getAliasMgr().AddAlias("TriggeredID", ID);
-        AliasMgr.getAliasMgr().AddAlias("TriggeredValue", Value);
-        AliasMgr.getAliasMgr().AddAlias("TriggeredIndex", Integer.toString(__builtCount));
+        AliasMgr.getAliasMgr().AddAlias("TriggeredNamespace", namespace); // So tab knows namespace
+        AliasMgr.getAliasMgr().AddAlias("TriggeredID", id);
+        AliasMgr.getAliasMgr().AddAlias("TriggeredValue", value);
+        AliasMgr.getAliasMgr().AddAlias("TriggeredIndex", Integer.toString(builtCount));
         AliasMgr.getAliasMgr().AddAlias("TabID", strTabID);
-        __onDemandTrigger.tokenizeAndCreateAlias(ID);
+        __onDemandTrigger.tokenizeAndCreateAlias(id);
 
-        tab = ConfigurationReader.ReadTab(__node, tab, strTabID);
+        tab = ConfigurationReader.ReadTab(node, tab, strTabID);
 
         if (null != tab) {
             tab.setCreatedOnDemand();
-            if (tab.Create(parentPane, DataManager.getDataManager(), __tabIndex)) {
+            if (tab.Create(parentPane, DataManager.getDataManager(), tabIndex)) {
                 ConfigurationReader.GetConfigReader().getTabs().add(tab);
                 tab.PerformPostCreateActions(null, false);
 
@@ -121,6 +121,6 @@ public class OnDemandTabBuilder implements OnDemandWidgetBuilder {
     }
 
     public void setSourceNode(FrameworkNode sourceNode) {
-        __node = sourceNode;
+        node = sourceNode;
     }
 }

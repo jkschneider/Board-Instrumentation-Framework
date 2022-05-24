@@ -30,8 +30,8 @@ import kutch.biff.marvin.widget.AudioPlayerWidget;
 /**
  * @author Patrick Kutch
  */
-public class AudioPlayerWidgetBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class AudioPlayerWidgetBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static AudioPlayerWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         AudioPlayerWidget objWidget = new AudioPlayerWidget();
@@ -44,5 +44,8 @@ public class AudioPlayerWidgetBuilder {
             }
         }
         return objWidget;
+    }
+
+    private AudioPlayerWidgetBuilder() {
     }
 }

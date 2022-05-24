@@ -38,16 +38,16 @@ import kutch.biff.marvin.datamanager.DataManager;
  * @author Patrick Kutch
  */
 public class WebWidget extends BaseWidget {
-    private WebView _Browser;
-    private boolean _ReverseContent;
-    private String _CurrentContent;
-    private String _HackedFile;
+    private WebView browser;
+    private boolean reverseContent;
+    private String currentContent;
+    private String hackedFile;
 
     public WebWidget() {
-        _Browser = new WebView();
-        _ReverseContent = false;
-        _CurrentContent = "";
-        _HackedFile = null;
+        browser = new WebView();
+        reverseContent = false;
+        currentContent = "";
+        hackedFile = null;
     }
 
     private void BadContent(String strContent) {
@@ -57,11 +57,11 @@ public class WebWidget extends BaseWidget {
     @Override
     protected void ConfigureDimentions() {
         if (getHeight() > 0) {
-            _Browser.setPrefHeight(getHeight());
+            browser.setPrefHeight(getHeight());
         }
 
         if (getWidth() > 0) {
-            _Browser.setPrefWidth(getWidth());
+            browser.setPrefWidth(getWidth());
         }
     }
 
@@ -69,50 +69,43 @@ public class WebWidget extends BaseWidget {
     public boolean Create(GridPane pane, DataManager dataMgr) {
         SetParent(pane);
         ConfigureDimentions();
-        if (_ReverseContent) {
-            _Browser.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+        if (reverseContent) {
+            browser.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
         }
 
         ConfigureAlignment();
         SetupPeekaboo(dataMgr);
-        SetContent(_CurrentContent);
+        SetContent(currentContent);
 
-        pane.add(_Browser, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(browser, getColumn(), getRow(), getColumnSpan(), getRowSpan());
 
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
-                _HackedFile = null;
-                SetContent(newVal.toString());
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
             }
+            hackedFile = null;
+            SetContent(newVal.toString());
         });
 
         // check status of loading
-        _Browser.getEngine().getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
-            @SuppressWarnings("rawtypes")
-            @Override
-            public void changed(ObservableValue ov, State oldState, State newState) {
-                if (newState == State.FAILED) {
-                    // browser requires absolute path, so let's try to provide that, in case a
-                    // relative one was provided
-                    if ("file:".equalsIgnoreCase(_CurrentContent.substring(0, 5))) {
-                        if (_HackedFile == null) {
-                            Path currentRelativePath = Paths.get("");
-                            String workDir = currentRelativePath.toAbsolutePath().toString() + java.io.File.separator;
+        browser.getEngine().getLoadWorker().stateProperty().addListener((ObservableValue ov, Worker.State oldState, Worker.State newState) -> {
+            if (newState == State.FAILED) {
+                // browser requires absolute path, so let's try to provide that, in case a
+                // relative one was provided
+                if ("file:".equalsIgnoreCase(currentContent.substring(0, 5))) {
+                    if (hackedFile == null) {
+                        Path currentRelativePath = Paths.get("");
+                        String workDir = currentRelativePath.toAbsolutePath().toString() + java.io.File.separator;
 
-                            _HackedFile = _CurrentContent;
-                            _CurrentContent = "file:" + workDir + _CurrentContent.substring(5);
-                            SetContent(_CurrentContent);
-                            return;
-                        }
-                        _CurrentContent = _HackedFile;
+                        hackedFile = currentContent;
+                        currentContent = "file:" + workDir + currentContent.substring(5);
+                        SetContent(currentContent);
+                        return;
                     }
-
-                    LOGGER.info("Error loading web widget content: " + _CurrentContent);
+                    currentContent = hackedFile;
                 }
+
+                LOGGER.info("Error loading web widget content: " + currentContent);
             }
         });
 
@@ -122,13 +115,13 @@ public class WebWidget extends BaseWidget {
 
     @Override
     public Node getStylableObject() {
-        return _Browser;
+        return browser;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
 
-        return _Browser.getStylesheets();
+        return browser.getStylesheets();
     }
 
     private void SetContent(String strContent) {
@@ -138,22 +131,22 @@ public class WebWidget extends BaseWidget {
         }
 
         if ("http".equalsIgnoreCase(strContent.substring(0, 4))) {
-            _Browser.getEngine().load(strContent);
+            browser.getEngine().load(strContent);
         } else if ("file:".equalsIgnoreCase(strContent.substring(0, 5))) {
-            _Browser.getEngine().load(strContent);
+            browser.getEngine().load(strContent);
         } else {
-            _Browser.getEngine().loadContent(strContent);
+            browser.getEngine().loadContent(strContent);
         }
-        _CurrentContent = strContent;
+        currentContent = strContent;
     }
 
     @Override
     public void SetInitialValue(String value) {
-        _CurrentContent = value;
+        currentContent = value;
     }
 
     public void SetReverseContent(boolean newVal) {
-        _ReverseContent = newVal;
+        reverseContent = newVal;
     }
 
     @Override

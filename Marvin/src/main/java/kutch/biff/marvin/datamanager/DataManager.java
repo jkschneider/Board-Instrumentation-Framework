@@ -48,33 +48,33 @@ import kutch.biff.marvin.widget.widgetbuilder.OnDemandWidgetBuilder;
  * @author Patrick.Kutch@gmail.com
  */
 public class DataManager {
-    private static DataManager _DataManager = null;
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static DataManager dataManager;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static DataManager getDataManager() {
-        return _DataManager;
+        return dataManager;
     }
 
-    private ConcurrentHashMap<String, DataSet> _DataMap;
-    private Map<String, List<GenerateDatapointInfo>> _ProxyIDMap;
-    private ConcurrentHashMap<String, List<WildcardListItem>> _WildcardDataMap;
-    private final Queue<Pair<DynamicItemInfoContainer, OnDemandWidgetBuilder>> _OnDemandQueue; // a queue solves some of
+    private ConcurrentHashMap<String, DataSet> dataMap;
+    private Map<String, List<GenerateDatapointInfo>> proxyIDMap;
+    private ConcurrentHashMap<String, List<WildcardListItem>> wildcardDataMap;
+    private final Queue<Pair<DynamicItemInfoContainer, OnDemandWidgetBuilder>> onDemandQueue; // a queue solves some of
     // my concurency issues
-    private final Queue<GenerateDatapointInfo> __GenerateDatapointList;
-    private long _UpdateCount;
-    private long _UnassignedDataPoints;
+    private final Queue<GenerateDatapointInfo> generateDatapointList;
+    private long updateCount;
+    private long unassignedDataPoints;
 
-    private boolean __DynamicTabRegistered = false;
+    private boolean dynamicTabRegistered;
 
     public DataManager() {
-        _DataMap = new ConcurrentHashMap<>();
-        _WildcardDataMap = new ConcurrentHashMap<>();
-        _DataManager = this;
-        _UpdateCount = 0;
-        _UnassignedDataPoints = 0;
-        _OnDemandQueue = new ConcurrentLinkedQueue<>();
-        __GenerateDatapointList = new ConcurrentLinkedQueue<>();
-        _ProxyIDMap = new HashMap<>();
+        dataMap = new ConcurrentHashMap<>();
+        wildcardDataMap = new ConcurrentHashMap<>();
+        dataManager = this;
+        updateCount = 0;
+        unassignedDataPoints = 0;
+        onDemandQueue = new ConcurrentLinkedQueue<>();
+        generateDatapointList = new ConcurrentLinkedQueue<>();
+        proxyIDMap = new HashMap<>();
     }
 
     public boolean AddGenerateDatapointInfo(GenerateDatapointInfo genInfo) {
@@ -85,34 +85,34 @@ public class DataManager {
             key = genInfo.getProxyID().toUpperCase();
 
         }
-        if (!_ProxyIDMap.containsKey(key)) {
-            _ProxyIDMap.put(key, new ArrayList<GenerateDatapointInfo>());
+        if (!proxyIDMap.containsKey(key)) {
+            proxyIDMap.put(key, new ArrayList<>());
         }
 
-        _ProxyIDMap.get(key).add(genInfo); // add to list
-        __GenerateDatapointList.add(genInfo);
+        proxyIDMap.get(key).add(genInfo); // add to list
+        generateDatapointList.add(genInfo);
         return true;
     }
 
-    public void AddListener(String ID, String Namespace, ChangeListener<?> listener) {
-        if (null == ID || null == Namespace) {
+    public void AddListener(String id, String namespace, ChangeListener<?> listener) {
+        if (null == id || null == namespace) {
             return;
         }
 
-        String Key = Utility.generateKey(Namespace, ID);
+        String Key = Utility.generateKey(namespace, id);
 
-        if (false == _DataMap.containsKey(Key)) {
-            _DataMap.put(Key, new DataSet());
+        if (false == dataMap.containsKey(Key)) {
+            dataMap.put(Key, new DataSet());
         }
 
-        _DataMap.get(Key).addListener(listener);
+        dataMap.get(Key).addListener(listener);
     }
 
     public void AddOnDemandWidgetCriterea(DynamicItemInfoContainer criterea, OnDemandWidgetBuilder objBuilder) {
-        _OnDemandQueue.add(new Pair<DynamicItemInfoContainer, OnDemandWidgetBuilder>(criterea, objBuilder));
+        onDemandQueue.add(new Pair<>(criterea, objBuilder));
 
         if (objBuilder instanceof OnDemandTabBuilder) {
-            __DynamicTabRegistered = true; // flag so can know if something is registered for startup check for any tabs
+            dynamicTabRegistered = true; // flag so can know if something is registered for startup check for any tabs
         }
     }
 
@@ -125,14 +125,14 @@ public class DataManager {
         // LOGGER.info("Adding Wildcard Listener for [" + Namespace + "] ID: " + ID);
         String Key = Namespace.toUpperCase();
 
-        if (false == _WildcardDataMap.containsKey(Key)) {
+        if (false == wildcardDataMap.containsKey(Key)) {
             WildcardListItem item = new WildcardListItem(ID);
             List<WildcardListItem> list = new ArrayList<>();
             list.add(item);
-            _WildcardDataMap.put(Key, list);
+            wildcardDataMap.put(Key, list);
         }
 
-        for (WildcardListItem wcNode : _WildcardDataMap.get(Key)) // go through the list for the namespace
+        for (WildcardListItem wcNode : wildcardDataMap.get(Key)) // go through the list for the namespace
         {
             if (wcNode.getWildCard().equalsIgnoreCase(ID)) {
                 wcNode.getDataSet().addListener(listener);
@@ -142,29 +142,29 @@ public class DataManager {
         // Not found, so add a new listener
         WildcardListItem item = new WildcardListItem(ID);
         item.getDataSet().addListener(listener);
-        _WildcardDataMap.get(Key).add(item);
+        wildcardDataMap.get(Key).add(item);
     }
 
     public void ChangeValue(String ID, String Namespace, String Value) {
-        boolean OnDemandItemFound = false;
-        boolean OnDemandTabFound = false;
+        boolean onDemandItemFound = false;
+        boolean onDemandTabFound = false;
         synchronized (this) {
-            for (Pair<DynamicItemInfoContainer, OnDemandWidgetBuilder> entry : _OnDemandQueue) {
+            for (Pair<DynamicItemInfoContainer, OnDemandWidgetBuilder> entry : onDemandQueue) {
                 if (entry.getKey().Matches(Namespace, ID, Value)) {
                     LateCreateTask objTask = new LateCreateTask(entry.getValue(), Namespace, ID, Value,
                             entry.getKey().getLastMatchedSortStr());
                     TaskManager.getTaskManager().AddDeferredTaskObject(objTask);
-                    OnDemandItemFound = true;
+                    onDemandItemFound = true;
                     if (entry.getValue() instanceof OnDemandTabBuilder) {
-                        OnDemandTabFound = true;
+                        onDemandTabFound = true;
                     }
                 }
             }
-            if (OnDemandItemFound) {
+            if (onDemandItemFound) {
                 Configuration.getConfig().setCursorToWait();
             }
             // go and handle any GenerateDatapoint stuff
-            for (GenerateDatapointInfo info : __GenerateDatapointList) {
+            for (GenerateDatapointInfo info : generateDatapointList) {
                 if (info.Matches(Namespace, ID)) {
                     info.BuildDatapoint(Namespace, ID);
                 }
@@ -174,15 +174,15 @@ public class DataManager {
         synchronized (this) {
             String Key = Utility.generateKey(Namespace, ID);
 
-            _UpdateCount++;
+            updateCount++;
 
             boolean inWildcard = HandleWildcardChangeValue(ID, Namespace, Value);
 
-            if (false == _DataMap.containsKey(Key)) {
-                _DataMap.put(Key, new DataSet());
+            if (false == dataMap.containsKey(Key)) {
+                dataMap.put(Key, new DataSet());
 
                 if (false == inWildcard) {
-                    _UnassignedDataPoints++;
+                    unassignedDataPoints++;
 
                     // LOGGER.info("Received Data update not associated with a widget: " + Namespace
                     // + " : " + ID + " [" + Value + "]");
@@ -193,32 +193,32 @@ public class DataManager {
                     }
                 }
             }
-            if (_DataMap.containsKey(Key)) // if didn't exist, is created above
+            if (dataMap.containsKey(Key)) // if didn't exist, is created above
             {
-                _DataMap.get(Key).setLatestValue(Value);
+                dataMap.get(Key).setLatestValue(Value);
             }
         }
-        if (true == OnDemandTabFound) {
+        if (onDemandTabFound) {
 //            ApplyOnDemandTabStyle objTask = new ApplyOnDemandTabStyle();
 //            TaskManager.getTaskManager().AddPostponedTask(objTask, 1000);
         }
     }
 
     public boolean DynamicTabRegistered() {
-        return __DynamicTabRegistered;
+        return dynamicTabRegistered;
     }
 
     public Queue<GenerateDatapointInfo> getGenerateDatapointList() {
-        return __GenerateDatapointList;
+        return generateDatapointList;
     }
 
     public Queue<Pair<DynamicItemInfoContainer, OnDemandWidgetBuilder>> getOnDemandList() {
-        return _OnDemandQueue;
+        return onDemandQueue;
     }
 
     public int getQueuedSize() {
         int tSize = 0;
-        for (Map.Entry<String, DataSet> entry : _DataMap.entrySet()) {
+        for (Map.Entry<String, DataSet> entry : dataMap.entrySet()) {
             DataSet objData = entry.getValue();
             tSize += objData.getSize();
         }
@@ -226,11 +226,11 @@ public class DataManager {
     }
 
     public long getUnassignedCount() {
-        return _UnassignedDataPoints;
+        return unassignedDataPoints;
     }
 
     public long getUpdateCount() {
-        return _UpdateCount;
+        return updateCount;
     }
 
     public String GetValue(String ID, String Namespace) {
@@ -242,8 +242,8 @@ public class DataManager {
 
             String Key = Utility.generateKey(Namespace, ID);
 
-            if (_DataMap.containsKey(Key)) {
-                return _DataMap.get(Key).getLatestValue();
+            if (dataMap.containsKey(Key)) {
+                return dataMap.get(Key).getLatestValue();
             }
             return null;
         }
@@ -258,8 +258,8 @@ public class DataManager {
 
             String Key = Utility.generateKey(Namespace, ID);
 
-            if (_DataMap.containsKey(Key)) {
-                return _DataMap.get(Key).getLatestValueForMath();
+            if (dataMap.containsKey(Key)) {
+                return dataMap.get(Key).getLatestValueForMath();
             }
             return null;
         }
@@ -267,33 +267,33 @@ public class DataManager {
 
     private boolean HandleWildcardChangeValue(String ID, String Namespace, String Value) {
         String Key = Namespace.toUpperCase();
-        boolean RetVal = false;
-        if (_WildcardDataMap.containsKey(Key)) {
-            for (WildcardListItem wcNode : _WildcardDataMap.get(Key)) // go through the list for the namespace
+        boolean retVal = false;
+        if (wildcardDataMap.containsKey(Key)) {
+            for (WildcardListItem wcNode : wildcardDataMap.get(Key)) // go through the list for the namespace
             {
                 if (wcNode.Matches(ID)) {
                     wcNode.getDataSet().setLatestValue(ID + ":" + Value); // need 2 pass ID here, since it's a RegEx
-                    RetVal = true;
+                    retVal = true;
                 }
             }
         }
 
-        return RetVal;
+        return retVal;
     }
 
     public int NumberOfRegisteredDatapoints() {
-        return _DataMap.size();
+        return dataMap.size();
     }
 
     public int PerformUpdates() {
         int updatesPerformed = 0;
-        for (Map.Entry<String, DataSet> entry : _DataMap.entrySet()) {
+        for (Map.Entry<String, DataSet> entry : dataMap.entrySet()) {
             updatesPerformed += entry.getValue().Update();
         }
-        if (!_WildcardDataMap.isEmpty()) {
-            for (String Key : _WildcardDataMap.keySet()) // go through each namespace
+        if (!wildcardDataMap.isEmpty()) {
+            for (String Key : wildcardDataMap.keySet()) // go through each namespace
             {
-                for (WildcardListItem wcNode : _WildcardDataMap.get(Key)) // go through the list for the namespace
+                for (WildcardListItem wcNode : wildcardDataMap.get(Key)) // go through the list for the namespace
                 {
                     updatesPerformed += wcNode.getDataSet().Update();
                 }
@@ -310,15 +310,15 @@ public class DataManager {
 
         String strCompare = Utility.generateKey(namespaceCriterea, idCriterea);
 
-        for (String Key : _DataMap.keySet()) {
+        for (String Key : dataMap.keySet()) {
             if (Glob.check(strCompare, Key)) {
-                String parts[] = Utility.splitKey(Key);
+                String[] parts = Utility.splitKey(Key);
                 if (parts.length != 2) {
                     LOGGER.severe("Unknown problem trying to perform PulseDataPoint. Key=" + Key);
                 } else {
                     String Namespace = parts[0];
                     String ID = parts[1];
-                    String Value = _DataMap.get(Key).getLatestValue();
+                    String Value = dataMap.get(Key).getLatestValue();
                     ChangeValue(ID, Namespace, Value);
                     count++;
                 }
@@ -330,8 +330,8 @@ public class DataManager {
 
     public void RemoveListener(ChangeListener<?> listener) {
         // super inefficient.....
-        for (String key : _DataMap.keySet()) {
-            _DataMap.get(key).removeListener(listener);
+        for (String key : dataMap.keySet()) {
+            dataMap.get(key).removeListener(listener);
         }
     }
 
@@ -342,22 +342,22 @@ public class DataManager {
 
         String Key = Utility.generateKey(Namespace, ID);
 
-        if (_DataMap.containsKey(Key)) {
+        if (dataMap.containsKey(Key)) {
             synchronized (this) {
-                _DataMap.get(Key).removeListener(listener);
+                dataMap.get(Key).removeListener(listener);
             }
         }
     }
 
     public void UpdateGenerateDatapointProxy(String proxyID, String newNamespaceCriteria, String newIDCriterea,
                                              String newListEntry) {
-        if (!_ProxyIDMap.containsKey(proxyID.toUpperCase())) {
+        if (!proxyIDMap.containsKey(proxyID.toUpperCase())) {
             LOGGER.warning("Unknown ProxyID: " + proxyID);
             return;
         }
 
         LOGGER.info("Updating proxy [" + proxyID + "] to [" + newNamespaceCriteria + ":" + newIDCriterea + "]");
-        for (GenerateDatapointInfo genInfo : _ProxyIDMap.get(proxyID.toUpperCase())) {
+        for (GenerateDatapointInfo genInfo : proxyIDMap.get(proxyID.toUpperCase())) {
             genInfo.ProxyReset(newNamespaceCriteria, newIDCriterea, newListEntry);
         }
     }

@@ -27,12 +27,12 @@ import java.util.Iterator;
  * @author Patrick
  */
 public class SteppedTaskList extends TaskList {
-    private boolean _Looped;
-    Iterator<BaseTask> _iter = null;
+    private boolean looped;
+    Iterator<BaseTask> _iter;
 
     public SteppedTaskList() {
         super();
-        _Looped = true;
+        looped = true;
     }
 
     @Override
@@ -62,7 +62,7 @@ public class SteppedTaskList extends TaskList {
             }
         }
         if (!_iter.hasNext()) {
-            if (!_Looped) {
+            if (!looped) {
                 _iter = null; // reset, will run again if 'clicked' or selected
             } else {
                 _iter = _TaskItems.iterator();
@@ -73,7 +73,7 @@ public class SteppedTaskList extends TaskList {
     }
 
     public void setLooped(boolean fValue) {
-        _Looped = fValue;
+        looped = fValue;
     }
 
 }

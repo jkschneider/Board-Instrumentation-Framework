@@ -30,22 +30,22 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick.Kutch@gmail.com
  */
 public class ToggleButtonWidget extends ButtonWidget {
-    private ToggleButton _Button;
-    private String _UnToggleTask = null;
+    private ToggleButton button;
+    private String unToggleTask;
 
     public ToggleButtonWidget() {
-        _Button = new ToggleButton();
+        button = new ToggleButton();
     }
 
     @Override
     protected ButtonBase getButton() {
-        return _Button;
+        return button;
     }
 
     @Override
     public void HandleWidgetSpecificAttributes(FrameworkNode widgetNode) {
         if (widgetNode.hasAttribute("ToggleTask")) {
-            _UnToggleTask = widgetNode.getAttribute("ToggleTask");
+            unToggleTask = widgetNode.getAttribute("ToggleTask");
         }
 
     }
@@ -61,12 +61,12 @@ public class ToggleButtonWidget extends ButtonWidget {
                 AddAdditionalStyleOverride(DebugStyles.GetNext());
                 ApplyCSS();
             }
-        } else if (null != getTaskID() && true == CONFIG.getAllowTasks()) {
-            if (_Button.isSelected()) {
+        } else if (null != getTaskID() && CONFIG.getAllowTasks()) {
+            if (button.isSelected()) {
                 TASKMAN.PerformTask(getTaskID());
             } else {
-                if (null != _UnToggleTask) {
-                    TASKMAN.PerformTask(_UnToggleTask);
+                if (null != unToggleTask) {
+                    TASKMAN.PerformTask(unToggleTask);
                 }
             }
         }

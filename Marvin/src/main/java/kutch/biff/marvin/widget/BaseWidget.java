@@ -24,7 +24,6 @@ package kutch.biff.marvin.widget;
 import java.awt.Dimension;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -72,26 +71,26 @@ import kutch.biff.marvin.widget.widgetbuilder.WidgetBuilder;
 /**
  * @author Patrick.Kutch@gmail.com
  */
-abstract public class BaseWidget implements Widget {
+public abstract class BaseWidget implements Widget {
     public static String DefaultWidgetDirectory = "Widget";
-    private static int _WidgetCount = 0;
+    private static int widgetCount;
     private static final ArrayList<BaseWidget> _WidgetList = new ArrayList<>();
-    protected final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    protected static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     protected static Configuration CONFIG = Configuration.getConfig();
-    protected static CircularList<String> DebugStyles = null;
+    protected static CircularList<String> DebugStyles;
 
-    static public boolean ApplyStyleOverrides(javafx.scene.Node widget, List<String> Styles) {
+    public static boolean ApplyStyleOverrides(javafx.scene.Node widget, List<String> styles) {
         // return true;
-        if (null == widget || null == Styles || Styles.size() < 1) {
+        if (null == widget || null == styles || styles.size() < 1) {
             return true; // audio widget has no
         }
-        String StyleString;// = widget.getStyle();
-        StyleString = "";
-        for (String Style : Styles) {
-            StyleString += Style + ";";
+        String styleString;// = widget.getStyle();
+        styleString = "";
+        for (String Style : styles) {
+            styleString += Style + ";";
         }
 
-        widget.setStyle(StyleString);
+        widget.setStyle(styleString);
 
         return true;
     }
@@ -115,8 +114,7 @@ abstract public class BaseWidget implements Widget {
     public static String convertToFileURL(String filename) {
         String path = filename;
 
-        if (File.separatorChar == '/') {
-        } else {
+        if (File.separatorChar != '/') {
             path = path.replace(File.separatorChar, '/');
         }
         if (!path.startsWith("/")) {
@@ -128,7 +126,7 @@ abstract public class BaseWidget implements Widget {
     }
 
     public static int getWidgetCount() {
-        return _WidgetCount;
+        return widgetCount;
     }
 
     public static ArrayList<BaseWidget> getWidgetList() {
@@ -140,21 +138,21 @@ abstract public class BaseWidget implements Widget {
             return false;
         }
 
-        if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+        if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
             return true;
         }
 
-        if (node.getNodeName().equalsIgnoreCase("Widget")) // root
+        if ("Widget".equalsIgnoreCase(node.getNodeName())) // root
         {
             return true;
         }
 
-        if (node.getNodeName().equalsIgnoreCase("AliasList")) // handled elsewhere
+        if ("AliasList".equalsIgnoreCase(node.getNodeName())) // handled elsewhere
         {
             return true;
         }
 
-        if (node.getNodeName().equalsIgnoreCase("Style")) {
+        if ("Style".equalsIgnoreCase(node.getNodeName())) {
             String str = node.getTextContent();
             widget.setBaseCSSFilename(str);
 
@@ -166,18 +164,18 @@ abstract public class BaseWidget implements Widget {
                 widget.setStyleID(node.getAttribute("ID"));
             }
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("UnitsOverride")) {
+        } else if ("UnitsOverride".equalsIgnoreCase(node.getNodeName())) {
             String str = node.getTextContent();
             widget.setUnitsOverride(str);
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("ClickThroughTransparent")) {
+        } else if ("ClickThroughTransparent".equalsIgnoreCase(node.getNodeName())) {
             widget.SetClickThroughTransparentRegion(node.getBooleanValue());
             return true;
         }
-        if (node.getNodeName().equalsIgnoreCase("MaxSteppedRange")) {
+        if ("MaxSteppedRange".equalsIgnoreCase(node.getNodeName())) {
             return widget.HandleMaxSteppedRange(node);
         }
-        if (node.getNodeName().equalsIgnoreCase("MinSteppedRange")) {
+        if ("MinSteppedRange".equalsIgnoreCase(node.getNodeName())) {
             return widget.HandleMinSteppedRange(node);
         }
         return false;
@@ -195,9 +193,9 @@ abstract public class BaseWidget implements Widget {
                 if (0 == screenWidth) {
                     screenWidth = CONFIG.getCreationWidth();
                 }
-                return ((int) (screenWidth * (percentVal / 100.0)));
+                return (int) (screenWidth * (percentVal / 100.0));
             } else {
-                return ((int) Double.parseDouble(str));
+                return (int) Double.parseDouble(str);
             }
         } catch (NumberFormatException ex) {
             LOGGER.severe("Invalid Width specified " + str);
@@ -217,9 +215,9 @@ abstract public class BaseWidget implements Widget {
                 if (0 == screenWidth) {
                     screenWidth = CONFIG.getCreationWidth();
                 }
-                return ((int) (screenWidth * (percentVal / 100.0)));
+                return (int) (screenWidth * (percentVal / 100.0));
             } else {
-                return ((int) Double.parseDouble(str));
+                return (int) Double.parseDouble(str);
             }
         } catch (NumberFormatException ex) {
             LOGGER.severe("Invalid Width specified " + str);
@@ -250,14 +248,16 @@ abstract public class BaseWidget implements Widget {
     }
 
     protected TaskManager TASKMAN = TaskManager.getTaskManager();
-    private final int _WidgetNumber;
+    private final int widgetNumber;
     private double _Height;
     private double _Width;
-    private int _Row, _RowSpan;
-    private int _Column, _ColumnSpan;
+    private int _Row;
+    private int _RowSpan;
+    private int _Column;
+    private int columnSpan;
     private int _DecimalPlaces;
     private String _FileCSS;
-    private String _MinionID;
+    private String minionID;
     private String _Namespace;
     private String _Title;
 
@@ -268,19 +268,19 @@ abstract public class BaseWidget implements Widget {
     private HPos _HorizontalPosition;
     private VPos _VerticalPosition;
     protected Pos _Position;
-    private ArrayList<Pair<String, String>> _Peekaboos;
-    private boolean _ClickThroughTransparentRegion = false;
+    private ArrayList<Pair<String, String>> peekaboos;
+    private boolean clickThroughTransparentRegion;
     protected double _WidthPercentOfParentGrid;
     protected double _HeightPercentOfParentGrid;
     private double _ValueScale;
     private String _PeekabooHideStr;
     private String _PeekabooShowStr;
     private Boolean _PeekabooShowDefault;
-    private String _TaskID;
+    private String taskID;
     protected boolean _InitiallyEnabled;
     private String _DefinintionFileDirectory;
-    private boolean _Paused;
-    private boolean _removed;
+    private boolean paused;
+    private boolean removed;
     private boolean _DefaultIsSquare;
     private boolean _MouseHasBeenSetup;
     protected String _strAlignment;
@@ -291,33 +291,33 @@ abstract public class BaseWidget implements Widget {
     protected String _WidgetType;
     protected ArrayList<String> _RemoteStyleOverrideList;
     protected int _MaxRemoteStyleOverrideToRetain = 5;
-    protected boolean StyleUpdatesFromConfigFinished = false;
-    protected String _ToolTip = null;
-    protected Tooltip _objToolTip = null;
-    private List<String> _ToolTipStyle;
+    protected boolean StyleUpdatesFromConfigFinished;
+    protected String _ToolTip;
+    protected Tooltip _objToolTip;
+    private List<String> toolTipStyle;
 
-    protected boolean _Selected = false;
+    protected boolean _Selected;
 
     protected ArrayList<String> _SelectedStyle;
-    protected String _SelectedStyleCSS = null;
+    protected String _SelectedStyleCSS;
 
-    protected String _SelectedStyleID = null;
+    protected String _SelectedStyleID;
 
-    private List<Double> _SteppedMaxRanges = null;
+    private List<Double> steppedMaxRanges;
 
-    private List<Double> _SteppedMinRanges = null;
-
-    @SuppressWarnings("unused")
-    private boolean _widthEqualsHeight = false;
+    private List<Double> steppedMinRanges;
 
     @SuppressWarnings("unused")
-    private boolean _heightEqualsWidth = false;
+    private boolean widthEqualsHeight;
 
-    private int _SteppedMaxRangeIndex;
+    @SuppressWarnings("unused")
+    private boolean heightEqualsWidth;
 
-    private int _SteppedMinRangeIndex;
+    private int steppedMaxRangeIndex;
 
-    private ValueRange __dataIndexRange;
+    private int steppedMinRangeIndex;
+
+    private ValueRange dataIndexRange;
 
     private String __dataIndexToken;
 
@@ -325,52 +325,52 @@ abstract public class BaseWidget implements Widget {
         _WidgetParentPane = null;
         BaseWidget.CONFIG = Configuration.getConfig();
         BaseWidget._WidgetCount++;
-        _WidgetNumber = BaseWidget.getWidgetCount();
+        widgetNumber = BaseWidget.getWidgetCount();
         _Height = 0;
         _Width = 0;
         _Row = 0;
         _RowSpan = 1;
         _Column = 0;
-        _ColumnSpan = 1;
+        columnSpan = 1;
         _DecimalPlaces = 0;
         _FileCSS = null;
-        _MinionID = null;
+        minionID = null;
         _Namespace = null;
         _UnitsOverride = null;
-        _TaskID = null;
+        taskID = null;
         _Title = "";
         _StyleID = null;
         _StyleOverride = new ArrayList<>();
         _HorizontalPosition = HPos.CENTER;
         _VerticalPosition = VPos.CENTER;
-        _Peekaboos = new ArrayList<>();
+        peekaboos = new ArrayList<>();
         _PeekabooShowDefault = true;
         _DefinintionFileDirectory = DefaultWidgetDirectory;
         _PeekabooHideStr = "Hide";
         _PeekabooShowStr = "Show";
         _InitiallyEnabled = true;
         _Position = Pos.CENTER;
-        _Paused = false;
+        paused = false;
         _DefaultIsSquare = true;
         _WidgetList.add(this);
         _MouseHasBeenSetup = false;
         _strAlignment = "Center";
-        _removed = false;
+        removed = false;
         _DefaultPeekabooAction = null;
         _DefinitionFile = "Not Defined";
         _WidgetType = "Not Defined";
         _RemoteStyleOverrideList = new ArrayList<>();
-        _ToolTipStyle = null;
+        toolTipStyle = null;
         _SelectedStyle = null;
-        _ClickThroughTransparentRegion = false;
+        clickThroughTransparentRegion = false;
         _WidgetParentGridWidget = null;
         _WidthPercentOfParentGrid = 0;
         _HeightPercentOfParentGrid = 0;
         _ValueScale = 1.0;
-        _SteppedMaxRangeIndex = 0;
-        _SteppedMinRangeIndex = 0;
+        steppedMaxRangeIndex = 0;
+        steppedMinRangeIndex = 0;
 
-        __dataIndexRange = ValueRange.of(-1, -1);
+        dataIndexRange = ValueRange.of(-1, -1);
         __dataIndexToken = ",";
 
         if (CONFIG.isDebugMode()) {
@@ -404,9 +404,9 @@ abstract public class BaseWidget implements Widget {
         ApplyCSS();
     }
 
-    public void addPeekaboo(String Namespace, String ID) {
-        Pair<String, String> newPeekaboo = new Pair<>(Namespace, ID);
-        _Peekaboos.add(newPeekaboo);
+    public void addPeekaboo(String namespace, String id) {
+        Pair<String, String> newPeekaboo = new Pair<>(namespace, id);
+        peekaboos.add(newPeekaboo);
     }
 
     protected boolean ApplyCSS() {
@@ -421,10 +421,8 @@ abstract public class BaseWidget implements Widget {
 
             InputStream inputStream;
             BufferedInputStream bis;
-            DataInputStream inp;
             String myCssFile = GetCSS_FileWithPath();
             String result;
-            ObservableList<String> data;
             try {
                 inputStream = new FileInputStream(myCssFile);
                 bis = new BufferedInputStream(inputStream);
@@ -523,7 +521,7 @@ abstract public class BaseWidget implements Widget {
     }
 
     public ValueRange get__dataIndex() {
-        return __dataIndexRange;
+        return dataIndexRange;
     }
 
     public String get__dataIndexToken() {
@@ -554,7 +552,7 @@ abstract public class BaseWidget implements Widget {
     }
 
     public boolean GetClickThroughTransparentRegion() {
-        return _ClickThroughTransparentRegion;
+        return clickThroughTransparentRegion;
     }
 
     public int getColumn() {
@@ -562,7 +560,7 @@ abstract public class BaseWidget implements Widget {
     }
 
     public int getColumnSpan() {
-        return _ColumnSpan;
+        return columnSpan;
     }
 
     public Dimension getConfiguredDimensions() {
@@ -613,18 +611,18 @@ abstract public class BaseWidget implements Widget {
 
 
     public double getCurrentMaxSteppedRange() {
-        if (null == _SteppedMaxRanges) {
+        if (null == steppedMaxRanges) {
             return -1;
         }
-        return _SteppedMaxRanges.get(_SteppedMaxRangeIndex);
+        return steppedMaxRanges.get(steppedMaxRangeIndex);
 
     }
 
     public double getCurrentMinSteppedRange() {
-        if (null == _SteppedMinRanges) {
+        if (null == steppedMinRanges) {
             return -1;
         }
-        return _SteppedMinRanges.get(_SteppedMinRangeIndex);
+        return steppedMinRanges.get(steppedMinRangeIndex);
 
     }
 
@@ -645,25 +643,25 @@ abstract public class BaseWidget implements Widget {
     }
 
     public boolean getExceededMaxSteppedRange(double compareVal) {
-        if (null == _SteppedMaxRanges) {
+        if (null == steppedMaxRanges) {
             return false;
         }
-        if (_SteppedMaxRangeIndex >= _SteppedMaxRanges.size() - 1) // on last one
+        if (steppedMaxRangeIndex >= steppedMaxRanges.size() - 1) // on last one
         {
             return false;
         }
-        return (compareVal > _SteppedMaxRanges.get(_SteppedMaxRangeIndex));
+        return compareVal > steppedMaxRanges.get(steppedMaxRangeIndex);
     }
 
     public boolean getExceededMinSteppedRange(double compareVal) {
-        if (null == _SteppedMinRanges) {
+        if (null == steppedMinRanges) {
             return false;
         }
-        if (_SteppedMinRangeIndex >= _SteppedMinRanges.size() - 1) // on last one
+        if (steppedMinRangeIndex >= steppedMinRanges.size() - 1) // on last one
         {
             return false;
         }
-        return (compareVal < _SteppedMinRanges.get(_SteppedMinRangeIndex));
+        return compareVal < steppedMinRanges.get(steppedMinRangeIndex);
     }
 
     public double getHeight() {
@@ -679,11 +677,11 @@ abstract public class BaseWidget implements Widget {
     }
 
     public String getMinionID() {
-        return _MinionID;
+        return minionID;
     }
 
     public String getName() {
-        String strList[] = this.getClass().toString().split("\\."); // Need the \\ as delimeter for period
+        String[] strList = this.getClass().toString().split("\\."); // Need the \\ as delimeter for period
         String retStr = "Something baaaad happened";
         if (strList.length > 1) {
             retStr = strList[strList.length - 1] + " [#" + Integer.toString(getWidgetNumber()) + "]";
@@ -696,26 +694,26 @@ abstract public class BaseWidget implements Widget {
     }
 
     public double getNextMaxSteppedRange(double currVal) {
-        if (null == _SteppedMaxRanges) {
+        if (null == steppedMaxRanges) {
             LOGGER.severe("getNextMaxSteppedRange() called without having been configured.");
             return 0.0;
         }
         while (getExceededMaxSteppedRange(currVal)) {
-            _SteppedMaxRangeIndex++;
+            steppedMaxRangeIndex++;
         }
 
-        return _SteppedMaxRanges.get(_SteppedMaxRangeIndex);
+        return steppedMaxRanges.get(steppedMaxRangeIndex);
     }
 
     public double getNextMinSteppedRange(double currVal) {
-        if (null == _SteppedMinRanges) {
+        if (null == steppedMinRanges) {
             LOGGER.severe("getNextMinSteppedRange() called without having been configured.");
             return 0.0;
         }
         while (getExceededMinSteppedRange(currVal)) {
-            _SteppedMinRangeIndex++;
+            steppedMinRangeIndex++;
         }
-        return _SteppedMinRanges.get(_SteppedMinRangeIndex);
+        return steppedMinRanges.get(steppedMinRangeIndex);
     }
 
     public GridWidget getParentGridWidget() {
@@ -739,7 +737,8 @@ abstract public class BaseWidget implements Widget {
     }
 
     public Dimension getRealDimensions() {
-        Double Height = 0.0, Width = 0.0;
+        Double Height = 0.0;
+        Double Width = 0.0;
 
         Dimension objDimension = new Dimension();
         if (null != getRegionObject()) {
@@ -808,7 +807,7 @@ abstract public class BaseWidget implements Widget {
     }
 
     public String getTaskID() {
-        return _TaskID;
+        return taskID;
     }
 
     public String getTitle() {
@@ -828,7 +827,7 @@ abstract public class BaseWidget implements Widget {
     }
 
     public int getWidgetNumber() {
-        return _WidgetNumber;
+        return widgetNumber;
     }
 
     public double getWidth() {
@@ -883,11 +882,11 @@ abstract public class BaseWidget implements Widget {
             return;
         }
 
-        if (baseNode.getNodeName().equalsIgnoreCase("StyleOverride")) {
+        if ("StyleOverride".equalsIgnoreCase(baseNode.getNodeName())) {
             HandleRemoteStyleOverride(baseNode);
-        } else if (baseNode.getNodeName().equalsIgnoreCase("Title")) {
+        } else if ("Title".equalsIgnoreCase(baseNode.getNodeName())) {
             HandleRemoteTitleUpdate(baseNode);
-        } else if (baseNode.getNodeName().equalsIgnoreCase("ValueRange")) {
+        } else if ("ValueRange".equalsIgnoreCase(baseNode.getNodeName())) {
             HandleRemoteValueRangeUpdate(baseNode);
         } else {
             LOGGER.warning("Received unknown Peekaboo Marvin data: " + strRequest);
@@ -913,42 +912,42 @@ abstract public class BaseWidget implements Widget {
     }
 
     protected boolean HandlePeekabooMessage(String strPeek) {
-        if (strPeek.equalsIgnoreCase(getPeekabooHideStr()) || (strPeek.equalsIgnoreCase("Hide"))) {
+        if (strPeek.equalsIgnoreCase(getPeekabooHideStr()) || ("Hide".equalsIgnoreCase(strPeek))) {
             getStylableObject().setVisible(false);
-        } else if (0 == strPeek.compareToIgnoreCase(getPeekabooShowStr()) || (strPeek.equalsIgnoreCase("Show"))) {
+        } else if (0 == strPeek.compareToIgnoreCase(getPeekabooShowStr()) || ("Show".equalsIgnoreCase(strPeek))) {
             getStylableObject().setVisible(true);
         }
         // Some widgets (Buttons) can be enable and disable too, so let's override this.
-        else if (true == SupportsEnableDisable() && strPeek.equalsIgnoreCase("Enable")
-                || strPeek.equalsIgnoreCase("Disable")) {
-            if (strPeek.equalsIgnoreCase("Enable")) {
+        else if (SupportsEnableDisable() && "Enable".equalsIgnoreCase(strPeek)
+                || "Disable".equalsIgnoreCase(strPeek)) {
+            if ("Enable".equalsIgnoreCase(strPeek)) {
                 SetEnabled(true);
             } else {
                 SetEnabled(false);
             }
-        } else if (strPeek.equalsIgnoreCase("Pause")) {
-            if (false == _Paused) {
-                _Paused = true;
+        } else if ("Pause".equalsIgnoreCase(strPeek)) {
+            if (false == paused) {
+                paused = true;
                 OnPaused();
             }
-        } else if (strPeek.equalsIgnoreCase("Resume")) {
-            if (true == _Paused) {
-                _Paused = false;
+        } else if ("Resume".equalsIgnoreCase(strPeek)) {
+            if (paused) {
+                paused = false;
                 OnResumed();
             }
-        } else if (strPeek.equalsIgnoreCase("Select")) {
+        } else if ("Select".equalsIgnoreCase(strPeek)) {
             HandleSelectionState(true);
-        } else if (strPeek.equalsIgnoreCase("DeSelect")) {
+        } else if ("DeSelect".equalsIgnoreCase(strPeek)) {
             HandleSelectionState(false);
-        } else if (strPeek.equalsIgnoreCase("Remove")) {
+        } else if ("Remove".equalsIgnoreCase(strPeek)) {
             if (!ProperlySetup()) {
                 LOGGER.severe(getClass().toString()
                         + " didn't register with SetParent, so can't use Peekaboo Remove/Insert.  Programming error, report it to Patrick.");
                 return false;
             }
-            if (!_removed) {
+            if (!removed) {
                 if (_WidgetParentPane.getChildren().remove(getRemovableNode())) {
-                    _removed = true;
+                    removed = true;
                     LOGGER.info("Removing Widget from Grid due to Peekaboo Remove command");
                 } else {
                     LOGGER.warning(
@@ -956,25 +955,25 @@ abstract public class BaseWidget implements Widget {
                     return false;
                 }
             }
-        } else if (strPeek.equalsIgnoreCase("Insert")) {
+        } else if ("Insert".equalsIgnoreCase(strPeek)) {
             if (!ProperlySetup()) {
                 LOGGER.severe(getClass().toString()
                         + " didn't register with SetParent, so can't use Peekaboo Remove/Insert.  Programming error, report it to Patrick.");
                 return false;
             }
-            if (_removed) {
-                _removed = false;
+            if (removed) {
+                removed = false;
                 _WidgetParentPane.getChildren().add(getStylableObject());
                 LOGGER.info("Re-Inserting Widget int Grid due to Peekaboo Insert command");
             }
         } else if (strPeek.length() > "Marvin:".length()
-                && strPeek.substring(0, "Marvin:".length()).equalsIgnoreCase("Marvin:")) {
+                && "Marvin:".equalsIgnoreCase(strPeek.substring(0, "Marvin:".length()))) {
             HandleMarvinPeekaboo(strPeek);
         } else if (strPeek.length() >= "Reset".length()
-                && strPeek.substring(0, "Reset".length()).equalsIgnoreCase("Reset")) {
+                && "Reset".equalsIgnoreCase(strPeek.substring(0, "Reset".length()))) {
             String strParam = null;
             if (strPeek.length() > "Reset:".length()
-                    && strPeek.substring(0, "Reset:".length()).equalsIgnoreCase("Reset:")) {
+                    && "Reset:".equalsIgnoreCase(strPeek.substring(0, "Reset:".length()))) {
                 strParam = strPeek.substring("Reset:".length());
             }
             resetState(strParam);
@@ -1095,10 +1094,10 @@ abstract public class BaseWidget implements Widget {
         }
 
         for (FrameworkNode node : styleNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
             }
-            if (node.getNodeName().equalsIgnoreCase("Item")) {
+            if ("Item".equalsIgnoreCase(node.getNodeName())) {
                 _SelectedStyle.add(node.getTextContent());
             } else {
                 LOGGER.severe("Unknown Tag under Selected : " + node.getNodeName());
@@ -1138,7 +1137,7 @@ abstract public class BaseWidget implements Widget {
          */
         String strDisplay;
 
-        if (baseNode.getChildNodes().size() == 0) {
+        if (baseNode.getChildNodes().isEmpty()) {
             strDisplay = baseNode.getTextContent();
             if (strDisplay.length() > 0) {
                 SetToolTip(strDisplay);
@@ -1158,14 +1157,14 @@ abstract public class BaseWidget implements Widget {
         }
         if (baseNode.hasChild("StyleOverride")) {
             FrameworkNode styleNode = baseNode.getChild("StyleOverride");
-            _ToolTipStyle = new ArrayList<>();
+            toolTipStyle = new ArrayList<>();
 
             for (FrameworkNode node : styleNode.getChildNodes()) {
-                if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+                if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                     continue;
                 }
-                if (node.getNodeName().equalsIgnoreCase("Item")) {
-                    _ToolTipStyle.add(node.getTextContent());
+                if ("Item".equalsIgnoreCase(node.getNodeName())) {
+                    toolTipStyle.add(node.getTextContent());
                 } else {
                     LOGGER.severe("Unknown Tag under <ToolTip> <StyleOverride>: " + node.getNodeName());
                     return false;
@@ -1179,9 +1178,9 @@ abstract public class BaseWidget implements Widget {
     protected void HandleToolTipInit() {
         if (null != _ToolTip) {
             _objToolTip = new Tooltip(_ToolTip);
-            if (null != _ToolTipStyle && _ToolTipStyle.size() > 0) {
+            if (null != toolTipStyle && toolTipStyle.size() > 0) {
                 String StyleString = "";
-                for (String Style : _ToolTipStyle) {
+                for (String Style : toolTipStyle) {
                     StyleString += Style + ";";
                 }
                 _objToolTip.setStyle(StyleString);
@@ -1218,21 +1217,21 @@ abstract public class BaseWidget implements Widget {
         if (!SupportsSteppedRanges()) {
             return;
         }
-        if (null != _SteppedMaxRanges) {
-            while (getExceededMaxSteppedRange(max) && _SteppedMaxRangeIndex < _SteppedMaxRanges.size()) {
-                _SteppedMaxRangeIndex++;
+        if (null != steppedMaxRanges) {
+            while (getExceededMaxSteppedRange(max) && steppedMaxRangeIndex < steppedMaxRanges.size()) {
+                steppedMaxRangeIndex++;
             }
-            if (_SteppedMaxRanges.isEmpty()) {
-                _SteppedMaxRanges = null;
+            if (steppedMaxRanges.isEmpty()) {
+                steppedMaxRanges = null;
             }
         }
 
-        if (null != _SteppedMinRanges) {
-            while (getExceededMinSteppedRange(max) && _SteppedMinRangeIndex < _SteppedMinRanges.size()) {
-                _SteppedMinRangeIndex++;
+        if (null != steppedMinRanges) {
+            while (getExceededMinSteppedRange(max) && steppedMinRangeIndex < steppedMinRanges.size()) {
+                steppedMinRangeIndex++;
             }
-            if (_SteppedMinRanges.isEmpty()) {
-                _SteppedMinRanges = null;
+            if (steppedMinRanges.isEmpty()) {
+                steppedMinRanges = null;
             }
         }
 
@@ -1243,7 +1242,8 @@ abstract public class BaseWidget implements Widget {
     }
 
     public boolean isOutsideConfiguredSize() {
-        double Height, Width;
+        double Height;
+        double Width;
 
         Dimension visDim = getRealDimensions();
         Height = visDim.height;
@@ -1251,7 +1251,7 @@ abstract public class BaseWidget implements Widget {
 
         double configHeight = getAncestrialWidth();
 
-        double wDelta = Width - (configHeight);
+        double wDelta = Width - configHeight;
         double hDelta = Height - getHeight() * CONFIG.getScaleFactor();
 
         if (Width > configHeight) {
@@ -1266,7 +1266,7 @@ abstract public class BaseWidget implements Widget {
     }
 
     public boolean IsPaused() {
-        return _Paused;
+        return paused;
 
     }
 
@@ -1284,7 +1284,7 @@ abstract public class BaseWidget implements Widget {
                 AddAdditionalStyleOverride(DebugStyles.GetNext());
                 ApplyCSS();
             }
-        } else if (null != getTaskID() && true == CONFIG.getAllowTasks()) {
+        } else if (null != getTaskID() && CONFIG.getAllowTasks()) {
             TASKMAN.PerformTask(getTaskID());
         }
     }
@@ -1318,8 +1318,8 @@ abstract public class BaseWidget implements Widget {
                     canvasHeight = (int) visualBounds.getHeight();
                 }
                 setHeight(canvasHeight * (percentVal / 100.0));
-            } else if (str.equalsIgnoreCase("width")) {
-                _heightEqualsWidth = true;
+            } else if ("width".equalsIgnoreCase(str)) {
+                heightEqualsWidth = true;
                 setDefaultIsSquare(true);
             } else {
                 setHeight(Double.parseDouble(str));
@@ -1349,8 +1349,8 @@ abstract public class BaseWidget implements Widget {
                     canvasWidth = CONFIG.getCreationWidth();
                 }
                 setWidth(canvasWidth * (percentVal / 100.0));
-            } else if (str.equalsIgnoreCase("height")) {
-                _widthEqualsHeight = true;
+            } else if ("height".equalsIgnoreCase(str)) {
+                widthEqualsHeight = true;
                 setDefaultIsSquare(true);
             } else {
                 setWidth(Double.parseDouble(str));
@@ -1367,7 +1367,7 @@ abstract public class BaseWidget implements Widget {
      */
     @Override
     public boolean PerformPostCreateActions(GridWidget parentGrid, boolean updateToolTipOnly) {
-        if (true == updateToolTipOnly) {
+        if (updateToolTipOnly) {
             if (CONFIG.isDebugMode()) {
                 _ToolTip = this.toString();
             }
@@ -1399,7 +1399,7 @@ abstract public class BaseWidget implements Widget {
      * @param objRegion
      */
     protected void PreConfigDimensions(Region objRegion) {
-        if (true == getDefaultIsSquare()) {
+        if (getDefaultIsSquare()) {
             if (getWidth() > 0 && getHeight() <= 0) {
                 setHeight(_Width);
             } else if (getWidth() <= 0 && getHeight() > 0) {
@@ -1449,8 +1449,8 @@ abstract public class BaseWidget implements Widget {
     }
 
     protected void resetSteppedRange() {
-        _SteppedMinRangeIndex = 0;
-        _SteppedMaxRangeIndex = 0;
+        steppedMinRangeIndex = 0;
+        steppedMaxRangeIndex = 0;
     }
 
     private void SendDefaultPeekabooAction(int time) {
@@ -1466,12 +1466,12 @@ abstract public class BaseWidget implements Widget {
         }
     }
 
-    public void set__dataIndex(ValueRange __dataIndex) {
-        this.__dataIndexRange = __dataIndex;
+    public void set__dataIndex(ValueRange dataIndex) {
+        this.dataIndexRange = dataIndex;
     }
 
-    public void set__dataIndexToken(String __dataIndexToken) {
-        this.__dataIndexToken = __dataIndexToken;
+    public void set__dataIndexToken(String dataIndexToken) {
+        this.__dataIndexToken = dataIndexToken;
     }
 
     public boolean setAlignment(String alignString) {
@@ -1519,17 +1519,17 @@ abstract public class BaseWidget implements Widget {
         return true;
     }
 
-    public void setBaseCSSFilename(String _FileCSS) {
-        this._FileCSS = _FileCSS;
+    public void setBaseCSSFilename(String fileCSS) {
+        this._FileCSS = fileCSS;
     }
 
     @Override
-    public void SetClickThroughTransparentRegion(boolean _CanClickOnTransparent) {
-        this._ClickThroughTransparentRegion = _CanClickOnTransparent;
+    public void SetClickThroughTransparentRegion(boolean canClickOnTransparent) {
+        this.clickThroughTransparentRegion = canClickOnTransparent;
     }
 
-    public void setColumn(int _Column) {
-        this._Column = _Column;
+    public void setColumn(int column) {
+        this._Column = column;
     }
 
     public void setColumnSpan(int _Column) {
@@ -1537,15 +1537,15 @@ abstract public class BaseWidget implements Widget {
             LOGGER.severe("colSpan set to invalid value of " + Integer.toString(_Column) + ". Ignoring.");
             return;
         }
-        this._ColumnSpan = _Column;
+        this.columnSpan = _Column;
     }
 
-    public void setDecimalPlaces(int _DecimalPlaces) {
-        this._DecimalPlaces = _DecimalPlaces;
+    public void setDecimalPlaces(int decimalPlaces) {
+        this._DecimalPlaces = decimalPlaces;
     }
 
-    protected void setDefaultIsSquare(boolean _DefaultIsSquare) {
-        this._DefaultIsSquare = _DefaultIsSquare;
+    protected void setDefaultIsSquare(boolean defaultIsSquare) {
+        this._DefaultIsSquare = defaultIsSquare;
     }
 
     public void SetDefaultPeekabooAction(String strDefault) {
@@ -1565,12 +1565,12 @@ abstract public class BaseWidget implements Widget {
         this._Height = Math.round(_Height);
     }
 
-    public void setHeightPercentOfParentGrid(double _HeightPercentOfParentGrid) {
-        this._HeightPercentOfParentGrid = _HeightPercentOfParentGrid;
+    public void setHeightPercentOfParentGrid(double heightPercentOfParentGrid) {
+        this._HeightPercentOfParentGrid = heightPercentOfParentGrid;
     }
 
-    protected void setHorizontalPosition(HPos _HorizontalPosition) {
-        this._HorizontalPosition = _HorizontalPosition;
+    protected void setHorizontalPosition(HPos horizontalPosition) {
+        this._HorizontalPosition = horizontalPosition;
     }
 
     public void setInitiallyEnabled(boolean enabled) {
@@ -1588,14 +1588,14 @@ abstract public class BaseWidget implements Widget {
         }
 
         if (null != newRange) {
-            _SteppedMaxRanges = newRange;
+            steppedMaxRanges = newRange;
         } else {
             LOGGER.warning("Provided null list to setMaxSteppedRange");
         }
     }
 
-    public void setMinionID(String _ID) {
-        this._MinionID = _ID;
+    public void setMinionID(String id) {
+        this.minionID = id;
     }
 
     public void setMinSteppedRange(List<Double> newRange) {
@@ -1604,63 +1604,63 @@ abstract public class BaseWidget implements Widget {
             return;
         }
         if (null != newRange) {
-            _SteppedMinRanges = newRange;
+            steppedMinRanges = newRange;
         } else {
             LOGGER.warning("Provided null list to setMaxSteppedRange");
         }
     }
 
-    public void setMouseHasBeenSetup(boolean _MouseHasBeenSetup) {
-        this._MouseHasBeenSetup = _MouseHasBeenSetup;
+    public void setMouseHasBeenSetup(boolean mouseHasBeenSetup) {
+        this._MouseHasBeenSetup = mouseHasBeenSetup;
     }
 
-    public void setNamespace(String _Namespace) {
-        this._Namespace = _Namespace;
+    public void setNamespace(String namespace) {
+        this._Namespace = namespace;
     }
 
-    protected void SetParent(GridPane _Pane) {
-        _WidgetParentPane = _Pane;
+    protected void SetParent(GridPane pane) {
+        _WidgetParentPane = pane;
     }
 
-    public void setPeekabooHideStr(String _PeekabooHideStr) {
-        this._PeekabooHideStr = _PeekabooHideStr;
+    public void setPeekabooHideStr(String peekabooHideStr) {
+        this._PeekabooHideStr = peekabooHideStr;
     }
 
-    public void setPeekabooShowDefault(Boolean _PeekabooShowDefault) {
-        this._PeekabooShowDefault = _PeekabooShowDefault;
+    public void setPeekabooShowDefault(Boolean peekabooShowDefault) {
+        this._PeekabooShowDefault = peekabooShowDefault;
     }
 
-    public void setPeekabooShowStr(String _PeekabooShowStr) {
-        this._PeekabooShowStr = _PeekabooShowStr;
+    public void setPeekabooShowStr(String peekabooShowStr) {
+        this._PeekabooShowStr = peekabooShowStr;
     }
 
     public void setPosition(Pos newPosition) {
         _Position = newPosition;
     }
 
-    public void setRow(int _Row) {
-        this._Row = _Row;
+    public void setRow(int row) {
+        this._Row = row;
     }
 
-    public void setRowSpan(int _RowSpan) {
-        if (_RowSpan < 1) {
+    public void setRowSpan(int rowSpan) {
+        if (rowSpan < 1) {
             LOGGER.severe("rowSpan set to invalid value of " + Integer.toString(_Row) + ". Ignoring.");
             return;
         }
-        this._RowSpan = _RowSpan;
+        this._RowSpan = rowSpan;
     }
 
-    public void setStyleID(String _StyleID) {
-        this._StyleID = _StyleID;
+    public void setStyleID(String styleID) {
+        this._StyleID = styleID;
     }
 
-    public void setStyleOverride(List<String> _StyleOverride) {
-        this._StyleOverride = _StyleOverride;
+    public void setStyleOverride(List<String> styleOverride) {
+        this._StyleOverride = styleOverride;
     }
 
     public void setTaskID(String strTaskID) {
         if (strTaskID != null && strTaskID.length() > 0) {
-            _TaskID = strTaskID;
+            taskID = strTaskID;
         }
     }
 
@@ -1672,23 +1672,20 @@ abstract public class BaseWidget implements Widget {
         _ToolTip = newValue;
     }
 
-    public void setUnitsOverride(String _UnitsOverride) {
-        this._UnitsOverride = _UnitsOverride;
+    public void setUnitsOverride(String unitsOverride) {
+        this._UnitsOverride = unitsOverride;
     }
 
     protected void SetupPeekaboo(DataManager dataMgr) {
-        if (_Peekaboos.size() < 1) {
+        if (peekaboos.size() < 1) {
             return;
         }
 
         getStylableObject().setVisible(_PeekabooShowDefault);
-        for (Pair<String, String> peekaboo : _Peekaboos) {
-            dataMgr.AddListener(peekaboo.getValue(), peekaboo.getKey(), new ChangeListener<Object>() {
-                @Override
-                public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                    String strPeek = newVal.toString();
-                    HandlePeekabooMessage(strPeek);
-                }
+        for (Pair<String, String> peekaboo : peekaboos) {
+            dataMgr.AddListener(peekaboo.getValue(), peekaboo.getKey(), (ObservableValue o, Object oldVal, Object newVal) -> {
+                String strPeek = newVal.toString();
+                HandlePeekabooMessage(strPeek);
             });
         }
     }
@@ -1699,21 +1696,10 @@ abstract public class BaseWidget implements Widget {
         {
             if (null != getTaskID() || CONFIG.isDebugMode()) // only do if a task to setup, or if debug mode
             {
-                EventHandler<MouseEvent> eh = new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent event) {
-                        mouseHandler(event);
-                        // to make menus and such much zippier
-                        CONFIG.requestImmediateRefresh();
-                    }
-                    /*
-                     * if (CONFIG.isDebugMode() && event.isShiftDown()) {
-                     * LOGGER.info(objWidget.toString(true)); } else if (CONFIG.isDebugMode() &&
-                     * event.isControlDown()) { if (null != getStylableObject()) {
-                     * AddAdditionalStyleOverride(DebugStyles.GetNext()); ApplyCSS(); } } else if
-                     * (null != getTaskID() && true == CONFIG.getAllowTasks()) {
-                     * TASKMAN.PerformTask(getTaskID()); } }
-                     */
+                EventHandler<MouseEvent> eh = (MouseEvent event) -> {
+                    mouseHandler(event);
+                    // to make menus and such much zippier
+                    CONFIG.requestImmediateRefresh();
                 };
                 getStylableObject().setOnMouseClicked(eh);
                 _MouseHasBeenSetup = true;
@@ -1723,20 +1709,20 @@ abstract public class BaseWidget implements Widget {
         return null;
     }
 
-    public void setValueScale(double _ValueScale) {
-        this._ValueScale = _ValueScale;
+    public void setValueScale(double valueScale) {
+        this._ValueScale = valueScale;
     }
 
-    protected void setVerticalPosition(VPos _VerticalPosition) {
-        this._VerticalPosition = _VerticalPosition;
+    protected void setVerticalPosition(VPos verticalPosition) {
+        this._VerticalPosition = verticalPosition;
     }
 
-    public void setWidgetInformation(String DefinintionFileDirectory, String DefinitionFile, String strType) {
-        if (null != DefinintionFileDirectory) {
-            _DefinintionFileDirectory = DefinintionFileDirectory;
+    public void setWidgetInformation(String definintionFileDirectory, String definitionFile, String strType) {
+        if (null != definintionFileDirectory) {
+            _DefinintionFileDirectory = definintionFileDirectory;
         }
-        if (null != DefinitionFile) {
-            _DefinitionFile = DefinitionFile;
+        if (null != definitionFile) {
+            _DefinitionFile = definitionFile;
         }
         if (null != strType) {
             _WidgetType = strType;
@@ -1747,8 +1733,8 @@ abstract public class BaseWidget implements Widget {
         this._Width = Math.round(_Width);
     }
 
-    public void setWidthPercentOfParentGrid(double _WidthPercentOfParentGrid) {
-        this._WidthPercentOfParentGrid = _WidthPercentOfParentGrid;
+    public void setWidthPercentOfParentGrid(double widthPercentOfParentGrid) {
+        this._WidthPercentOfParentGrid = widthPercentOfParentGrid;
     }
 
     @Override
@@ -1766,9 +1752,9 @@ abstract public class BaseWidget implements Widget {
         return toString(true);
     }
 
-    public String toString(boolean SingleLine) {
+    public String toString(boolean singleLine) {
         String strCR = "\n";
-        if (true == SingleLine) {
+        if (singleLine) {
             strCR = " ";
         }
         StringBuilder retStr = new StringBuilder();

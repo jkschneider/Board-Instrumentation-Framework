@@ -31,33 +31,33 @@ import kutch.biff.marvin.task.TaskManager;
  */
 public class Heartbeat extends TimerTask {
     //    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private final TaskManager TASKMAN = TaskManager.getTaskManager();
+    private final TaskManager taskman = TaskManager.getTaskManager();
     private final int _interval;
-    private final Timer _heartbeatTimer;
-    private final String _HeartbeatTaskID;
-    private boolean _ThreadNameSet;
+    private final Timer heartbeatTimer;
+    private final String heartbeatTaskID;
+    private boolean threadNameSet;
 
     public Heartbeat(int interval) {
-        _HeartbeatTaskID = TASKMAN.CreateWatchdogTask();
+        heartbeatTaskID = taskman.CreateWatchdogTask();
         _interval = interval * 1000;
-        _heartbeatTimer = new Timer();
-        _ThreadNameSet = false;
+        heartbeatTimer = new Timer();
+        threadNameSet = false;
     }
 
     @Override
     public void run() {
-        if (false == _ThreadNameSet) {
-            _ThreadNameSet = true;
+        if (false == threadNameSet) {
+            threadNameSet = true;
             Thread.currentThread().setName("Heartbeat Thread");
         }
-        TaskManager.getTaskManager().PerformTask(_HeartbeatTaskID);
+        TaskManager.getTaskManager().PerformTask(heartbeatTaskID);
     }
 
     public void Start() {
-        _heartbeatTimer.scheduleAtFixedRate(this, 100, _interval);
+        heartbeatTimer.scheduleAtFixedRate(this, 100, _interval);
     }
 
     public void Stop() {
-        _heartbeatTimer.cancel();
+        heartbeatTimer.cancel();
     }
 }

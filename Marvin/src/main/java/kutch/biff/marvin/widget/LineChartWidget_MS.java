@@ -64,28 +64,25 @@ public class LineChartWidget_MS extends BaseChartWidget {
         ConfigureSynchronizationForMultiSource();
 
         pane.add(getChart(), getColumn(), getRow(), getColumnSpan(), getRowSpan());
-        if (0 == _SeriesOrder.size()) {
+        if (_SeriesOrder.isEmpty()) {
             for (SeriesDataSet ds : getSeries()) {
-                dataMgr.AddListener(ds.getID(), ds.getNamespace(), new ChangeListener<Object>() {
-                    @Override
-                    public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                        if (IsPaused()) {
-                            return;
-                        }
-
-                        String strVal = newVal.toString();
-                        double newValue = 0;
-                        try {
-                            newValue = Double.parseDouble(strVal);
-                            newValue *= ds.getScaleValue();
-                            HandleSteppedRange(newValue);
-                            strVal = Double.toString(newValue);
-                        } catch (Exception ex) {
-                            LOGGER.severe("Invalid data for Chart received: " + strVal);
-                            return;
-                        }
-                        OnDataArrived(ds, strVal);
+                dataMgr.AddListener(ds.getID(), ds.getNamespace(), (ObservableValue o, Object oldVal, Object newVal) -> {
+                    if (IsPaused()) {
+                        return;
                     }
+
+                    String strVal = newVal.toString();
+                    double newValue = 0;
+                    try {
+                        newValue = Double.parseDouble(strVal);
+                        newValue *= ds.getScaleValue();
+                        HandleSteppedRange(newValue);
+                        strVal = Double.toString(newValue);
+                    } catch (Exception ex) {
+                        LOGGER.severe("Invalid data for Chart received: " + strVal);
+                        return;
+                    }
+                    OnDataArrived(ds, strVal);
                 });
             }
         } else {
@@ -105,7 +102,7 @@ public class LineChartWidget_MS extends BaseChartWidget {
     @Override
     protected void CreateAxisObjects() {
         super.CreateAxisObjects();
-        if (0 != _SeriesOrder.size()) {
+        if (!_SeriesOrder.isEmpty()) {
             _xAxis = new CategoryAxis();
         }
     }
@@ -113,12 +110,12 @@ public class LineChartWidget_MS extends BaseChartWidget {
     @SuppressWarnings("unchecked")
     @Override
     protected Chart CreateChartObject() {
-        return new LineChart<Number, Number>(getxAxis(), getyAxis());
+        return new LineChart<>(getxAxis(), getyAxis());
     }
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return ((LineChart<?, ?>) (getChart()));
+        return (LineChart<?, ?>) (getChart());
     }
 
     @Override
@@ -128,33 +125,35 @@ public class LineChartWidget_MS extends BaseChartWidget {
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode node) {
-        if (true == HandleChartSpecificAppSettings(node)) {
+        if (HandleChartSpecificAppSettings(node)) {
             return true;
         }
 
-        if (node.getNodeName().equalsIgnoreCase("Series")) {
-            String ID, Namespace, Label;
+        if ("Series".equalsIgnoreCase(node.getNodeName())) {
+            String id;
+            String namespace;
+            String label;
             if (node.hasAttribute("Label")) {
-                Label = node.getAttribute("Label");
+                label = node.getAttribute("Label");
             } else {
-                Label = "";
+                label = "";
             }
             for (FrameworkNode newNode : node.getChildNodes()) {
-                if (newNode.getNodeName().equalsIgnoreCase("MinionSrc")) {
+                if ("MinionSrc".equalsIgnoreCase(newNode.getNodeName())) {
                     Utility.ValidateAttributes(new String[]{"ID", "Namespace", "Scale"}, newNode);
                     if (newNode.hasAttribute("ID")) {
-                        ID = newNode.getAttribute("ID");
+                        id = newNode.getAttribute("ID");
                     } else {
                         LOGGER.severe("Series defined with invalid MinionSrc - no ID");
                         return false;
                     }
                     if (newNode.hasAttribute("Namespace")) {
-                        Namespace = newNode.getAttribute("Namespace");
+                        namespace = newNode.getAttribute("Namespace");
                     } else {
                         LOGGER.severe("Series defined with invalid MinionSrc - no Namespace");
                         return false;
                     }
-                    SeriesDataSet objDS = new SeriesDataSet(Label, ID, Namespace);
+                    SeriesDataSet objDS = new SeriesDataSet(label, id, namespace);
                     if (newNode.hasAttribute("Scale")) {
                         double scaleVal = newNode.getDoubleAttribute("Scale", 0);
                         if (scaleVal <= 0) {

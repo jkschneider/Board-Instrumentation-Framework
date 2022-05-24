@@ -30,27 +30,27 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class WildcardListItem {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     private String _WildCard;
-    private DataSet _DataSet;
+    private DataSet dataSet;
 
-    public WildcardListItem(String _WildCard) {
-        this._WildCard = _WildCard;
-        this._DataSet = new DataSet();
+    public WildcardListItem(String wildCard) {
+        this._WildCard = wildCard;
+        this.dataSet = new DataSet();
     }
 
     public DataSet getDataSet() {
-        return _DataSet;
+        return dataSet;
     }
 
     public String getWildCard() {
         return _WildCard;
     }
 
-    public boolean Matches(String Wildcard) {
+    public boolean Matches(String wildcard) {
         try {
-            return Wildcard.toUpperCase().matches(_WildCard.toUpperCase()); // does the RegEx match
+            return wildcard.toUpperCase().matches(_WildCard.toUpperCase()); // does the RegEx match
 
         } catch (Exception ex) {
             LOGGER.severe("Invalid RegEx wildcard pattern: " + _WildCard);

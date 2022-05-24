@@ -48,17 +48,21 @@ import kutch.biff.marvin.utility.Utility;
 public class GridWidget extends BaseWidget {
 
     protected ArrayList<Widget> _Widgets;
-    private GridPane _GridPane = null;
-    private int _hGap, _vGap;
-    private int _insetTop, _insetBottom, _insetLeft, _insetRight;
+    private GridPane gridPane;
+    private int _hGap;
+    private int _vGap;
+    private int _insetTop;
+    private int _insetBottom;
+    private int _insetLeft;
+    private int _insetRight;
     private boolean _PropagateClickThrough;
-    private boolean _PropagateExplicitlyConfigured;
+    private boolean propagateExplicitlyConfigured;
     protected double _hGapPercentOfParentGrid;
     protected double _vGapPercentOfParentGrid;
-    private String _OnDemandTask;
+    private String onDemandTask;
     private boolean _UseListView;
     @SuppressWarnings("rawtypes")
-    private ListView _ListView;
+    private ListView listView;
     private String _ListViewFileCSS;
     private String _ListStyleID;
     @SuppressWarnings("unused")
@@ -66,9 +70,9 @@ public class GridWidget extends BaseWidget {
 
     public GridWidget() {
         _Widgets = new ArrayList<>();
-        _GridPane = new GridPane();
+        gridPane = new GridPane();
         _PropagateClickThrough = false;
-        _PropagateExplicitlyConfigured = false;
+        propagateExplicitlyConfigured = false;
 
         _hGap = -1;
         _vGap = -1;
@@ -79,8 +83,8 @@ public class GridWidget extends BaseWidget {
 
         _hGapPercentOfParentGrid = 0;
         _vGapPercentOfParentGrid = 0;
-        _OnDemandTask = null;
-        _ListView = null;
+        onDemandTask = null;
+        listView = null;
         _ListViewFileCSS = null;
         _ListStyleID = null;
         _ListStyleOverride = null;
@@ -114,14 +118,14 @@ public class GridWidget extends BaseWidget {
                         // getStylesheets().clear();
 
                         boolean fRet = true;
-                        fRet = _ListView.getStylesheets().setAll(strFile);
+                        fRet = listView.getStylesheets().setAll(strFile);
                         if (false == fRet) {
                             LOGGER.severe("Failed to apply Stylesheet " + strFile);
                         }
                     }
                 }
                 if (null != this._ListStyleID) {
-                    _ListView.setId(getStyleID());
+                    listView.setId(getStyleID());
                 }
             }
         }
@@ -164,7 +168,7 @@ public class GridWidget extends BaseWidget {
     protected void ConfigureDimentions() {
         super.ConfigureDimentions();
         if (_UseListView) {
-            Region regionNode = _ListView;
+            Region regionNode = listView;
 
             PreConfigDimensions(regionNode);
             if (getWidth() > 0) {
@@ -192,15 +196,15 @@ public class GridWidget extends BaseWidget {
 
         SetPadding();
 
-        boolean RetVal = true;
+        boolean retVal = true;
 
         for (Widget _Widget : _Widgets) {
             if (false == _Widget.Create(getGridPane(), dataMgr)) {
-                RetVal = false;
+                retVal = false;
                 break;
             }
         }
-        if (false == RetVal) {
+        if (false == retVal) {
             return false;
         }
 
@@ -214,12 +218,12 @@ public class GridWidget extends BaseWidget {
         getGridPane().setAlignment(getPosition());
 
         if (parentPane != getGridPane()) {
-            Node addObj = _GridPane;
+            Node addObj = gridPane;
             if (_UseListView) {
                 ObservableList<GridPane> wList = FXCollections.observableArrayList();
                 wList.add(getGridPane());
-                _ListView.setItems(wList);
-                addObj = _ListView;
+                listView.setItems(wList);
+                addObj = listView;
             }
 
             parentPane.add(addObj, getColumn(), getRow(), getColumnSpan(), getRowSpan()); // is a cycle since this is
@@ -248,16 +252,16 @@ public class GridWidget extends BaseWidget {
     }
 
     public GridPane getBasePane() {
-        return _GridPane;
+        return gridPane;
 
     }
 
     public boolean getExplicitPropagate() {
-        return _PropagateExplicitlyConfigured;
+        return propagateExplicitlyConfigured;
     }
 
     protected GridPane getGridPane() {
-        return _GridPane;
+        return gridPane;
     }
 
     public int gethGap() {
@@ -327,7 +331,7 @@ public class GridWidget extends BaseWidget {
     }
 
     public String getOnDemandTask() {
-        return _OnDemandTask;
+        return onDemandTask;
     }
 
     @Override
@@ -337,12 +341,12 @@ public class GridWidget extends BaseWidget {
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return _GridPane;
+        return gridPane;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _GridPane.getStylesheets();
+        return gridPane.getStylesheets();
     }
 
     public int getvGap() {
@@ -405,8 +409,8 @@ public class GridWidget extends BaseWidget {
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode widgetNode) {
-        if (widgetNode.getNodeName().equalsIgnoreCase("PaddingOverride")
-                || widgetNode.getNodeName().equalsIgnoreCase("Padding")) {
+        if ("PaddingOverride".equalsIgnoreCase(widgetNode.getNodeName())
+                || "Padding".equalsIgnoreCase(widgetNode.getNodeName())) {
             Utility.ValidateAttributes(new String[]{"top", "bottom", "left", "right"}, widgetNode);
             String strTop = "-1";
             String strBottom = "-1";
@@ -507,7 +511,7 @@ public class GridWidget extends BaseWidget {
 
     @Override
     public boolean PerformPostCreateActions(GridWidget parentGrid, boolean updateToolTipOnly) {
-        if (true == updateToolTipOnly) {
+        if (updateToolTipOnly) {
             if (!TabWidget.class.isInstance(this)) {
                 super.PerformPostCreateActions(parentGrid, updateToolTipOnly);
 
@@ -595,13 +599,13 @@ public class GridWidget extends BaseWidget {
         return true;
     }
 
-    public void setExplicitPropagate(boolean _PropagateClickThrough) {
-        setPropagateClickThrough(_PropagateClickThrough);
-        _PropagateExplicitlyConfigured = true;
+    public void setExplicitPropagate(boolean propagateClickThrough) {
+        setPropagateClickThrough(propagateClickThrough);
+        propagateExplicitlyConfigured = true;
     }
 
-    public void sethGap(int _hGap) {
-        this._hGap = _hGap;
+    public void sethGap(int hGap) {
+        this._hGap = hGap;
     }
 
     protected void sethGapPercentOfParentGrid(double percentVal) {
@@ -636,20 +640,20 @@ public class GridWidget extends BaseWidget {
         }
     }
 
-    public void setListStyleID(String _ListStyleID) {
-        this._ListStyleID = _ListStyleID;
+    public void setListStyleID(String listStyleID) {
+        this._ListStyleID = listStyleID;
     }
 
-    public void setListStyleOverride(List<String> _ListStyleOverride) {
-        this._ListStyleOverride = _ListStyleOverride;
+    public void setListStyleOverride(List<String> listStyleOverride) {
+        this._ListStyleOverride = listStyleOverride;
     }
 
-    public void setListViewFileCSS(String _ListViewFileCSS) {
-        this._ListViewFileCSS = _ListViewFileCSS;
+    public void setListViewFileCSS(String listViewFileCSS) {
+        this._ListViewFileCSS = listViewFileCSS;
     }
 
-    public void setOnDemandTask(String TaskID) {
-        _OnDemandTask = TaskID;
+    public void setOnDemandTask(String taskID) {
+        onDemandTask = taskID;
     }
 
     public void SetPadding() {
@@ -657,24 +661,24 @@ public class GridWidget extends BaseWidget {
     }
 
     @Override
-    public void setPosition(Pos _Position) {
-        this._Position = _Position;
+    public void setPosition(Pos position) {
+        this._Position = position;
     }
 
     protected void setPropagateClickThrough(boolean _PropagateClickThrough) {
         this._PropagateClickThrough = _PropagateClickThrough;
     }
 
-    public void setUseListView(boolean _UseListView) {
-        if (null == _ListView) {
-            _ListView = new ListView<>();
+    public void setUseListView(boolean useListView) {
+        if (null == listView) {
+            listView = new ListView<>();
         }
 
-        this._UseListView = _UseListView;
+        this._UseListView = useListView;
     }
 
-    public void setvGap(int _vGap) {
-        this._vGap = _vGap;
+    public void setvGap(int vGap) {
+        this._vGap = vGap;
     }
 
     protected void setvGapPercentOfParentGrid(double percentVal) {

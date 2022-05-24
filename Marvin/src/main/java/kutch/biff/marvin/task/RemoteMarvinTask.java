@@ -32,18 +32,18 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class RemoteMarvinTask extends BaseTask {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private static int _RequestNumber = 0;
-    private final TaskManager TASKMAN = TaskManager.getTaskManager();
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static int requestNumber;
+    private final TaskManager taskman = TaskManager.getTaskManager();
     private String _TaskID;
-    private String _MarvinID; // remote marvin id
+    private String marvinID; // remote marvin id
 
-    public RemoteMarvinTask(String ID, String TaskID) {
-        _MarvinID = ID;
-        _TaskID = TaskID;
+    public RemoteMarvinTask(String id, String taskID) {
+        marvinID = id;
+        _TaskID = taskID;
         if (RemoteMarvinTask._RequestNumber == 0) {
-            Random R = new Random(TaskManager.getTaskManager().getNumberOfTasks()); // use # of tasks for a random seed
-            RemoteMarvinTask._RequestNumber = R.nextInt(1000) + 1;
+            Random r = new Random(TaskManager.getTaskManager().getNumberOfTasks()); // use # of tasks for a random seed
+            RemoteMarvinTask._RequestNumber = r.nextInt(1000) + 1;
         }
     }
 
@@ -63,15 +63,15 @@ public class RemoteMarvinTask extends BaseTask {
         sendBuffer += "<Version>1.0</Version>";
         sendBuffer += "<Requester>" + GetConfigReader().getConfiguration().GetApplicationID() + " :"
                 + GetConfigReader().getConfiguration().getAddress() + "</Requester>";
-        sendBuffer += "<RequestNumber>" + Integer.toString(_RequestNumber) + "</RequestNumber>";
-        sendBuffer += "<MarvinID>" + _MarvinID + "</MarvinID>";
+        sendBuffer += "<RequestNumber>" + Integer.toString(requestNumber) + "</RequestNumber>";
+        sendBuffer += "<MarvinID>" + marvinID + "</MarvinID>";
         sendBuffer += "<Task>" + strTask + "</Task>";
         sendBuffer += "</Marvin>";
 
         RemoteMarvinTask._RequestNumber += 1;
 
         LOGGER.info("Sending RemoteMarvinAdminTask :" + strTask);
-        TASKMAN.SendToAllOscars(sendBuffer.getBytes());
+        taskman.SendToAllOscars(sendBuffer.getBytes());
     }
 
 }

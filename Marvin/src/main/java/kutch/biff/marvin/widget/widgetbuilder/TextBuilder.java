@@ -32,9 +32,9 @@ import kutch.biff.marvin.widget.TextWidget;
 /**
  * @author Patrick Kutch
  */
-public class TextBuilder {
+public final class TextBuilder {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static TextWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         TextWidget _widget = new TextWidget();
@@ -46,7 +46,7 @@ public class TextBuilder {
         ListBoxText _widget = new ListBoxText();
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
-            } else if (node.getNodeName().equalsIgnoreCase("#comment")) {
+            } else if ("#comment".equalsIgnoreCase(node.getNodeName())) {
             }
         }
         return _widget;
@@ -55,8 +55,8 @@ public class TextBuilder {
     public static TextWidget ReadTextWidgetInfo(TextWidget _widget, FrameworkNode masterNode, String widgetDefFilename) {
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
-            } else if (node.getNodeName().equalsIgnoreCase("#comment")) {
-            } else if (node.getNodeName().equalsIgnoreCase("ScaleToShape")) {
+            } else if ("#comment".equalsIgnoreCase(node.getNodeName())) {
+            } else if ("ScaleToShape".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("True")) {
                     _widget.setScaleToFitBounderies(true);
@@ -70,6 +70,9 @@ public class TextBuilder {
             }
         }
         return _widget;
+    }
+
+    private TextBuilder() {
     }
 
 }

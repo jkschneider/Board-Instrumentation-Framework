@@ -39,11 +39,11 @@ import kutch.biff.marvin.task.TaskManager;
  * @author Patrick Kutch
  */
 public class DynamicTabWidget extends TabWidget {
-    private static ArrayList<DynamicTabWidget> _DynaTabs = new ArrayList<>();
-    private static int Index = 1;
-    private static boolean Enabled = false;
+    private static ArrayList<DynamicTabWidget> dynaTabs = new ArrayList<>();
+    private static int index = 1;
+    private static boolean Enabled;
     private static int MaxWidth = 7;
-    private static String TitleStr = "Unregistered Datapoints";
+    private static String titleStr = "Unregistered Datapoints";
     private static String TitleStyle = "-fx-font-size: 3.5em;";
     private static String Even_Background = "-fx-background-color:green";
     private static String Even_ID = "-fx-font-size: 2.5em;";
@@ -81,14 +81,14 @@ public class DynamicTabWidget extends TabWidget {
     }
 
     public static DynamicTabWidget getTab(String tabID, DataManager dataMgr) {
-        for (DynamicTabWidget tab : _DynaTabs) {
+        for (DynamicTabWidget tab : dynaTabs) {
             if (tab.getMinionID().equalsIgnoreCase(tabID)) {
                 return tab;
             }
         }
         DynamicTabWidget objTabWidget = new DynamicTabWidget(tabID);
         objTabWidget.setTitle(tabID);
-        _DynaTabs.add(objTabWidget);
+        dynaTabs.add(objTabWidget);
 
         TextWidget objTitleWidget = new TextWidget();
 
@@ -100,9 +100,9 @@ public class DynamicTabWidget extends TabWidget {
         objTitleWidget.setStyleOverride(Arrays.asList(DynamicTabWidget.getTitleStyle()));
         objTabWidget.AddWidget(objTitleWidget);
 
-        objTabWidget.Create(Marvin.GetBaseTabPane(), dataMgr, Index);
+        objTabWidget.Create(Marvin.GetBaseTabPane(), dataMgr, index);
 
-        Index++;
+        index++;
         return objTabWidget;
     }
 
@@ -118,69 +118,69 @@ public class DynamicTabWidget extends TabWidget {
         return DynamicTabWidget.Enabled;
     }
 
-    public static void setEnabled(boolean Enabled) {
-        DynamicTabWidget.Enabled = Enabled;
+    public static void setEnabled(boolean enabled) {
+        DynamicTabWidget.Enabled = enabled;
     }
 
-    public static void setEven_Background(String Even_Background) {
-        DynamicTabWidget.Even_Background = Even_Background;
+    public static void setEven_Background(String evenBackground) {
+        DynamicTabWidget.Even_Background = evenBackground;
     }
 
-    public static void setEven_ID(String Even_ID) {
-        DynamicTabWidget.Even_ID = Even_ID;
+    public static void setEven_ID(String evenID) {
+        DynamicTabWidget.Even_ID = evenID;
     }
 
-    public static void setEven_Value(String Even_Value) {
-        DynamicTabWidget.Even_Value = Even_Value;
+    public static void setEven_Value(String evenValue) {
+        DynamicTabWidget.Even_Value = evenValue;
     }
 
-    public static void setMaxWidth(int MaxWidth) {
-        DynamicTabWidget.MaxWidth = MaxWidth;
+    public static void setMaxWidth(int maxWidth) {
+        DynamicTabWidget.MaxWidth = maxWidth;
     }
 
-    public static void setOdd_Background(String Odd_Background) {
-        DynamicTabWidget.Odd_Background = Odd_Background;
+    public static void setOdd_Background(String oddBackground) {
+        DynamicTabWidget.Odd_Background = oddBackground;
     }
 
-    public static void setOdd_ID(String Odd_ID) {
-        DynamicTabWidget.Odd_ID = Odd_ID;
+    public static void setOdd_ID(String oddID) {
+        DynamicTabWidget.Odd_ID = oddID;
     }
 
-    public static void setOdd_Value(String Odd_Value) {
-        DynamicTabWidget.Odd_Value = Odd_Value;
+    public static void setOdd_Value(String oddValue) {
+        DynamicTabWidget.Odd_Value = oddValue;
     }
 
     public static void setTitleStr(String newTitle) {
         DynamicTabWidget.TitleStr = newTitle;
     }
 
-    public static void setTitleStyle(String TitleStyle) {
-        DynamicTabWidget.TitleStyle = TitleStyle;
+    public static void setTitleStyle(String titleStyle) {
+        DynamicTabWidget.TitleStyle = titleStyle;
     }
 
-    private List<Pair<String, List<Object>>> _DataPoint; // Minion ID, [objGrid,objID,objValue]
+    private List<Pair<String, List<Object>>> dataPoint; // Minion ID, [objGrid,objID,objValue]
 
-    private AtomicInteger _SortCount;
+    private AtomicInteger sortCount;
 
     public DynamicTabWidget(String tabID) {
         super(tabID);
-        _DataPoint = new ArrayList<>();
-        _SortCount = new AtomicInteger();
-        _SortCount.set(0);
+        dataPoint = new ArrayList<>();
+        sortCount = new AtomicInteger();
+        sortCount.set(0);
     }
 
-    public void AddWidget(DataManager dataMgr, String ID, String initialVal) {
+    public void AddWidget(DataManager dataMgr, String id, String initialVal) {
         GridWidget objGrid = new GridWidget();
         TextWidget objIDWidget = new TextWidget();
         TextWidget objValueWidget = new TextWidget();
 
-        objIDWidget.SetInitialValue(ID);
+        objIDWidget.SetInitialValue(id);
         objIDWidget.setRow(0);
         objIDWidget.setColumn(0);
 
         objValueWidget.SetInitialValue(initialVal);
         objValueWidget.setNamespace(this.getMinionID()); // Minion ID is the namespace for this tab
-        objValueWidget.setMinionID(ID);
+        objValueWidget.setMinionID(id);
         objValueWidget.setRow(1);
         objValueWidget.setColumn(0);
         objValueWidget.setScaleToFitBounderies(false);
@@ -197,19 +197,19 @@ public class DynamicTabWidget extends TabWidget {
         }
         objGrid.getStylableObject().setVisible(false); // make it invisible until sort, makes it quicker
 
-        _DataPoint.add(new Pair<>(ID.toUpperCase(), Arrays.asList(objGrid, objIDWidget, objValueWidget)));
+        dataPoint.add(new Pair<>(id.toUpperCase(), Arrays.asList(objGrid, objIDWidget, objValueWidget)));
         SetupSort();
     }
 
     public int getSortCount() {
         synchronized (this) {
-            return _SortCount.get();
+            return sortCount.get();
         }
     }
 
     private int incrementSortCount() {
         synchronized (this) {
-            return _SortCount.incrementAndGet();
+            return sortCount.incrementAndGet();
         }
     }
 
@@ -222,7 +222,7 @@ public class DynamicTabWidget extends TabWidget {
 
     private void setIncrementSortCount(int newVal) {
         synchronized (this) {
-            _SortCount.set(newVal);
+            sortCount.set(newVal);
         }
     }
 
@@ -255,7 +255,7 @@ public class DynamicTabWidget extends TabWidget {
      * Go through and sort the goodies alphabetically
      */
     private void Sort() {
-        Collections.sort(_DataPoint, new Comparator<Pair<String, List<Object>>>() {
+        Collections.sort(dataPoint, new Comparator<Pair<String, List<Object>>>() {
             @Override
             public int compare(Pair<String, List<Object>> s1, Pair<String, List<Object>> s2) // do alphabetical sort
             {
@@ -271,7 +271,7 @@ public class DynamicTabWidget extends TabWidget {
         getGridPane().getChildren().clear(); // clear all widgets
         getGridPane().getChildren().add(title); // add title back
 
-        for (Pair<String, List<Object>> pair : _DataPoint) // now add the sorted data points
+        for (Pair<String, List<Object>> pair : dataPoint) // now add the sorted data points
         {
             GridWidget objGrid = (GridWidget) pair.getValue().get(0);
             TextWidget objID = (TextWidget) pair.getValue().get(1);
