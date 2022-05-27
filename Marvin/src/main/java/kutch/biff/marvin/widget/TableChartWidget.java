@@ -28,7 +28,6 @@ import java.util.List;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -36,7 +35,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.GridPane;
-import javafx.util.Callback;
 import javafx.util.Pair;
 import kutch.biff.marvin.datamanager.DataManager;
 import kutch.biff.marvin.datamanager.MarvinChangeListener;
@@ -57,7 +55,7 @@ public class TableChartWidget extends BaseWidget {
 
         public TableColumnClass(String text) {
             _text = text;
-            _subColumn = new ArrayList<TableColumnClass>();
+            _subColumn = new ArrayList<>();
             _Width = -1;
             _PercentWidth = -1;
             _objColumn = null;
@@ -100,25 +98,26 @@ public class TableChartWidget extends BaseWidget {
     }
 
     private class TableCellClass {
-        private String _ID, _Namespace;
+        private String _ID;
+        private String _Namespace;
         private StringProperty _cellData;
         private ValueRange __dataIndexRange;
         private String __dataIndexToken;
 
-        public TableCellClass(String ID, String namespace, String initialValue) throws IllegalArgumentException {
+        public TableCellClass(String id, String namespace, String initialValue) throws IllegalArgumentException {
             if (null == initialValue) {
                 if (null == namespace) {
                     LOGGER.severe("No Namespace specified for TableChart Row");
                     throw new IllegalArgumentException("No Namespace specified for TableChart Row");
                 }
-                if (null == ID) {
+                if (null == id) {
                     LOGGER.severe("No ID specified for TableChart Row");
                     throw new IllegalArgumentException("No ID specified for TableChart Row");
                 }
                 initialValue = "";
             }
 
-            _ID = ID;
+            _ID = id;
             _Namespace = namespace;
             _cellData = new SimpleStringProperty(initialValue);
             __dataIndexRange = ValueRange.of(-1, -1);
@@ -130,12 +129,12 @@ public class TableChartWidget extends BaseWidget {
             return _cellData;
         }
 
-        public void set__dataIndex(ValueRange __dataIndex) {
-            this.__dataIndexRange = __dataIndex;
+        public void set__dataIndex(ValueRange dataIndex) {
+            this.__dataIndexRange = dataIndex;
         }
 
-        public void set__dataIndexToken(String __dataIndexToken) {
-            this.__dataIndexToken = __dataIndexToken;
+        public void set__dataIndexToken(String dataIndexToken) {
+            this.__dataIndexToken = dataIndexToken;
         }
 
         public String get__dataIndexToken() {
@@ -171,16 +170,17 @@ public class TableChartWidget extends BaseWidget {
         }
     }
 
-    private TableView<ObservableList<StringProperty>> _table;
-    private TableColumnClass _columns;
-    private String columnSrcID, columnSrcNamespace;
-    private List<List<TableCellClass>> _rows;
+    private TableView<ObservableList<StringProperty>> table;
+    private TableColumnClass columns;
+    private String columnSrcID;
+    private String columnSrcNamespace;
+    private List<List<TableCellClass>> rows;
     private List<Integer> _decimals;
 
     public TableChartWidget() {
-        _table = new TableView<>();
-        _columns = new TableColumnClass("Master");
-        _rows = new ArrayList<>();
+        table = new TableView<>();
+        columns = new TableColumnClass("Master");
+        rows = new ArrayList<>();
         columnSrcID = null;
         columnSrcNamespace = null;
         _decimals = new ArrayList<>();
@@ -197,7 +197,7 @@ public class TableChartWidget extends BaseWidget {
         ConfigureAlignment();
         SetupPeekaboo(dataMgr);
 
-        pane.add(_table, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(table, getColumn(), getRow(), getColumnSpan(), getRowSpan());
         setupRowListeners(dataMgr);
         /*
          * dataMgr.AddListener(getMinionID(), getNamespace(), new
@@ -212,12 +212,12 @@ public class TableChartWidget extends BaseWidget {
 
     @Override
     public Node getStylableObject() {
-        return _table;
+        return table;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _table.getStylesheets();
+        return table.getStylesheets();
     }
 
     protected boolean SetupTable(DataManager dataMgr) {
@@ -227,17 +227,17 @@ public class TableChartWidget extends BaseWidget {
                 _decimals.set(index, getDecimalPlaces());
             }
         }
-        if (_columns.getSubColumns().size() < 1) {
+        if (columns.getSubColumns().size() < 1) {
             if (columnSrcID == null && null == columnSrcNamespace) {
                 LOGGER.severe("TableChart has no columns");
                 return false;
             }
         }
         int index = 0;
-        for (TableColumnClass col : _columns.getSubColumns()) {
+        for (TableColumnClass col : columns.getSubColumns()) {
             TableColumn<ObservableList<StringProperty>, String> objCol;
             objCol = createColumn(index, col.getText());
-            if (col.getSubColumns().size() == 0) {
+            if (col.getSubColumns().isEmpty()) {
                 col.setTableColumnObject(objCol);
             }
             if (col.getWidth() > 0) {
@@ -254,12 +254,12 @@ public class TableChartWidget extends BaseWidget {
                 objCol.getColumns().add(subSubCol);
             }
 
-            _table.getColumns().add(objCol);
+            table.getColumns().add(objCol);
 
             index += 1;
         }
 
-        for (List<TableCellClass> row : _rows) {
+        for (List<TableCellClass> row : rows) {
             if (row.size() != index) {
                 LOGGER.severe("Number of CELLS in TableChart Row does match the # of columns");
                 return false;
@@ -268,7 +268,7 @@ public class TableChartWidget extends BaseWidget {
             for (TableCellClass cell : row) {
                 rowCells.add(cell.getProperty());
             }
-            _table.getItems().add(rowCells);
+            table.getItems().add(rowCells);
         }
 
         return true;
@@ -281,7 +281,7 @@ public class TableChartWidget extends BaseWidget {
         if (colNode.hasAttribute("Text")) {
             objColumn = new TableColumnClass(colNode.getAttribute("Text"));
             for (FrameworkNode subNode : colNode.getChildNodes()) {
-                if (subNode.getNodeName().equalsIgnoreCase("Column")) {
+                if ("Column".equalsIgnoreCase(subNode.getNodeName())) {
                     TableColumnClass objSubCol = readColumn(subNode);
                     if (null != objSubCol) {
                         objColumn.addSubColumn(objSubCol);
@@ -331,11 +331,11 @@ public class TableChartWidget extends BaseWidget {
 
     private boolean readColumns(FrameworkNode columnNode) {
         for (FrameworkNode colNode : columnNode.getChildNodes()) {
-            if (colNode.getNodeName().equalsIgnoreCase("Column")) {
+            if ("Column".equalsIgnoreCase(colNode.getNodeName())) {
                 TableColumnClass column = readColumn(colNode);
 
                 if (null != column) {
-                    _columns.addSubColumn(column);
+                    columns.addSubColumn(column);
                 } else {
                     return false;
                 }
@@ -346,7 +346,7 @@ public class TableChartWidget extends BaseWidget {
     }
 
     private void setupRowListeners(DataManager dataMgr) {
-        for (List<TableCellClass> row : _rows) {
+        for (List<TableCellClass> row : rows) {
             int column = 0;
             for (TableCellClass cell : row) {
                 cell.setupListener(dataMgr, _decimals.get(column));
@@ -357,9 +357,9 @@ public class TableChartWidget extends BaseWidget {
 
     private boolean readRows(FrameworkNode rowMasterNode) {
         for (FrameworkNode rowNode : rowMasterNode.getChildNodes()) {
-            if (rowNode.getNodeName().equalsIgnoreCase("Row")) {
+            if ("Row".equalsIgnoreCase(rowNode.getNodeName())) {
                 List<TableCellClass> columnsInRow = new ArrayList<>();
-                _rows.add(columnsInRow);
+                rows.add(columnsInRow);
                 for (FrameworkNode columnNode : rowNode.getChildNodes()) {
                     Utility.ValidateAttributes(new String[]{"ID", "Namespace", "DataIndex", "Separator"},
                             columnNode);
@@ -385,21 +385,16 @@ public class TableChartWidget extends BaseWidget {
         TableColumn<ObservableList<StringProperty>, String> objColumn = new TableColumn<>();
         objColumn.setText(columnTitle);
         objColumn.setCellValueFactory(
-                new Callback<TableColumn.CellDataFeatures<ObservableList<StringProperty>, String>, ObservableValue<String>>() {
-                    @Override
-                    public ObservableValue<String> call(
-                            CellDataFeatures<ObservableList<StringProperty>, String> cellDataFeatures) {
-                        return cellDataFeatures.getValue().get(columnIndex);
-                    }
-                });
+                
+                        cellDataFeatures -> cellDataFeatures.getValue().get(columnIndex));
         return objColumn;
     }
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode widgetNode) {
-        if (widgetNode.getNodeName().equalsIgnoreCase("Columns")) {
+        if ("Columns".equalsIgnoreCase(widgetNode.getNodeName())) {
             return readColumns(widgetNode);
-        } else if (widgetNode.getNodeName().equalsIgnoreCase("Rows")) {
+        } else if ("Rows".equalsIgnoreCase(widgetNode.getNodeName())) {
             return readRows(widgetNode);
         }
 
@@ -410,8 +405,8 @@ public class TableChartWidget extends BaseWidget {
     public boolean handlePercentageDimentions() {
         boolean fRet = super.handlePercentageDimentions();
 
-        double tableWidth = _table.getPrefWidth();
-        for (TableColumnClass col : _columns.getSubColumns()) {
+        double tableWidth = table.getPrefWidth();
+        for (TableColumnClass col : columns.getSubColumns()) {
             col.updateWidthBasedOnParent(tableWidth);
             for (TableColumnClass subCol : col.getSubColumns()) {
                 subCol.updateWidthBasedOnParent(tableWidth);

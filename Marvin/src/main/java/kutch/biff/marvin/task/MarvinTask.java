@@ -33,21 +33,21 @@ public class MarvinTask extends BaseTask {
         public String Data;
     }
 
-    private ArrayList<DataSet> _Dataset;
+    private ArrayList<DataSet> dataset;
 
     public MarvinTask() {
-        _Dataset = null;
+        dataset = null;
     }
 
-    public void AddDataset(String ID, String Namespace, String Data) {
+    public void AddDataset(String id, String namespace, String data) {
         DataSet objSet = new DataSet();
-        objSet.Data = Data;
-        objSet.ID = ID;
-        objSet.Namespace = Namespace;
-        if (null == _Dataset) {
-            _Dataset = new ArrayList<>();
+        objSet.Data = data;
+        objSet.ID = id;
+        objSet.Namespace = namespace;
+        if (null == dataset) {
+            dataset = new ArrayList<>();
         }
-        _Dataset.add(objSet);
+        dataset.add(objSet);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class MarvinTask extends BaseTask {
     }
 
     public boolean isValid() {
-        return null != _Dataset;
+        return null != dataset;
     }
 
     @Override
@@ -64,12 +64,12 @@ public class MarvinTask extends BaseTask {
         if (null == TASKMAN.getDataMgr()) {
             return;
         }
-        if (null == _Dataset) {
+        if (null == dataset) {
             LOGGER.severe(
                     "Encounted null Dataset while performing a task - Did you declare a Marvin task but not add Data?");
             return;
         }
-        for (DataSet data : _Dataset) {
+        for (DataSet data : dataset) {
             String strID = getDataValue(data.ID);
             String strNamespace = getDataValue(data.Namespace);
             String strData = getDataValue(data.Data);

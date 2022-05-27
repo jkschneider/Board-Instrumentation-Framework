@@ -24,7 +24,6 @@ package kutch.biff.marvin.utility;
 import java.util.logging.Logger;
 
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Pane;
@@ -38,40 +37,42 @@ import kutch.biff.marvin.logger.MarvinLogger;
  */
 public class TranslationCalculator {
 
-    protected final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    protected final static Configuration CONFIG = Configuration.getConfig();
+    protected static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    protected static final Configuration CONFIG = Configuration.getConfig();
 
     private final DoubleProperty _Scale;
     //    private final Pane _ReferencePane;
-    private final Pane _WorkingPane;
+    private final Pane workingPane;
     // private final Rectangle clip = new Rectangle();
     private final Pos _Position;
-    private final Translate _Translate;
+    private final Translate translate;
 
     public TranslationCalculator(Pane objBasePane, Pane objWorkingPane, DoubleProperty objScaleProperty, Pos position) {
         _Scale = objScaleProperty;
 
         // _ReferencePane = objBasePane;
-        _WorkingPane = objWorkingPane;
+        workingPane = objWorkingPane;
         _Position = position;
-        _Translate = new Translate();
+        translate = new Translate();
         Scale scaleTransform = new Scale();
         scaleTransform.xProperty().bind(_Scale);
         scaleTransform.yProperty().bind(_Scale);
 
-        objWorkingPane.getTransforms().addAll(scaleTransform, _Translate);
+        objWorkingPane.getTransforms().addAll(scaleTransform, translate);
         SetupListeners();
     }
 
     private double CalcTranslationX() {
-        double refWidth, paneWidth;
-        double tx, scale;
+        double refWidth;
+        double paneWidth;
+        double tx;
+        double scale;
 
         scale = _Scale.getValue();
 
         // refWidth = _ReferencePane.getWidth();
         refWidth = CONFIG.getCanvasWidth();
-        paneWidth = _WorkingPane.getWidth();
+        paneWidth = workingPane.getWidth();
 
         if (_Position == Pos.CENTER_RIGHT || _Position == Pos.TOP_RIGHT || _Position == Pos.BOTTOM_RIGHT) {
             tx = (refWidth - (paneWidth * scale)) / scale; // right aligned
@@ -90,14 +91,16 @@ public class TranslationCalculator {
     }
 
     private double CalcTranslationY() {
-        double refHeight, paneHeight;
-        double ty, scale;
+        double refHeight;
+        double paneHeight;
+        double ty;
+        double scale;
 
         scale = _Scale.getValue();
 
         // refHeight = _ReferencePane.getHeight();
         refHeight = CONFIG.getCanvasHeight();
-        paneHeight = _WorkingPane.getHeight();
+        paneHeight = workingPane.getHeight();
         if (paneHeight == 0 || refHeight == 0) {
             return 0;
         }
@@ -120,24 +123,16 @@ public class TranslationCalculator {
         double tX = CalcTranslationX();
         double tY = CalcTranslationY();
         // Don't think I need this anymor
-        _Translate.setX(tX);
-        _Translate.setY(tY);
+        translate.setX(tX);
+        translate.setY(tY);
     }
 
     private void SetupListeners() {
-        _WorkingPane.widthProperty().addListener(new ChangeListener<Number>() // when things are resized
-        {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number number, Number oldNumber) {
-                Calculate();
-            }
+        workingPane.widthProperty().addListener((ObservableValue<? extends Number> observable, Number number, Number oldNumber) -> {
+            Calculate();
         });
-        _WorkingPane.heightProperty().addListener(new ChangeListener<Number>() // when things are resized
-        {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number number, Number oldNumber) {
-                Calculate();
-            }
+        workingPane.heightProperty().addListener((ObservableValue<? extends Number> observable, Number number, Number oldNumber) -> {
+            Calculate();
         });
         /*
          * _ReferencePane.layoutBoundsProperty().addListener(new
@@ -148,12 +143,8 @@ public class TranslationCalculator {
          * clip.setHeight(bounds.getHeight()); _ReferencePane.setClip(clip);
          * Calculate(); } });
          */
-        _Scale.addListener(new ChangeListener<Number>() // when the scale changes
-        {
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
-                Calculate();
-            }
+        _Scale.addListener((ObservableValue<? extends Number> observableValue, Number number, Number number2) -> {
+            Calculate();
         });
     }
 }

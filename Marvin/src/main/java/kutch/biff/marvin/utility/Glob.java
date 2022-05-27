@@ -33,8 +33,8 @@ import kutch.biff.marvin.logger.MarvinLogger;
 /**
  * @author Patrick.Kutch@gmail.com
  */
-public class Glob {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class Glob {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static boolean check(String globPattern, String stringToCheck) {
         if (null == globPattern || null == stringToCheck) {
@@ -51,5 +51,8 @@ public class Glob {
             LOGGER.severe("Check function had exception on [" + globPattern + "] and [" + stringToCheck + "]");
             return false;
         }
+    }
+
+    private Glob() {
     }
 }

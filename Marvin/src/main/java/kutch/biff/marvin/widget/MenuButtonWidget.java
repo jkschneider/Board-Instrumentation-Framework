@@ -46,23 +46,23 @@ import kutch.biff.marvin.utility.FrameworkNode;
  *
  */
 public class MenuButtonWidget extends ButtonWidget {
-    private MenuButton _Button;
+    private MenuButton button;
     private FrameworkNode __CommonTaskNode;
-    private boolean __UpdateTitleFromSelection;
-    private String __LastValue;
+    private boolean updateTitleFromSelection;
+    private String lastValue;
 
     public MenuButtonWidget() {
-        _Button = new MenuButton();
+        button = new MenuButton();
         // to get around styling bug in Java 8
-        _Button.getStyleClass().add("kutch");
+        button.getStyleClass().add("kutch");
         __CommonTaskNode = null;
-        __UpdateTitleFromSelection = true; // can turn off laster
-        __LastValue = "";
+        updateTitleFromSelection = true; // can turn off laster
+        lastValue = "";
     }
 
     @Override
     protected ButtonBase getButton() {
-        return _Button;
+        return button;
     }
 
     @Override
@@ -79,9 +79,9 @@ public class MenuButtonWidget extends ButtonWidget {
         }
 
         if (widgetNode.hasChild("Title") && widgetNode.getChild("Title").hasAttribute("UpdateTitleFromSelection")) {
-            __UpdateTitleFromSelection = widgetNode.getChild("Title").getBooleanAttribute("UpdateTitleFromSelection");
+            updateTitleFromSelection = widgetNode.getChild("Title").getBooleanAttribute("UpdateTitleFromSelection");
         } else {
-            __UpdateTitleFromSelection = false;
+            updateTitleFromSelection = false;
         }
 
         return true;
@@ -93,12 +93,12 @@ public class MenuButtonWidget extends ButtonWidget {
             return true;
         }
 
-        if (widgetNode.getNodeName().equalsIgnoreCase("MenuItem")) {
+        if ("MenuItem".equalsIgnoreCase(widgetNode.getNodeName())) {
             ConfigurationReader rdr = ConfigurationReader.GetConfigReader();
 
-            MenuItem objItem = rdr.ReadMenuItem(widgetNode, _Button.getItems().size());
+            MenuItem objItem = rdr.ReadMenuItem(widgetNode, button.getItems().size());
             if (null != objItem) {
-                _Button.getItems().add(objItem);
+                button.getItems().add(objItem);
                 setupChangeTitleListener(objItem);
                 return true;
             }
@@ -110,11 +110,11 @@ public class MenuButtonWidget extends ButtonWidget {
     @Override
     protected void onChange(ObservableValue<?> o, Object oldVal, Object newVal) {
         String entriesList = newVal.toString();
-        if (entriesList.length() < 1 || __LastValue.equals(entriesList)) {
+        if (entriesList.length() < 1 || lastValue.equals(entriesList)) {
             return;
         }
-        __LastValue = entriesList;
-        _Button.getItems().clear();
+        lastValue = entriesList;
+        button.getItems().clear();
         String[] newEntries = newVal.toString().split(",");
         ConfigurationReader rdr = ConfigurationReader.GetConfigReader();
 
@@ -124,14 +124,14 @@ public class MenuButtonWidget extends ButtonWidget {
             menuNode.AddAttibute("Text", entry);
             MenuItem objItem = null;
             try {
-                objItem = rdr.ReadMenuItem(menuNode, _Button.getItems().size());
+                objItem = rdr.ReadMenuItem(menuNode, button.getItems().size());
                 setupChangeTitleListener(objItem);
             } catch (Exception ex) {
                 LOGGER.severe(ex.toString());
             }
             if (null != objItem) {
                 try {
-                    _Button.getItems().add(objItem);
+                    button.getItems().add(objItem);
                 } catch (Exception ex) {
                     LOGGER.severe(ex.toString());
                 }
@@ -146,15 +146,12 @@ public class MenuButtonWidget extends ButtonWidget {
     }
 
     private void setupChangeTitleListener(MenuItem objItem) {
-        if (__UpdateTitleFromSelection) {
-            EventHandler<ActionEvent> eventHandler = new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    if (__UpdateTitleFromSelection) // sometimes flag is read AFTER handler setup
+        if (updateTitleFromSelection) {
+            EventHandler<ActionEvent> eventHandler = (ActionEvent event) -> {
+                if (updateTitleFromSelection) // sometimes flag is read AFTER handler setup
                     {
-                        _Button.setText(objItem.getText());
+                        button.setText(objItem.getText());
                     }
-                }
             };
             objItem.addEventHandler(ActionEvent.ACTION, eventHandler);
         }

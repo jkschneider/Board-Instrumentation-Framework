@@ -27,9 +27,12 @@ import kutch.biff.marvin.widget.PieChartWidget;
 /**
  * @author Patrick Kutch
  */
-public class PieChartWidgetBuilder {
-    public final static PieChartWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
+public final class PieChartWidgetBuilder {
+    public static PieChartWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         return new PieChartWidget();
+    }
+
+    private PieChartWidgetBuilder() {
     }
 
 }

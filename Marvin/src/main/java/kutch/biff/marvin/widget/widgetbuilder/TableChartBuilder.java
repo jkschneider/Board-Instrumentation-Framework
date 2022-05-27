@@ -32,18 +32,19 @@ import kutch.biff.marvin.widget.TableChartWidget;
 /**
  * @author Patrick.Kutch@gmail.com
  */
-public class TableChartBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class TableChartBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
-    public final static TableChartWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
+    public static TableChartWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         TableChartWidget objTableChart = new TableChartWidget();
         for (FrameworkNode node : masterNode.getChildNodes()) {
-            if (BaseWidget.HandleCommonDefinitionFileConfig(objTableChart, node)) {
-                continue;
-            } else {
+            if (!BaseWidget.HandleCommonDefinitionFileConfig(objTableChart, node)) {
                 LOGGER.warning("Unknown section in " + widgetDefFilename + ": " + node.getNodeName());
             }
         }
         return objTableChart;
+    }
+
+    private TableChartBuilder() {
     }
 }

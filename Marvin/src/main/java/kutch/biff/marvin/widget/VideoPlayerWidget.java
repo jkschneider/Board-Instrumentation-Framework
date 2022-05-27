@@ -36,9 +36,9 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick Kutch
  */
 public class VideoPlayerWidget extends MediaPlayerWidget {
-    private static boolean _HasBeenVerified = false;
-    private static boolean _IsValid = true;
-    private final MediaView _mediaView;
+    private static boolean _HasBeenVerified;
+    private static boolean isValid = true;
+    private final MediaView mediaView;
     private boolean _RetainAspectRatio;
 
     /**
@@ -46,17 +46,17 @@ public class VideoPlayerWidget extends MediaPlayerWidget {
      */
     public VideoPlayerWidget() {
         super("VideoPlayerWidget");
-        _mediaView = new MediaView();
+        mediaView = new MediaView();
         _RetainAspectRatio = true;
     }
 
     @Override
     protected void ConfigureDimentions() {
         if (getHeight() > 0) {
-            _mediaView.setFitHeight(getHeight());
+            mediaView.setFitHeight(getHeight());
         }
         if (getWidth() > 0) {
-            _mediaView.setFitWidth(getWidth());
+            mediaView.setFitWidth(getWidth());
         }
     }
 
@@ -67,12 +67,12 @@ public class VideoPlayerWidget extends MediaPlayerWidget {
         ConfigureAlignment();
 
         SetupPeekaboo(dataMgr);
-        _mediaView.setPreserveRatio(_RetainAspectRatio);
+        mediaView.setPreserveRatio(_RetainAspectRatio);
 
         if (!Create(dataMgr)) {
             return false;
         }
-        pane.add(_mediaView, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(mediaView, getColumn(), getRow(), getColumnSpan(), getRowSpan());
 
         SetupTaskAction();
         return true;
@@ -84,12 +84,12 @@ public class VideoPlayerWidget extends MediaPlayerWidget {
 
     @Override
     public Node getStylableObject() {
-        return _mediaView;
+        return mediaView;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _mediaView.getStyleClass();
+        return mediaView.getStyleClass();
     }
 
     @Override
@@ -104,28 +104,28 @@ public class VideoPlayerWidget extends MediaPlayerWidget {
 
     @Override
     public boolean IsValid() {
-        return _IsValid;
+        return isValid;
     }
 
     @Override
     protected boolean OnNewMedia(MediaPlayer objMediaPlayer) {
-        _mediaView.setMediaPlayer(objMediaPlayer);
+        mediaView.setMediaPlayer(objMediaPlayer);
 
         return true;
     }
 
     @Override
-    public void setHasBeenVerified(boolean _HasBeenVerified) {
-        VideoPlayerWidget._HasBeenVerified = _HasBeenVerified;
+    public void setHasBeenVerified(boolean hasBeenVerified) {
+        VideoPlayerWidget._HasBeenVerified = hasBeenVerified;
     }
 
     @Override
     public void SetIsValid(boolean flag) {
-        _IsValid = flag;
+        isValid = flag;
     }
 
-    public void setRetainAspectRatio(boolean _RetainAspectRatio) {
-        this._RetainAspectRatio = _RetainAspectRatio;
+    public void setRetainAspectRatio(boolean retainAspectRatio) {
+        this._RetainAspectRatio = retainAspectRatio;
     }
 
     @Override
@@ -136,16 +136,13 @@ public class VideoPlayerWidget extends MediaPlayerWidget {
             BaseWidget objWidget = this;
             if (_TaskMap.size() > 0 || CONFIG.isDebugMode()) // only do if a task to setup, or if debug mode
             {
-                EventHandler<MouseEvent> eh = new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent event) {
-                        if (event.isShiftDown() && CONFIG.isDebugMode()) {
-                            LOGGER.info(objWidget.toString(true));
-                        } else if (true == CONFIG.getAllowTasks() && _TaskMap.containsKey(_CurrentMediaID.toLowerCase())) {
-                            TASKMAN.PerformTask(_TaskMap.get(_CurrentMediaID.toLowerCase()));
-                        } else if (null != getTaskID() && true == CONFIG.getAllowTasks()) {
-                            TASKMAN.PerformTask(getTaskID());
-                        }
+                EventHandler<MouseEvent> eh = (MouseEvent event) -> {
+                    if (event.isShiftDown() && CONFIG.isDebugMode()) {
+                        LOGGER.info(objWidget.toString(true));
+                    } else if (CONFIG.getAllowTasks() && _TaskMap.containsKey(_CurrentMediaID.toLowerCase())) {
+                        TASKMAN.PerformTask(_TaskMap.get(_CurrentMediaID.toLowerCase()));
+                    } else if (null != getTaskID() && CONFIG.getAllowTasks()) {
+                        TASKMAN.PerformTask(getTaskID());
                     }
                 };
                 getStylableObject().setOnMouseClicked(eh);

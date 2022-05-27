@@ -63,20 +63,20 @@ import kutch.biff.marvin.widget.BaseWidget;
 
 public class MarvinPlaybackTask extends BaseTask {
     public enum PlaybackAction {
-        STOP, PLAY, PAUSE, RESUME, PLAY_FILE, SET_OPTIONS, LOAD_FILE, INVALID;
+        STOP, PLAY, PAUSE, RESUME, PLAY_FILE, SET_OPTIONS, LOAD_FILE, INVALID
     }
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     private String _PlayerID;
     private PlaybackAction _Action;
     private Double _Speed;
     private boolean _Loop;
-    private boolean _LoopSet;
+    private boolean loopSet;
     private String _fileName;
 
-    public MarvinPlaybackTask(String PlayerID, PlaybackAction Action) {
-        _PlayerID = PlayerID;
-        _Action = Action;
+    public MarvinPlaybackTask(String playerID, PlaybackAction action) {
+        _PlayerID = playerID;
+        _Action = action;
         _Speed = 0.0;
         _Loop = false;
         _fileName = null;
@@ -108,7 +108,7 @@ public class MarvinPlaybackTask extends BaseTask {
                     if (_Speed > 0.0) {
                         pb.setSpeed(_Speed);
                     }
-                    if (_LoopSet) {
+                    if (loopSet) {
                         pb.setRepeat(_Loop);
                     }
                 }
@@ -127,7 +127,7 @@ public class MarvinPlaybackTask extends BaseTask {
                     if (_Speed > 0.0) {
                         pb.setSpeed(_Speed);
                     }
-                    if (_LoopSet) {
+                    if (loopSet) {
                         pb.setRepeat(_Loop);
                     }
                     pb.Play();
@@ -140,7 +140,7 @@ public class MarvinPlaybackTask extends BaseTask {
                 if (_Speed > 0.0) {
                     pb.setSpeed(_Speed);
                 }
-                if (_LoopSet) {
+                if (loopSet) {
                     pb.setRepeat(_Loop);
                 }
                 break;
@@ -150,31 +150,31 @@ public class MarvinPlaybackTask extends BaseTask {
 
     }
 
-    public boolean set_fileName(String _fileName) {
-        String fName = BaseWidget.convertToFileOSSpecific(_fileName);
+    public boolean set_fileName(String fileName) {
+        String fName = BaseWidget.convertToFileOSSpecific(fileName);
         if (null == fName) {
-            LOGGER.severe("MarvinPlayback task specified invalid file: " + _fileName);
+            LOGGER.severe("MarvinPlayback task specified invalid file: " + fileName);
             return false;
         }
         File file = new File(fName);
         if (!file.exists()) {
-            LOGGER.severe("MarvinPlayback task specified invalid file: " + _fileName);
+            LOGGER.severe("MarvinPlayback task specified invalid file: " + fileName);
             return false;
         }
         this._fileName = fName;
         return true;
     }
 
-    public void set_Loop(boolean _Loop) {
-        this._LoopSet = true;
-        this._Loop = _Loop;
+    public void set_Loop(boolean loop) {
+        this.loopSet = true;
+        this._Loop = loop;
     }
 
-    public void set_Speed(Double _Speed) {
-        if (_Speed <= 0) {
+    public void set_Speed(Double speed) {
+        if (speed <= 0) {
             throw new IllegalArgumentException("must be positive");
         }
-        this._Speed = _Speed;
+        this._Speed = speed;
     }
 
 }

@@ -30,7 +30,7 @@ import kutch.biff.marvin.utility.FrameworkNode;
  */
 
 public class SVG_Widget extends TextWidget {
-    private String _strShape = null;
+    private String _strShape;
 
     public SVG_Widget() {
 
@@ -50,7 +50,7 @@ public class SVG_Widget extends TextWidget {
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode node) {
-        if (node.getNodeName().equalsIgnoreCase("Shape")) {
+        if ("Shape".equalsIgnoreCase(node.getNodeName())) {
             SetShape(node.getTextContent());
             return true;
         }

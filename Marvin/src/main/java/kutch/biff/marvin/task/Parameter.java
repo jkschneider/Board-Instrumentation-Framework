@@ -30,7 +30,7 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class Parameter {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static String CheckForDataSrcParameter(String strCheck) {
         return Parameter.HandleDataSrc(strCheck);
@@ -55,7 +55,7 @@ public class Parameter {
 
     public static String GetDataSrcVal(String strAlias) {
         try {
-            String parts[] = strAlias.split(",");
+            String[] parts = strAlias.split(",");
             String strVal = null;
 
             if (parts.length > 1 && parts.length < 5) {
@@ -107,16 +107,16 @@ public class Parameter {
             return strData;
         }
 
-        int OutterIndex = strData.lastIndexOf("%(");
-        int CloseParenIndex = findClosingParen(strData, OutterIndex + 1);
+        int outterIndex = strData.lastIndexOf("%(");
+        int closeParenIndex = findClosingParen(strData, outterIndex + 1);
 
-        if (CloseParenIndex > 0) {
-            String pair = strData.substring(OutterIndex + 2, CloseParenIndex);
+        if (closeParenIndex > 0) {
+            String pair = strData.substring(outterIndex + 2, closeParenIndex);
             String strVal = GetDataSrcVal(pair);
 
             // = strData.substring(0, OutterIndex);
             if (null != strVal) {
-                retString = strData.replace(strData.substring(OutterIndex, CloseParenIndex + 1), strVal);
+                retString = strData.replace(strData.substring(outterIndex, closeParenIndex + 1), strVal);
 
                 String nextLoop = HandleDataSrc(retString);
                 while (!nextLoop.equals(retString)) {
@@ -137,20 +137,20 @@ public class Parameter {
         return retString;
     }
 
-    private String _value;
+    private String value;
 
     public Parameter() {
 
     }
 
     public Parameter(String val) {
-        _value = val;
+        value = val;
     }
 
     @Override
     public String toString() {
-        if (_value.charAt(0) == '@' && null != PromptManager.getPromptManager().getPrompt(_value.substring(1))) {
-            BasePrompt objPrompt = PromptManager.getPromptManager().getPrompt(_value.substring(1));
+        if (value.charAt(0) == '@' && null != PromptManager.getPromptManager().getPrompt(value.substring(1))) {
+            BasePrompt objPrompt = PromptManager.getPromptManager().getPrompt(value.substring(1));
             if (null == objPrompt) {
                 return null;
             }
@@ -161,6 +161,6 @@ public class Parameter {
             return null;
         }
 
-        return CheckForDataSrcParameter(_value);
+        return CheckForDataSrcParameter(value);
     }
 }

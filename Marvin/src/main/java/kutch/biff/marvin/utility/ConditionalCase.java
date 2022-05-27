@@ -40,7 +40,7 @@ import kutch.biff.marvin.task.TaskManager;
  */
 
 public class ConditionalCase extends Conditional {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static ConditionalCase BuildConditionalCase(FrameworkNode condNode) {
         ConditionalCase objCase = new ConditionalCase(Type.CASE);
@@ -48,14 +48,14 @@ public class ConditionalCase extends Conditional {
             String strValue = null;
             String strTask = null;
             for (FrameworkNode node : condNode.getChildNodes()) {
-                if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#Comment")) {
+                if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#Comment".equalsIgnoreCase(node.getNodeName())) {
                     continue;
                 }
-                if (node.getNodeName().equalsIgnoreCase("MinionSrc")) {
+                if ("MinionSrc".equalsIgnoreCase(node.getNodeName())) {
                     continue;
                 }
 
-                if (node.getNodeName().equalsIgnoreCase("Case")) {
+                if ("Case".equalsIgnoreCase(node.getNodeName())) {
                     if (node.hasAttribute("Value")) {
                         strValue = node.getAttribute("Value");
                     } else {
@@ -68,7 +68,7 @@ public class ConditionalCase extends Conditional {
                         objCase = null;
                         break;
                     }
-                } else if (node.getNodeName().equalsIgnoreCase("Default")) {
+                } else if ("Default".equalsIgnoreCase(node.getNodeName())) {
                     if (!objCase.SetDefaultTask(node.getTextContent())) {
                         objCase = null;
                         break;
@@ -83,32 +83,32 @@ public class ConditionalCase extends Conditional {
         return objCase;
     }
 
-    private final TaskManager TASKMAN = TaskManager.getTaskManager();
-    private final ArrayList<String> _CaseValues;
-    private final HashMap<String, String> _Tasks;
+    private final TaskManager taskman = TaskManager.getTaskManager();
+    private final ArrayList<String> caseValues;
+    private final HashMap<String, String> tasks;
 
-    private String _DefaultTask;
+    private String defaultTask;
 
     public ConditionalCase(Type type) {
         super(type, true);
-        _CaseValues = new ArrayList<>();
-        _Tasks = new HashMap<>();
-        _DefaultTask = null;
+        caseValues = new ArrayList<>();
+        tasks = new HashMap<>();
+        defaultTask = null;
     }
 
-    protected boolean AddNewCaseStatement(String CompareValue, String Task) {
+    protected boolean AddNewCaseStatement(String compareValue, String Task) {
         String strValue;
         if (isCaseSensitive()) {
-            strValue = CompareValue;
+            strValue = compareValue;
         } else {
-            strValue = CompareValue.toUpperCase();
+            strValue = compareValue.toUpperCase();
         }
-        if (_Tasks.containsKey(strValue)) {
+        if (tasks.containsKey(strValue)) {
             LOGGER.severe("Conditional CASE has duplicate <Case> value.");
             return false;
         }
-        _Tasks.put(strValue, Task);
-        _CaseValues.add(strValue);
+        tasks.put(strValue, Task);
+        caseValues.add(strValue);
 
         return true;
     }
@@ -125,24 +125,21 @@ public class ConditionalCase extends Conditional {
             return false;
         }
         final ConditionalCase other = (ConditionalCase) obj;
-        if (!Objects.equals(this._DefaultTask, other._DefaultTask)) {
+        if (!Objects.equals(this.defaultTask, other.defaultTask)) {
             return false;
         }
-        if (!Objects.equals(this._CaseValues, other._CaseValues)) {
+        if (!Objects.equals(this.caseValues, other.caseValues)) {
             return false;
         }
-        if (!Objects.equals(this._Tasks, other._Tasks)) {
-            return false;
-        }
-        return true;
+        return !(!Objects.equals(this.tasks, other.tasks));
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this._CaseValues);
-        hash = 23 * hash + Objects.hashCode(this._Tasks);
-        hash = 23 * hash + Objects.hashCode(this._DefaultTask);
+        hash = 23 * hash + Objects.hashCode(this.caseValues);
+        hash = 23 * hash + Objects.hashCode(this.tasks);
+        hash = 23 * hash + Objects.hashCode(this.defaultTask);
         return hash;
     }
 
@@ -153,21 +150,21 @@ public class ConditionalCase extends Conditional {
             strValue = rawValue.toUpperCase();
         }
 
-        for (String strCompare : _CaseValues) {
+        for (String strCompare : caseValues) {
             if (strCompare.equals(strValue)) {
-                String strTask = _Tasks.get(strCompare);
-                TASKMAN.AddDeferredTask(strTask);
+                String strTask = tasks.get(strCompare);
+                taskman.AddDeferredTask(strTask);
                 return;
             }
         }
-        if (null != _DefaultTask) {
-            TASKMAN.AddDeferredTask(_DefaultTask); // no match, so do defautl
+        if (null != defaultTask) {
+            taskman.AddDeferredTask(defaultTask); // no match, so do defautl
         }
     }
 
     public boolean SetDefaultTask(String strTask) {
-        if (null == _DefaultTask) {
-            _DefaultTask = strTask;
+        if (null == defaultTask) {
+            defaultTask = strTask;
             return true;
         }
         LOGGER.severe("Conditional CASE can't have more than one Default Task.");

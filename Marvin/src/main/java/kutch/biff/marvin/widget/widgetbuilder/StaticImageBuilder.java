@@ -31,9 +31,9 @@ import kutch.biff.marvin.widget.StaticImageWidget;
 /**
  * @author Patrick Kutch
  */
-public class StaticImageBuilder {
+public final class StaticImageBuilder {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     /**
      * @param masterNode
@@ -53,7 +53,7 @@ public class StaticImageBuilder {
 
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
-            } else if (node.getNodeName().equalsIgnoreCase("PreserveRatio")) {
+            } else if ("PreserveRatio".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("True")) {
                     _widget.setPreserveRatio(true);
@@ -64,7 +64,7 @@ public class StaticImageBuilder {
                             "Invalid PreserveRatio in Image  Definition File.  Should be true or false, not " + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("ScaleToFit")) {
+            } else if ("ScaleToFit".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("True")) {
                     _widget.setScaleToFit(true);
@@ -77,5 +77,8 @@ public class StaticImageBuilder {
             }
         }
         return _widget;
+    }
+
+    private StaticImageBuilder() {
     }
 }

@@ -33,9 +33,9 @@ import kutch.biff.marvin.logger.MarvinLogger;
 /**
  * @author Patrick.Kutch@gmail.com
  */
-public class Utility {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private static String __KeyConjunction = "MarvinKeyJoinerString";
+public final class Utility {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static String keyConjunction = "MarvinKeyJoinerString";
 
     public static String combineWildcards(String s1, String s2) {
         if (s1.contains("*")) {
@@ -49,11 +49,11 @@ public class Utility {
     }
 
     public static String[] splitKey(String key) {
-        String parts[] = key.split(Utility.__KeyConjunction);
+        String[] parts = key.split(Utility.__KeyConjunction);
         return parts;
     }
 
-    public static boolean ValidateAttributes(String ValidAttributes[], FrameworkNode node) {
+    public static boolean ValidateAttributes(String[] validAttributes, FrameworkNode node) {
         boolean retVal = true;
 
         if (node.hasAttributes()) {
@@ -62,9 +62,9 @@ public class Utility {
             for (int oLoop = 0; oLoop < attrs.getLength(); oLoop++) {
                 boolean found = false;
                 Attr attribute = (Attr) attrs.item(oLoop);
-                for (int iLoop = 0; iLoop < ValidAttributes.length; iLoop++) // compare to list of valid
+                for (int iLoop = 0; iLoop < validAttributes.length; iLoop++) // compare to list of valid
                 {
-                    if (0 == ValidAttributes[iLoop].compareToIgnoreCase(attribute.getName())) // 1st check case
+                    if (0 == validAttributes[iLoop].compareToIgnoreCase(attribute.getName())) // 1st check case
                     // independent just for
                     // fun
                     {
@@ -73,12 +73,11 @@ public class Utility {
                     }
                 }
                 if (false == found) {
-                    if (attribute.getName().equalsIgnoreCase("CurrentValueAlias")
-                            || attribute.getName().equalsIgnoreCase("CurrentCountAlias")) {
-
-                    } else {
+                    if ("CurrentValueAlias".equalsIgnoreCase(attribute.getName())
+                            || "CurrentCountAlias".equalsIgnoreCase(attribute.getName())) {
                         LOGGER.warning("Unknown XML Attribute for " + node.getNodeName() + " found: "
                                 + attribute.getName() + ". Ignoring.");
+
                     }
                 }
             }
@@ -87,14 +86,17 @@ public class Utility {
         return retVal;
     }
 
-    public static boolean ValidateAttributes(String ValidAttributes[], String[] MoreAttributes, FrameworkNode node) {
-        if (null == MoreAttributes) {
+    public static boolean ValidateAttributes(String[] ValidAttributes, String[] moreAttributes, FrameworkNode node) {
+        if (null == moreAttributes) {
             return ValidateAttributes(ValidAttributes, node);
         }
-        ArrayList<String> Attributes = new ArrayList<>(Arrays.asList(ValidAttributes));
-        Attributes.addAll(Arrays.asList(MoreAttributes));
+        ArrayList<String> attributes = new ArrayList<>(Arrays.asList(ValidAttributes));
+        attributes.addAll(Arrays.asList(moreAttributes));
 
-        return ValidateAttributes(Attributes.toArray(new String[Attributes.size()]), node);
+        return ValidateAttributes(attributes.toArray(new String[attributes.size()]), node);
+    }
+
+    private Utility() {
     }
 
 }

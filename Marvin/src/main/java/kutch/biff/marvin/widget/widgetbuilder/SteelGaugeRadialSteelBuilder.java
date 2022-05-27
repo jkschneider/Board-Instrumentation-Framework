@@ -32,8 +32,8 @@ import kutch.biff.marvin.widget.SteelGaugeRadialSteelWidget;
 /**
  * @author Patrick Kutch
  */
-public class SteelGaugeRadialSteelBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class SteelGaugeRadialSteelBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static SteelGaugeRadialSteelWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         SteelGaugeRadialSteelWidget objWidget = new SteelGaugeRadialSteelWidget();
@@ -41,7 +41,7 @@ public class SteelGaugeRadialSteelBuilder {
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(objWidget, node)) {
                 continue;
-            } else if (node.getNodeName().equalsIgnoreCase("MinValue")) {
+            } else if ("MinValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     objWidget.setMinValue(Double.parseDouble(str));
@@ -49,7 +49,7 @@ public class SteelGaugeRadialSteelBuilder {
                     LOGGER.severe("Invalid MinValue in Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MaxValue")) {
+            } else if ("MaxValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     objWidget.setMaxValue(Double.parseDouble(str));
@@ -57,7 +57,7 @@ public class SteelGaugeRadialSteelBuilder {
                     LOGGER.severe("Invalid MaxValue in SteelGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Decimals")) {
+            } else if ("Decimals".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     objWidget.setDecimalPlaces(Integer.parseInt(str));
@@ -65,7 +65,7 @@ public class SteelGaugeRadialSteelBuilder {
                     LOGGER.severe("Invalid Decimals in SteelGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("DialStartAngle")) {
+            } else if ("DialStartAngle".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     objWidget.setDialStartAngle(Integer.parseInt(str));
@@ -73,7 +73,7 @@ public class SteelGaugeRadialSteelBuilder {
                     LOGGER.severe("Invalid DialStartAngle in SteelGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("DialRangeAngle")) {
+            } else if ("DialRangeAngle".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     objWidget.setRangeAngle(Integer.parseInt(str));
@@ -81,29 +81,29 @@ public class SteelGaugeRadialSteelBuilder {
                     LOGGER.severe("Invalid DialRangeAngle in SteelGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("TickCount")) {
-                double MajorTickVal = -1234;
-                double MinorTickVal = -1234;
+            } else if ("TickCount".equalsIgnoreCase(node.getNodeName())) {
+                double majorTickVal = -1234;
+                double minorTickVal = -1234;
 
                 if (node.hasAttribute("Major")) {
-                    MajorTickVal = node.getDoubleAttribute("Major", MajorTickVal);
-                    if (MajorTickVal != -1234) {
-                        objWidget.setMajorTickCount(MajorTickVal);
+                    majorTickVal = node.getDoubleAttribute("Major", majorTickVal);
+                    if (majorTickVal != -1234) {
+                        objWidget.setMajorTickCount(majorTickVal);
                     } else {
                         LOGGER.severe("Invalid TickCount ->" + node.getAttribute("Major"));
                         return null;
                     }
                 }
                 if (node.hasAttribute("Minor")) {
-                    MinorTickVal = node.getDoubleAttribute("Minor", MinorTickVal);
-                    if (MinorTickVal != -1234) {
-                        objWidget.setMinorTickCount(MinorTickVal);
+                    minorTickVal = node.getDoubleAttribute("Minor", minorTickVal);
+                    if (minorTickVal != -1234) {
+                        objWidget.setMinorTickCount(minorTickVal);
                     } else {
                         LOGGER.severe("Invalid TickCount:Minor ->" + node.getAttribute("Minor"));
                         return null;
                     }
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MajorTicksSpace")) {
+            } else if ("MajorTicksSpace".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     objWidget.setMajorTick(Integer.parseInt(str));
@@ -111,7 +111,7 @@ public class SteelGaugeRadialSteelBuilder {
                     LOGGER.severe("Invalid MajorTicksSpace in SteelGauge Widget Definition File");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("MinorTicksSpace")) {
+            } else if ("MinorTicksSpace".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     objWidget.setMinorTick(Integer.parseInt(str));
@@ -120,7 +120,7 @@ public class SteelGaugeRadialSteelBuilder {
                     return null;
                 }
 
-            } else if (node.getNodeName().equalsIgnoreCase("TickLableOrientation")) {
+            } else if ("TickLableOrientation".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("Horizontal")) {
                     objWidget.setOrientation(TickLabelOrientation.HORIZONTAL);
@@ -133,7 +133,7 @@ public class SteelGaugeRadialSteelBuilder {
                             "Invalid TickLableOrientation in SteelGauge Widget Definition File. Should be Horizontal, Orthogonal or Tangent");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("EnhancedRateText")) {
+            } else if ("EnhancedRateText".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("True")) {
                     objWidget.setEnhancedRateText(true);
@@ -144,7 +144,7 @@ public class SteelGaugeRadialSteelBuilder {
                             "Invalid EnhancedRateText in SteelGauge Widget Definition File.  Should be true or false");
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("UnitText")) {
+            } else if ("UnitText".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 objWidget.setUnitText(str);
             } else {
@@ -153,5 +153,8 @@ public class SteelGaugeRadialSteelBuilder {
             }
         }
         return objWidget;
+    }
+
+    private SteelGaugeRadialSteelBuilder() {
     }
 }

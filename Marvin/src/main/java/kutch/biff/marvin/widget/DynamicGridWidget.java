@@ -21,11 +21,8 @@
  */
 package kutch.biff.marvin.widget;
 
-import static kutch.biff.marvin.widget.widgetbuilder.WidgetBuilder.ReadGridInfo;
-
 import java.util.HashMap;
 
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
@@ -46,85 +43,86 @@ import kutch.biff.marvin.widget.widgetbuilder.WidgetBuilder;
  */
 public class DynamicGridWidget extends GridWidget {
 
-    private static int _AutoAdvanceGridNumber = 0;
-    private final HashMap<String, DynamicGrid> _GridMap;
-    private final HashMap<String, String> _TaskOnGridActivatekMap;
-    private final CircularList<String> _ListID;
-    private final HashMap<String, String> _DoNotIncludeInAutoMap;
-    private String _CurrentKey;
-    private boolean _AutoAdvance;
-    private boolean _AutoLoopWithAdvance;
-    private int _AutoAdvanceInterval;
-    private GridPane _TransitionPane;
-    private DynamicTransition _latestTransition;
+    private static int autoAdvanceGridNumber;
+    private final HashMap<String, DynamicGrid> gridMap;
+    private final HashMap<String, String> taskOnGridActivatekMap;
+    private final CircularList<String> listID;
+    private final HashMap<String, String> doNotIncludeInAutoMap;
+    private String currentKey;
+    private boolean autoAdvance;
+    private boolean autoLoopWithAdvance;
+    private int autoAdvanceInterval;
+    private GridPane transitionPane;
+    private DynamicTransition latestTransition;
 
     public DynamicGridWidget() {
-        _GridMap = new HashMap<>();
-        _TaskOnGridActivatekMap = new HashMap<>();
-        _DoNotIncludeInAutoMap = new HashMap<>();
-        _ListID = new CircularList<>();
-        _CurrentKey = null;
-        _AutoAdvance = false;
-        _AutoLoopWithAdvance = false;
-        _AutoAdvanceInterval = 0;
-        _TransitionPane = null;
-        _latestTransition = null;
+        gridMap = new HashMap<>();
+        taskOnGridActivatekMap = new HashMap<>();
+        doNotIncludeInAutoMap = new HashMap<>();
+        listID = new CircularList<>();
+        currentKey = null;
+        autoAdvance = false;
+        autoLoopWithAdvance = false;
+        autoAdvanceInterval = 0;
+        transitionPane = null;
+        latestTransition = null;
     }
 
     private void ActivateGrid(String key) {
-        String prevKey = _CurrentKey;
+        String prevKey = currentKey;
         key = key.toLowerCase();
 
-        if (_GridMap.containsKey(key)) // specified grid ID is valid, so let's proceed
+        if (gridMap.containsKey(key)) // specified grid ID is valid, so let's proceed
         {
-            DynamicGrid objGridCurrent, objGridNext;
+            DynamicGrid objGridCurrent;
+            DynamicGrid objGridNext;
             objGridCurrent = null;
             if (prevKey != null && !prevKey.equalsIgnoreCase(key)) {
-                objGridCurrent = _GridMap.get(prevKey);
+                objGridCurrent = gridMap.get(prevKey);
                 if (null != objGridCurrent) {
                     // objGridCurrent.getStylableObject().setVisible(false);
                 }
             }
-            objGridNext = _GridMap.get(key);
+            objGridNext = gridMap.get(key);
             if (null != objGridNext) {
                 setAlignment(objGridNext.getAlignment());
                 getGridPane().setAlignment(getPosition());
                 if (null == objGridCurrent) {
                     objGridNext.getStylableObject().setVisible(true);
                 } else {
-                    if (null != _latestTransition && _latestTransition.stillPlaying()) {
-                        _latestTransition.stopTransition(); // current transition still playing, so stop it
+                    if (null != latestTransition && latestTransition.stillPlaying()) {
+                        latestTransition.stopTransition(); // current transition still playing, so stop it
                     }
-                    _latestTransition = objGridNext.getTransition(objGridCurrent, _TransitionPane);
+                    latestTransition = objGridNext.getTransition(objGridCurrent, transitionPane);
                 }
-                _CurrentKey = key;
+                currentKey = key;
             }
 
-            if (_TaskOnGridActivatekMap.containsKey(key)) // Grid now active - is there a task associated with it?
+            if (taskOnGridActivatekMap.containsKey(key)) // Grid now active - is there a task associated with it?
             {
-                TASKMAN.PerformTask(_TaskOnGridActivatekMap.get(key)); // yup, go run it!
+                TASKMAN.PerformTask(taskOnGridActivatekMap.get(key)); // yup, go run it!
             }
         } else {
             LOGGER.warning("Received unknown ID: [" + key + "] for DynamicGrid #" + getName() + ": [" + getNamespace()
                     + ":" + getMinionID() + "]");
             return;
         }
-        if (_AutoAdvance) {
-            if (!_AutoLoopWithAdvance && _ListID.IsLast(key)) {
-                _AutoAdvance = false;
+        if (autoAdvance) {
+            if (!autoLoopWithAdvance && listID.IsLast(key)) {
+                autoAdvance = false;
                 return;
             }
             MarvinTask mt = new MarvinTask();
             mt.AddDataset(getMinionID(), getNamespace(), "Next");
-            TASKMAN.AddPostponedTask(mt, _AutoAdvanceInterval);
+            TASKMAN.AddPostponedTask(mt, autoAdvanceInterval);
         }
     }
 
     private GridWidget BuildGrid(FrameworkNode node) {
         GridWidget retWidget = new DynamicGrid(); // DynamicGrid is a superset, so can do this
 
-        if (true == node.hasAttribute("Source") || node.hasAttribute("Macro")) {
-            FrameworkNode GridNode = null;
+        if (node.hasAttribute("Source") || node.hasAttribute("Macro")) {
+            FrameworkNode gridNode = null;
             AliasMgr.getAliasMgr().PushAliasList(true);
             AliasMgr.getAliasMgr().AddAliasFromAttibuteList(node,
                     new String[]{"hgap", "vgap", "Align", "Source", "ID"});
@@ -134,7 +132,7 @@ public class DynamicGridWidget extends GridWidget {
                     return null;
                 }
                 WidgetBuilder.StartReadingExternalFile(node);
-                GridNode = WidgetBuilder.OpenDefinitionFile(node.getAttribute("Source"), "Grid");
+                gridNode = WidgetBuilder.OpenDefinitionFile(node.getAttribute("Source"), "Grid");
                 if (!ConfigurationReader.ReadTasksFromExternalFile(node.getAttribute("Source"))) // could also be tasks
                 // defined in external
                 // file
@@ -143,17 +141,17 @@ public class DynamicGridWidget extends GridWidget {
                 }
                 WidgetBuilder.DoneReadingExternalFile();
             } else {
-                GridNode = GridMacroMgr.getGridMacroMgr().getGridMacro(node.getAttribute("Macro"));
-                if (null == GridNode) {
+                gridNode = GridMacroMgr.getGridMacroMgr().getGridMacro(node.getAttribute("Macro"));
+                if (null == gridNode) {
                     LOGGER.severe("Unknown Grid Macro [" + node.getAttribute("Macro")
                             + "] specified for Dynamic Grid Source");
                 }
             }
 
-            if (null == GridNode) {
+            if (null == gridNode) {
                 return null;
             }
-            retWidget = ReadGridInfo(GridNode, retWidget, null); // read grid from external file
+            retWidget = ReadGridInfo(gridNode, retWidget, null); // read grid from external file
             if (null == retWidget) {
                 return null;
             }
@@ -173,7 +171,7 @@ public class DynamicGridWidget extends GridWidget {
                     return null;
                 }
             }
-            if (true == node.hasAttribute("Align")) {
+            if (node.hasAttribute("Align")) {
                 String str = node.getAttribute("Align");
                 retWidget.setAlignment(str);
             } else {
@@ -197,78 +195,76 @@ public class DynamicGridWidget extends GridWidget {
         setMouseHasBeenSetup(true); // don't want a task setup for this actual dyanmic grid, but if one is
         // specified, all the contined grids will have that task
         if (super.Create(parentPane, dataMgr)) {
-            _TransitionPane = getGridPane(); // _ParentPane is used in
+            transitionPane = getGridPane(); // _ParentPane is used in
             for (Widget objWidget : _Widgets) {
                 if (GridWidget.class.isInstance(objWidget)) { // make all the grids invisible
                     objWidget.getStylableObject().setVisible(false);
                 }
             }
 
-            if (_GridMap.isEmpty()) {
+            if (gridMap.isEmpty()) {
                 LOGGER.warning("Dynamic Grid has no Grids.  Ignoring.");
                 return true;
             }
 
-            if (null != _CurrentKey) {
-                if (!_GridMap.containsKey(_CurrentKey)) {
-                    LOGGER.severe("Initial ID for Dynamic Grid: " + _CurrentKey + " is invalid.");
+            if (null != currentKey) {
+                if (!gridMap.containsKey(currentKey)) {
+                    LOGGER.severe("Initial ID for Dynamic Grid: " + currentKey + " is invalid.");
                     return false;
                 }
 
-                GridWidget objGrid = _GridMap.get(_ListID.get(_CurrentKey));
+                GridWidget objGrid = gridMap.get(listID.get(currentKey));
                 setAlignment(objGrid.getAlignment());
                 getGridPane().setAlignment(getPosition());
                 objGrid.getStylableObject().setVisible(true);
             }
 
-            if (_AutoAdvance) {
+            if (autoAdvance) {
                 if (null == getMinionID() || null == getNamespace()) {
-                    String ID = Integer.toBinaryString(DynamicGridWidget._AutoAdvanceGridNumber);
+                    String id = Integer.toBinaryString(DynamicGridWidget._AutoAdvanceGridNumber);
                     DynamicGridWidget._AutoAdvanceGridNumber++;
 
                     if (null == getMinionID()) {
-                        setMinionID(ID);
+                        setMinionID(id);
                     }
                     if (null == getNamespace()) {
-                        setNamespace(ID);
+                        setNamespace(id);
                     }
                 }
                 MarvinTask mt = new MarvinTask();
                 mt.AddDataset(getMinionID(), getNamespace(), "Next");
-                TASKMAN.AddPostponedTask(mt, _AutoAdvanceInterval);
+                TASKMAN.AddPostponedTask(mt, autoAdvanceInterval);
             }
 
-            dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-                @Override
-                public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                    if (IsPaused()) {
-                        return;
-                    }
+            dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue<?> o, Object oldVal, Object newVal) -> {
+                if (IsPaused()) {
+                    return;
+                }
 
-                    String strVal = newVal.toString().replaceAll("(\\r|\\n)", "");
-                    String key;
+                String strVal = newVal.toString().replaceAll("(\\r|\\n)", "");
+                String key;
 
-                    if (strVal.equalsIgnoreCase("Next")) // go to next image in the list
+                if ("Next".equalsIgnoreCase(strVal)) // go to next image in the list
                     {
-                        int count = _ListID.size();
+                        int count = listID.size();
 
-                        key = _ListID.GetNext();
-                        while (_DoNotIncludeInAutoMap.containsKey(key) && count >= 0) {
+                        key = listID.GetNext();
+                        while (doNotIncludeInAutoMap.containsKey(key) && count >= 0) {
                             count--;
-                            key = _ListID.GetNext();
+                            key = listID.GetNext();
                         }
                         if (count < 0) {
                             LOGGER.warning(
                                     "Asked to perform Next, however all items in DyanmicGrid are marked as to exclude from automatic actions.");
                             return;
                         }
-                    } else if (strVal.equalsIgnoreCase("Previous")) // go to previous image in the list
+                    } else if ("Previous".equalsIgnoreCase(strVal)) // go to previous image in the list
                     {
-                        int count = _ListID.size();
-                        key = _ListID.GetPrevious();
-                        while (_DoNotIncludeInAutoMap.containsKey(key) && count >= 0) {
+                        int count = listID.size();
+                        key = listID.GetPrevious();
+                        while (doNotIncludeInAutoMap.containsKey(key) && count >= 0) {
                             count--;
-                            key = _ListID.GetPrevious();
+                            key = listID.GetPrevious();
                         }
                         if (count < 0) {
                             LOGGER.warning(
@@ -276,11 +272,10 @@ public class DynamicGridWidget extends GridWidget {
                             return;
                         }
                     } else {
-                        key = strVal; // expecting an ID
-                        _ListID.get(key); // just to keep next/prev alignment
-                    }
-                    ActivateGrid(key);
+                    key = strVal; // expecting an ID
+                    listID.get(key); // just to keep next/prev alignment
                 }
+                ActivateGrid(key);
             });
 
             return true;
@@ -297,36 +292,36 @@ public class DynamicGridWidget extends GridWidget {
         {
             return true;
         }
-        if (node.getNodeName().equalsIgnoreCase("AutoAdvance")) {
+        if ("AutoAdvance".equalsIgnoreCase(node.getNodeName())) {
             /*
              * <AutoAdvance Frequency='1000' Loop='False'/>
              */
             if (node.hasAttribute("Frequency")) {
-                _AutoAdvanceInterval = node.getIntegerAttribute("Frequency", -1);
-                if (_AutoAdvanceInterval < 100) {
+                autoAdvanceInterval = node.getIntegerAttribute("Frequency", -1);
+                if (autoAdvanceInterval < 100) {
                     LOGGER.severe("Frequency specified for DynamicGrid is invalid: " + node.getAttribute("Frequency"));
                     return false;
                 }
 
                 if (node.hasAttribute("Loop")) {
-                    _AutoLoopWithAdvance = node.getBooleanAttribute("Loop");
+                    autoLoopWithAdvance = node.getBooleanAttribute("Loop");
                 }
-                _AutoAdvance = true;
+                autoAdvance = true;
                 return true;
             }
             return false;
         }
-        if (node.getNodeName().equalsIgnoreCase("Initial")) {
+        if ("Initial".equalsIgnoreCase(node.getNodeName())) {
             Utility.ValidateAttributes(new String[]{"ID"}, node);
             if (node.hasAttribute("ID")) {
-                _CurrentKey = node.getAttribute("ID").toLowerCase();
+                currentKey = node.getAttribute("ID").toLowerCase();
                 return true;
             }
             LOGGER.severe("Dynamic Grid Widget incorrectly defined Initial Grid, no ID.");
             return false;
         }
 
-        if (node.getNodeName().equalsIgnoreCase("GridFile")) {
+        if ("GridFile".equalsIgnoreCase(node.getNodeName())) {
             if (node.hasAttribute("Source")) {
                 // FileName = node.getAttribute("Source");
             } else if (node.hasAttribute("Macro")) {
@@ -338,7 +333,7 @@ public class DynamicGridWidget extends GridWidget {
             if (node.hasAttribute("ID")) {
                 Id = node.getAttribute("ID");
 
-                if (true == _GridMap.containsKey(Id.toLowerCase())) {
+                if (gridMap.containsKey(Id.toLowerCase())) {
                     LOGGER.severe("Dynamic Grid Widget has repeated Grid ID: " + Id);
                     return false;
                 }
@@ -349,12 +344,12 @@ public class DynamicGridWidget extends GridWidget {
             }
             if (node.hasAttribute("TaskOnActivate")) {
                 String Task = node.getAttribute("TaskOnActivate");
-                _TaskOnGridActivatekMap.put(Id, Task); // task to run on activate
+                taskOnGridActivatekMap.put(Id, Task); // task to run on activate
             }
             if (node.hasAttribute("ExcludeForAutoActions")) {
                 boolean fExclude = node.getBooleanAttribute("ExcludeForAutoActions");
-                if (true == fExclude) {
-                    _DoNotIncludeInAutoMap.put(Id, Id);
+                if (fExclude) {
+                    doNotIncludeInAutoMap.put(Id, Id);
                 }
             }
 
@@ -369,15 +364,15 @@ public class DynamicGridWidget extends GridWidget {
 
             objGrid.ConfigureAlignment();
             _Widgets.add(objGrid);
-            _GridMap.put(Id, objGrid);
-            _ListID.add(Id);
+            gridMap.put(Id, objGrid);
+            listID.add(Id);
         }
         return true;
     }
 
     @Override
     public void OnResumed() {
-        if (_AutoAdvance) {
+        if (autoAdvance) {
             if (null == getMinionID() || null == getNamespace()) {
                 String ID = Integer.toBinaryString(DynamicGridWidget._AutoAdvanceGridNumber);
                 DynamicGridWidget._AutoAdvanceGridNumber++;
@@ -391,13 +386,13 @@ public class DynamicGridWidget extends GridWidget {
             }
             MarvinTask mt = new MarvinTask();
             mt.AddDataset(getMinionID(), getNamespace(), "Next");
-            TASKMAN.AddPostponedTask(mt, _AutoAdvanceInterval);
+            TASKMAN.AddPostponedTask(mt, autoAdvanceInterval);
         }
     }
 
     @Override
     public boolean PerformPostCreateActions(GridWidget objParentGrid, boolean updateToolTipOnly) {
-        if (true == updateToolTipOnly) {
+        if (updateToolTipOnly) {
             if (CONFIG.isDebugMode()) {
                 _ToolTip = this.toString();
             }
@@ -414,8 +409,8 @@ public class DynamicGridWidget extends GridWidget {
         }
         if (_ToolTip != null) {
             HandleToolTipInit();
-            for (String key : _GridMap.keySet()) {
-                DynamicGrid objGrid = _GridMap.get(key);
+            for (String key : gridMap.keySet()) {
+                DynamicGrid objGrid = gridMap.get(key);
                 Tooltip.install(objGrid.getStylableObject(), _objToolTip);
             }
         }

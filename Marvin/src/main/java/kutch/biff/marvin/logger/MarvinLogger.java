@@ -28,12 +28,12 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MarvinLogger {
-    static private FileHandler _marvinLogFile;
-    static private Formatter _marvinLogFormatObj;
+public final class MarvinLogger {
+    private static FileHandler marvinLogFile;
+    private static Formatter marvinLogFormatObj;
     // private static ConsoleHandler _
 
-    static public void setDebugLevel(Level newLevel) {
+    public static void setDebugLevel(Level newLevel) {
         Logger logger = Logger.getLogger(MarvinLogger.class.getName());
         logger.setLevel(newLevel);
         for (Handler hdl : logger.getHandlers()) {
@@ -41,19 +41,19 @@ public class MarvinLogger {
         }
     }
 
-    static public void setup(String fileName) throws IOException {
+    public static void setup(String fileName) throws IOException {
         try {
             Logger logger = Logger.getLogger(MarvinLogger.class.getName());
 
 //            logger.setLevel(Level.ALL);
 
             int limit = 1024000 * 10; // 10 Mb maximum, then cut off
-            _marvinLogFile = new FileHandler(fileName, limit, 1);
+            marvinLogFile = new FileHandler(fileName, limit, 1);
 
-            _marvinLogFormatObj = new MarvinHtmlLoggerFormatter();
-            _marvinLogFile.setFormatter(_marvinLogFormatObj);
+            marvinLogFormatObj = new MarvinHtmlLoggerFormatter();
+            marvinLogFile.setFormatter(marvinLogFormatObj);
 
-            logger.addHandler(_marvinLogFile);
+            logger.addHandler(marvinLogFile);
 
             /*
              * ConsoleHandler consoleHandler = new ConsoleHandler();
@@ -64,5 +64,8 @@ public class MarvinLogger {
         } catch (Exception ex) {
             System.out.println(ex.toString());
         }
+    }
+
+    private MarvinLogger() {
     }
 }

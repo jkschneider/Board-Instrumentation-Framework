@@ -33,16 +33,16 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class Client {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     private final String _Address;
     private final int _Port;
-    private InetAddress _IPAddress;
+    private InetAddress iPAddress;
     DatagramSocket _Socket;
 
-    public Client(String Address, int Port) {
-        _Address = Address;
-        _Port = Port;
-        _IPAddress = null;
+    public Client(String address, int port) {
+        _Address = address;
+        _Port = port;
+        iPAddress = null;
         _Socket = null;
 
     }
@@ -67,7 +67,7 @@ public class Client {
             SetupSocket(); // if it fails, will get caught in next try/catch block when tries to use
         }
         try {
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, _IPAddress, _Port);
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, iPAddress, _Port);
             _Socket.send(sendPacket);
         } catch (Exception ex) {
             LOGGER.severe("Unable to send data to Oscar at [" + getAddress() + ":" + Integer.toString(_Port) + "]");
@@ -79,7 +79,7 @@ public class Client {
 
     private boolean SetupSocket() {
         try {
-            _IPAddress = InetAddress.getByName(_Address);
+            iPAddress = InetAddress.getByName(_Address);
             _Socket = new DatagramSocket();
         } catch (Exception ex) {
             return false;

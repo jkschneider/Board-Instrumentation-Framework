@@ -24,9 +24,9 @@ package kutch.biff.marvin.task;
  * @author Patrick
  */
 public class MathematicTask extends PulseTask {
-    private double _Value;
-    private boolean validVal = false;
-    private String _Operation = null;
+    private double value;
+    private boolean validVal;
+    private String operation;
 
     public MathematicTask() {
 
@@ -34,7 +34,7 @@ public class MathematicTask extends PulseTask {
 
     @Override
     public boolean isValid() {
-        return (super.isValid() && validVal && _Operation != null);
+        return super.isValid() && validVal && operation != null;
     }
 
     @Override
@@ -59,12 +59,12 @@ public class MathematicTask extends PulseTask {
                 return;
             }
             double newVal = 0.0;
-            if (_Operation.equalsIgnoreCase("Add")) {
-                newVal = doubleVal + _Value;
-            } else if (_Operation.equalsIgnoreCase("Subtract")) {
-                newVal = doubleVal - _Value;
-            } else if (_Operation.equalsIgnoreCase("Multiply")) {
-                newVal = doubleVal * _Value;
+            if ("Add".equalsIgnoreCase(operation)) {
+                newVal = doubleVal + value;
+            } else if ("Subtract".equalsIgnoreCase(operation)) {
+                newVal = doubleVal - value;
+            } else if ("Multiply".equalsIgnoreCase(operation)) {
+                newVal = doubleVal * value;
             } else {
                 LOGGER.warning("Unknown Error processing Mathematic Task on Non numrice Data point: [" + _Namespace
                         + ":" + _ID + "]");
@@ -76,17 +76,17 @@ public class MathematicTask extends PulseTask {
     }
 
     public boolean SetOperation(String strOper) {
-        if (strOper.equalsIgnoreCase("Add") || strOper.equalsIgnoreCase("Subtract")
-                || strOper.equalsIgnoreCase("Multiply")) {
-            _Operation = strOper;
+        if ("Add".equalsIgnoreCase(strOper) || "Subtract".equalsIgnoreCase(strOper)
+                || "Multiply".equalsIgnoreCase(strOper)) {
+            operation = strOper;
         }
 
-        return (null != _Operation);
+        return null != operation;
     }
 
     public boolean setValue(String strValue) {
         try {
-            _Value = Double.parseDouble(strValue);
+            value = Double.parseDouble(strValue);
             validVal = true;
         } catch (NumberFormatException ex) {
 

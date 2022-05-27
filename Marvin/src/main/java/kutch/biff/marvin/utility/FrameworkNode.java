@@ -66,12 +66,12 @@ import kutch.biff.marvin.widget.BaseWidget;
  */
 public class FrameworkNode {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
     private static final AliasMgr ALIASMANAGER = AliasMgr.getAliasMgr();
 
     public static String DumpRawAttributes(FrameworkNode node) {
         String strRet = "";
-        int numAttrs = node._attributes.getLength();
+        int numAttrs = node.attributes.getLength();
 
 //            for (int i = 0; i < numAttrs; i++)
 //            {
@@ -79,8 +79,8 @@ public class FrameworkNode {
 //                System.out.println(attrName + ": " + parentNode._attributes.item(i).getTextContent());
 //            }
         for (int i = 0; i < numAttrs; i++) {
-            String attrName = node._attributes.item(i).getNodeName();
-            String strOrig = node._attributes.item(i).getTextContent();
+            String attrName = node.attributes.item(i).getNodeName();
+            String strOrig = node.attributes.item(i).getTextContent();
             strRet += attrName + "=" + strOrig + " ";
         }
         return strRet;
@@ -106,7 +106,7 @@ public class FrameworkNode {
             NodeList nl = doc.getChildNodes();
             for (int i = 0; i < nl.getLength(); i++) {
                 Node node = nl.item(i);
-                if (node.getNodeName().equalsIgnoreCase("#Text")) {
+                if ("#Text".equalsIgnoreCase(node.getNodeName())) {
 
                 } else {
                     dumpTree(node, parent + "<" + doc.getNodeName() + ">");
@@ -124,11 +124,11 @@ public class FrameworkNode {
      * @return
      */
     public static List<FrameworkNode> GetChildNodes(Document doc, String childName) {
-        ArrayList<FrameworkNode> retList = new ArrayList<FrameworkNode>();
+        ArrayList<FrameworkNode> retList = new ArrayList<>();
         NodeList docChildren = doc.getChildNodes();
         for (int iLoop = 0; iLoop < docChildren.getLength(); iLoop++) {
             Node child = docChildren.item(iLoop);
-            if (child.getNodeName().equalsIgnoreCase("#Text") || child.getNodeName().equalsIgnoreCase("#Comment")) {
+            if ("#Text".equalsIgnoreCase(child.getNodeName()) || "#Comment".equalsIgnoreCase(child.getNodeName())) {
                 // continue;
             } else {
                 FrameworkNode node = new FrameworkNode(child);
@@ -190,7 +190,7 @@ public class FrameworkNode {
         return retList;
     }
 
-    private static String ProcessLoopVars(String strInp, String AliasList[]) {
+    private static String ProcessLoopVars(String strInp, String[] aliasList) {
         String strRet = strInp;
         if (ALIASMANAGER.IsAliased("CurrentFileAlias")) // fugly little hack to implement iterating files in directory
         {
@@ -202,7 +202,7 @@ public class FrameworkNode {
             strRet = replaceString(strRet, "$(" + "CurrentFileWithPathAlias" + ")",
                     ALIASMANAGER.GetAlias("CurrentFileWithPathAlias"));
         }
-        for (String strCheck : AliasList) {
+        for (String strCheck : aliasList) {
             if (null != strCheck && strCheck.length() > 0) {
                 strRet = replaceString(strRet, "$(" + strCheck + ")", ALIASMANAGER.GetAlias(strCheck));
             }
@@ -234,15 +234,15 @@ public class FrameworkNode {
     public static FrameworkNode Resolve(FrameworkNode origNode, String strCountAlias, String strValueAlias) {
         FrameworkNode parentNode = new FrameworkNode(origNode.GetNode().cloneNode(true)); // dup node to manipulate
 
-        String aliasList[] = {"CurrentValueAlias", "CurrentCountAlias", strCountAlias, strValueAlias};
+        String[] aliasList = {"CurrentValueAlias", "CurrentCountAlias", strCountAlias, strValueAlias};
 
         if (parentNode.hasAttributes()) {
-            int numAttrs = parentNode._attributes.getLength();
+            int numAttrs = parentNode.attributes.getLength();
 
             for (int i = 0; i < numAttrs; i++) {
-                String strOrig = parentNode._attributes.item(i).getTextContent();
+                String strOrig = parentNode.attributes.item(i).getTextContent();
                 String strResolvedVal = ProcessLoopVars(strOrig, aliasList);
-                parentNode._attributes.item(i).setNodeValue(strResolvedVal);
+                parentNode.attributes.item(i).setNodeValue(strResolvedVal);
             }
         }
         // Add current count alias as an attribute = should then be available to grids
@@ -278,24 +278,24 @@ public class FrameworkNode {
 
     protected Node _node;
 
-    private NamedNodeMap _attributes;
+    private NamedNodeMap attributes;
 
     public FrameworkNode(FrameworkNode otherNode) {
         Node copy = otherNode._node.cloneNode(true);
         _node = ResolveAlias(copy);
-        _attributes = _node.getAttributes();
+        attributes = _node.getAttributes();
     }
 
     public FrameworkNode(Node baseNode) {
         _node = baseNode;
-        _attributes = _node.getAttributes();
+        attributes = _node.getAttributes();
     }
 
     public void AddAttibute(String key, String value) {
         ((Element) _node).setAttribute(key, value);
     }
 
-    public boolean DeleteAttribute(String AttributeName) {
+    public boolean DeleteAttribute(String attributeName) {
         if (!hasAttributes()) {
             return false;
         }
@@ -303,7 +303,7 @@ public class FrameworkNode {
         for (int index = 0; index < _node.getAttributes().getLength(); index++) {
             Node attribute = _node.getAttributes().item(index);
 
-            if (attribute.getNodeName().equalsIgnoreCase(AttributeName)) {
+            if (attribute.getNodeName().equalsIgnoreCase(attributeName)) {
                 _node.getAttributes().removeNamedItem(attribute.getNodeName());
                 return true;
             }
@@ -337,13 +337,13 @@ public class FrameworkNode {
         if (false == _node.hasAttributes()) {
             return null;
         }
-        if (null != _attributes.getNamedItem(elemStr)) {
-            return HandleAlias(_attributes.getNamedItem(elemStr).getTextContent());
+        if (null != attributes.getNamedItem(elemStr)) {
+            return HandleAlias(attributes.getNamedItem(elemStr).getTextContent());
         }
         // now let's do a case non-sensitive check
-        for (int iLoop = 0; iLoop < _attributes.getLength(); iLoop++) {
-            if (elemStr.equalsIgnoreCase(_attributes.item(iLoop).getNodeName())) {
-                return HandleAlias(_attributes.item(iLoop).getTextContent());
+        for (int iLoop = 0; iLoop < attributes.getLength(); iLoop++) {
+            if (elemStr.equalsIgnoreCase(attributes.item(iLoop).getNodeName())) {
+                return HandleAlias(attributes.item(iLoop).getTextContent());
             }
         }
         return null;
@@ -357,7 +357,7 @@ public class FrameworkNode {
 
         for (int index = 0; index < _node.getAttributes().getLength(); index++) {
             Node attribute = _node.getAttributes().item(index);
-            if (attribute.getNodeName().equalsIgnoreCase("File") || attribute.getNodeName().equalsIgnoreCase("Source")) {
+            if ("File".equalsIgnoreCase(attribute.getNodeName()) || "Source".equalsIgnoreCase(attribute.getNodeName())) {
                 strAttributes = attribute.getNodeName() + "=\"" + getAttribute(attribute.getNodeName()) + "\" "
                         + strAttributes;
             } else {
@@ -371,10 +371,10 @@ public class FrameworkNode {
     public boolean getBooleanAttribute(String elemStr) {
         if (hasAttribute(elemStr)) {
             String str = getAttribute(elemStr);
-            if (str.equalsIgnoreCase("True")) {
+            if ("True".equalsIgnoreCase(str)) {
                 return true;
             }
-            if (str.equalsIgnoreCase("False")) {
+            if ("False".equalsIgnoreCase(str)) {
                 return false;
             }
             if (!Configuration.getConfig().DoNotReportAliasErrors()) {
@@ -428,14 +428,14 @@ public class FrameworkNode {
 
         ArrayList<FrameworkNode> list = new ArrayList<>();
         for (int iLoop = 0; iLoop < children.getLength(); iLoop++) {
-            if (children.item(iLoop).getNodeName().equalsIgnoreCase("#Text")
-                    || children.item(iLoop).getNodeName().equalsIgnoreCase("#comment")) {
+            if ("#Text".equalsIgnoreCase(children.item(iLoop).getNodeName())
+                    || "#comment".equalsIgnoreCase(children.item(iLoop).getNodeName())) {
                 continue; // just skip this stuff
             }
-            if (children.item(iLoop).getNodeName().equalsIgnoreCase("If")) {
+            if ("If".equalsIgnoreCase(children.item(iLoop).getNodeName())) {
                 list.addAll(HandleIf(new FrameworkNode(children.item(iLoop))));
             } // this doesn't work for everything....
-            else if (fHandleFor && children.item(iLoop).getNodeName().equalsIgnoreCase("For")) {
+            else if (fHandleFor && "For".equalsIgnoreCase(children.item(iLoop).getNodeName())) {
                 // FrameworkNode.dumpTree(_node);
                 boolean currErrorBool = Configuration.getConfig().DoNotReportAliasErrors();
                 Configuration.getConfig().SetDoNotReportAliasErrors(true);
@@ -553,38 +553,38 @@ public class FrameworkNode {
             return HandleMarvinMath(strData);
         }
 
-        int OutterIndex = strData.indexOf("$(");
-        int CloseParenIndex = strData.indexOf(")", OutterIndex);
-        int NextStart = strData.indexOf("$(", OutterIndex + 1);
+        int outterIndex = strData.indexOf("$(");
+        int closeParenIndex = strData.indexOf(")", outterIndex);
+        int nextStart = strData.indexOf("$(", outterIndex + 1);
 
-        if (NextStart >= 0 && CloseParenIndex > 0) {
-            if (strData.indexOf("$(", OutterIndex + 1) < CloseParenIndex) // have an embedded Alias
+        if (nextStart >= 0 && closeParenIndex > 0) {
+            if (strData.indexOf("$(", outterIndex + 1) < closeParenIndex) // have an embedded Alias
             {
-                retString = strData.substring(0, OutterIndex + 2);
-                String T = strData.substring(OutterIndex + 2);
+                retString = strData.substring(0, outterIndex + 2);
+                String T = strData.substring(outterIndex + 2);
                 retString += HandleAliasWorker(T, origLine);
             } else {
-                String Alias = strData.substring(OutterIndex + 2, CloseParenIndex);
-                retString = strData.substring(0, OutterIndex);
-                String strAliasedStr = ALIASMANAGER.GetAlias(Alias);
+                String alias = strData.substring(outterIndex + 2, closeParenIndex);
+                retString = strData.substring(0, outterIndex);
+                String strAliasedStr = ALIASMANAGER.GetAlias(alias);
                 if (strAliasedStr.startsWith("Tried to use Alias")) {
                     if (!Configuration.getConfig().DoNotReportAliasErrors()) {
                         LOGGER.severe("Alias Line with problem:" + origLine);
                     }
                 }
                 retString += strAliasedStr;
-                retString += strData.substring(CloseParenIndex + 1);
+                retString += strData.substring(closeParenIndex + 1);
             }
-        } else if (CloseParenIndex > 0) {
-            String Alias = strData.substring(OutterIndex + 2, CloseParenIndex);
-            retString = strData.substring(0, OutterIndex);
-            String strAliasedStr = ALIASMANAGER.GetAlias(Alias);
+        } else if (closeParenIndex > 0) {
+            String alias = strData.substring(outterIndex + 2, closeParenIndex);
+            retString = strData.substring(0, outterIndex);
+            String strAliasedStr = ALIASMANAGER.GetAlias(alias);
             if (strAliasedStr.startsWith("Tried to use Alias")) {
                 LOGGER.severe("Alias Line with problem:" + origLine);
             }
 
             retString += strAliasedStr;
-            retString += strData.substring(CloseParenIndex + 1);
+            retString += strData.substring(closeParenIndex + 1);
         } else {
             LOGGER.warning("Something looks like an alias but is not correctly formed: " + strData);
             return strData;
@@ -600,7 +600,7 @@ public class FrameworkNode {
         String strVal2 = null;
         String strCompare = null;
         Conditional.Type compare;
-        boolean Evaluation = false;
+        boolean evaluation = false;
 
         Utility.ValidateAttributes(new String[]{"Value1", "Value2", "Compare"}, parentNode);
 
@@ -626,19 +626,19 @@ public class FrameworkNode {
             return list;
         }
 
-        Evaluation = Conditional.EvaluateConditional(strVal1, strVal2, compare, false);
+        evaluation = Conditional.EvaluateConditional(strVal1, strVal2, compare, false);
 
         for (FrameworkNode child : parentNode.getChildNodes()) {
-            if (child.getNodeName().equalsIgnoreCase("#Text") || child.getNodeName().equalsIgnoreCase("#Comment")) {
+            if ("#Text".equalsIgnoreCase(child.getNodeName()) || "#Comment".equalsIgnoreCase(child.getNodeName())) {
                 continue;
             }
-            if (child.getNodeName().equalsIgnoreCase("Then")) {
+            if ("Then".equalsIgnoreCase(child.getNodeName())) {
                 if (null == thenNode) {
                     thenNode = child;
                 } else {
                     LOGGER.severe("If can have only a single <Then> tag.  Ignoring all but first.");
                 }
-            } else if (child.getNodeName().equalsIgnoreCase("Else")) {
+            } else if ("Else".equalsIgnoreCase(child.getNodeName())) {
                 if (null == elseNode) {
                     elseNode = child;
                 } else {
@@ -654,7 +654,7 @@ public class FrameworkNode {
             return list;
         }
 
-        if (Evaluation) {
+        if (evaluation) {
             list = thenNode.getChildNodes();
         } else if (null != elseNode) {
             list = elseNode.getChildNodes();
@@ -683,54 +683,55 @@ public class FrameworkNode {
 
                 retString += HandleMarvinMath(T);
             } else {
-                String Alias = strData.substring(OutterIndex + "MarvinMath(".length(), CloseParenIndex);
+                String alias = strData.substring(OutterIndex + "MarvinMath(".length(), CloseParenIndex);
                 retString = strData.substring(0, OutterIndex);
-                retString += ALIASMANAGER.GetAlias(Alias);
+                retString += ALIASMANAGER.GetAlias(alias);
                 retString += strData.substring(CloseParenIndex + 1);
             }
         } else if (CloseParenIndex > 0) {
-            String OperationSet[] = strData.substring(OutterIndex + "MarvinMath(".length(), CloseParenIndex).split(",");
-            if (3 != OperationSet.length && 4 != OperationSet.length) {
+            String[] operationSet = strData.substring(OutterIndex + "MarvinMath(".length(), CloseParenIndex).split(",");
+            if (3 != operationSet.length && 4 != operationSet.length) {
                 LOGGER.warning("Something looks like a MarvinMath but is not correctly formed: " + strData);
                 return strData;
 
             }
-            double val1, val2;
+            double val1;
+            double val2;
             try {
-                val1 = Double.parseDouble(OperationSet[0]);
-                val2 = Double.parseDouble(OperationSet[2]);
+                val1 = Double.parseDouble(operationSet[0]);
+                val2 = Double.parseDouble(operationSet[2]);
             } catch (Exception ex) {
                 LOGGER.warning("Something looks like a MarvinMath but is not correctly formed: " + strData);
                 return strData;
             }
 
-            String Operator = OperationSet[1];
-            double NewVal;
-            if (Operator.equalsIgnoreCase("Add") || Operator.equalsIgnoreCase("+")) {
-                NewVal = val1 + val2;
-            } else if (Operator.equalsIgnoreCase("Subtract") || Operator.equalsIgnoreCase("-")
-                    || Operator.equalsIgnoreCase("sib")) {
-                NewVal = val1 - val2;
-            } else if (Operator.equalsIgnoreCase("Multiply") || Operator.equalsIgnoreCase("*")
-                    || Operator.equalsIgnoreCase("mul")) {
-                NewVal = val1 * val2;
-            } else if (Operator.equalsIgnoreCase("Divide") || Operator.equalsIgnoreCase("div")) {
+            String operator = operationSet[1];
+            double newVal;
+            if ("Add".equalsIgnoreCase(operator) || "+".equalsIgnoreCase(operator)) {
+                newVal = val1 + val2;
+            } else if ("Subtract".equalsIgnoreCase(operator) || "-".equalsIgnoreCase(operator)
+                    || "sib".equalsIgnoreCase(operator)) {
+                newVal = val1 - val2;
+            } else if ("Multiply".equalsIgnoreCase(operator) || "*".equalsIgnoreCase(operator)
+                    || "mul".equalsIgnoreCase(operator)) {
+                newVal = val1 * val2;
+            } else if ("Divide".equalsIgnoreCase(operator) || "div".equalsIgnoreCase(operator)) {
                 try {
-                    NewVal = val1 / val2;
+                    newVal = val1 / val2;
                 } catch (Exception Ex) {
                     LOGGER.warning("tried to divide bad MarvinMath: " + strData);
                     return "";
                 }
-            } else if (Operator.equalsIgnoreCase("maximum") || Operator.equalsIgnoreCase("max")) {
+            } else if ("maximum".equalsIgnoreCase(operator) || "max".equalsIgnoreCase(operator)) {
                 try {
-                    NewVal = max(val1, val2);
+                    newVal = max(val1, val2);
                 } catch (Exception Ex) {
                     LOGGER.warning("tried to perform maximum MarvinMath: " + strData);
                     return "";
                 }
-            } else if (Operator.equalsIgnoreCase("minimum") || Operator.equalsIgnoreCase("min")) {
+            } else if ("minimum".equalsIgnoreCase(operator) || "min".equalsIgnoreCase(operator)) {
                 try {
-                    NewVal = min(val1, val2);
+                    newVal = min(val1, val2);
                 } catch (Exception Ex) {
                     LOGGER.warning("tried to perform minimum MarvinMath: " + strData);
                     return "";
@@ -742,20 +743,20 @@ public class FrameworkNode {
 
             retString = strData.substring(0, OutterIndex);
 
-            if (4 == OperationSet.length) { // they specified a precision
+            if (4 == operationSet.length) { // they specified a precision
                 try {
-                    Integer.parseInt(OperationSet[3]); // test if valid
-                    String fmtStr = "%." + OperationSet[3] + "f";
-                    retString += String.format(fmtStr, NewVal);
+                    Integer.parseInt(operationSet[3]); // test if valid
+                    String fmtStr = "%." + operationSet[3] + "f";
+                    retString += String.format(fmtStr, newVal);
                 } catch (Exception ex) {
                     LOGGER.warning("Something looks like a MarvinMath but is not correctly formed: " + strData
                             + " - precision appears to be invalid.");
                     return strData;
                 }
-            } else if (NewVal == Math.floor(NewVal) && !Double.isInfinite(NewVal)) { // if zeor's behind decimal, turn into an int.
-                retString += Integer.toString((int) NewVal);
+            } else if (newVal == Math.floor(newVal) && !Double.isInfinite(newVal)) { // if zeor's behind decimal, turn into an int.
+                retString += Integer.toString((int) newVal);
             } else {
-                retString += Double.toString(NewVal);
+                retString += Double.toString(newVal);
             }
             retString += strData.substring(CloseParenIndex + 1);
         } else {
@@ -770,7 +771,8 @@ public class FrameworkNode {
         // dumpTree(repeatNode.GetNode());
         ArrayList<FrameworkNode> list = new ArrayList<>();
         ArrayList<String> fnames = null;
-        int count, start;
+        int count;
+        int start;
         String strCountAlias = "";
         String strValueAlias = "";
 
@@ -784,7 +786,7 @@ public class FrameworkNode {
         }
 
         String strCount = repeatNode.getAttribute("Count");
-        if (strCount.length() > 10 && strCount.substring(0, 9).equalsIgnoreCase("[dirscan:")) {
+        if (strCount.length() > 10 && "[dirscan:".equalsIgnoreCase(strCount.substring(0, 9))) {
             fnames = GetDirScanInfo(strCount);
             if (null == fnames) {
                 return null;
@@ -834,7 +836,7 @@ public class FrameworkNode {
             }
 
             for (FrameworkNode node : repeatNode.getChildNodes()) {
-                if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#comment")) {
+                if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#comment".equalsIgnoreCase(node.getNodeName())) {
                     continue;
                 }
 

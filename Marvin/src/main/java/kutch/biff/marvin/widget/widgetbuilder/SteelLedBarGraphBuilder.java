@@ -33,8 +33,8 @@ import kutch.biff.marvin.widget.SteelLedBarGraphWidget;
 /**
  * @author Patrick Kutch
  */
-public class SteelLedBarGraphBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class SteelLedBarGraphBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static SteelLedBarGraphWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         SteelLedBarGraphWidget led = new SteelLedBarGraphWidget();
@@ -42,7 +42,7 @@ public class SteelLedBarGraphBuilder {
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(led, node)) {
                 continue;
-            } else if (node.getNodeName().equalsIgnoreCase("NumberOfLeds")) {
+            } else if ("NumberOfLeds".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     led.setNumberOfLeds(Integer.parseInt(str));
@@ -50,7 +50,7 @@ public class SteelLedBarGraphBuilder {
                     LOGGER.severe("Invalid NumberOfLeds in LedBarGraph Widget Definition File : " + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("SizeOfLeds")) {
+            } else if ("SizeOfLeds".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     led.setLedSize(Integer.parseInt(str));
@@ -58,7 +58,7 @@ public class SteelLedBarGraphBuilder {
                     LOGGER.severe("Invalid SizeOfLeds in LedBarGraph Widget Definition File : " + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Orientation")) {
+            } else if ("Orientation".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("Horizontal")) {
                     led.setOrientation(Orientation.HORIZONTAL);
@@ -70,7 +70,7 @@ public class SteelLedBarGraphBuilder {
                                     + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("LedType")) {
+            } else if ("LedType".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
 
                 if (0 == str.compareToIgnoreCase("Horizontal")) {
@@ -87,7 +87,7 @@ public class SteelLedBarGraphBuilder {
                                     + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("ShowPeakValue")) {
+            } else if ("ShowPeakValue".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 if (0 == str.compareToIgnoreCase("True")) {
                     led.setShowPeakValue(true);
@@ -105,5 +105,8 @@ public class SteelLedBarGraphBuilder {
             }
         }
         return led;
+    }
+
+    private SteelLedBarGraphBuilder() {
     }
 }

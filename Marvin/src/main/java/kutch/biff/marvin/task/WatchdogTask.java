@@ -33,8 +33,8 @@ import kutch.biff.marvin.version.Version;
  * @author Patrick Kutch
  */
 public class WatchdogTask extends BaseTask {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private static WatchdogTask objSingleton = null;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static WatchdogTask objSingleton;
 
     public static void ForceRefresh() {
         if (null != WatchdogTask.objSingleton) {
@@ -50,14 +50,14 @@ public class WatchdogTask extends BaseTask {
         }
     }
 
-    private TaskManager TASKMAN = TaskManager.getTaskManager();
+    private TaskManager taskman = TaskManager.getTaskManager();
 
-    private boolean FirstWatchdogMessage;
+    private boolean firstWatchdogMessage;
 
     private Random rnd = new Random();
 
     public WatchdogTask() {
-        FirstWatchdogMessage = true; // tells Oscar to send a refresh to Minions
+        firstWatchdogMessage = true; // tells Oscar to send a refresh to Minions
         WatchdogTask.objSingleton = this;
     }
 
@@ -69,15 +69,15 @@ public class WatchdogTask extends BaseTask {
         sendBuffer += "<MarvinVersion>" + Version.getVersion() + "</MarvinVersion>";
         sendBuffer += "<UniqueID>" + Integer.toString(rnd.nextInt()) + "</UniqueID>";
         sendBuffer += "<Port>" + Integer.toString(getConfig().getPort()) + "</Port>";
-        if (true == FirstWatchdogMessage) {
+        if (firstWatchdogMessage) {
             sendBuffer += "<RefreshRequested>True</RefreshRequested>";
         }
         sendBuffer += "</Marvin>";
         LOGGER.info("Sending Watchdog re-arm (Heartbeat)");
-        boolean retVal = TASKMAN.SendToAllOscars(sendBuffer.getBytes());
+        boolean retVal = taskman.SendToAllOscars(sendBuffer.getBytes());
 
-        if (true == FirstWatchdogMessage && true == retVal) {
-            FirstWatchdogMessage = false; // only reset flag after successful transmit
+        if (firstWatchdogMessage && retVal) {
+            firstWatchdogMessage = false; // only reset flag after successful transmit
             LOGGER.info("Sent Request Refresh message");
         }
     }

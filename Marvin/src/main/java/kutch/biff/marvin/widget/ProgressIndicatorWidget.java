@@ -21,7 +21,6 @@
  */
 package kutch.biff.marvin.widget;
 
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.GridPane;
@@ -32,11 +31,11 @@ import kutch.biff.marvin.datamanager.DataManager;
  */
 public class ProgressIndicatorWidget extends BaseWidget {
 
-    private javafx.scene.control.ProgressIndicator _Indicator;
+    private javafx.scene.control.ProgressIndicator indicator;
 
     public ProgressIndicatorWidget() {
-        _Indicator = new javafx.scene.control.ProgressIndicator();
-        _Indicator.setProgress(0);
+        indicator = new javafx.scene.control.ProgressIndicator();
+        indicator.setProgress(0);
     }
 
     @Override
@@ -45,27 +44,24 @@ public class ProgressIndicatorWidget extends BaseWidget {
         ConfigureDimentions();
         ConfigureAlignment();
         SetupPeekaboo(dataMgr);
-        pane.add(_Indicator, getColumn(), getRow(), getColumnSpan(), getRowSpan());
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
-                double newDialValue = 0;
-                String strVal = newVal.toString();
-                try {
-                    newDialValue = Double.parseDouble(strVal);
-                } catch (Exception ex) {
-                    LOGGER.severe("Invalid data for Progress Indicator received: " + strVal);
-                    return;
-                }
+        pane.add(indicator, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue<?> o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
+            }
+            double newDialValue = 0;
+            String strVal = newVal.toString();
+            try {
+                newDialValue = Double.parseDouble(strVal);
+            } catch (Exception ex) {
+                LOGGER.severe("Invalid data for Progress Indicator received: " + strVal);
+                return;
+            }
 
-                if (0.0 == newDialValue) {
-                    _Indicator.setProgress(newDialValue);
-                } else {
-                    _Indicator.setProgress(newDialValue / 100);
-                }
+            if (0.0 == newDialValue) {
+                indicator.setProgress(newDialValue);
+            } else {
+                indicator.setProgress(newDialValue / 100);
             }
         });
         SetupTaskAction();
@@ -74,12 +70,12 @@ public class ProgressIndicatorWidget extends BaseWidget {
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return _Indicator;
+        return indicator;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _Indicator.getStylesheets();
+        return indicator.getStylesheets();
     }
 
     @Override

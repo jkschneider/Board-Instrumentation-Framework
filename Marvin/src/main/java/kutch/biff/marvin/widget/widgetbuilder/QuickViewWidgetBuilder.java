@@ -31,15 +31,15 @@ import kutch.biff.marvin.widget.QuickViewWidget;
 /**
  * @author Patrick Kutch
  */
-public class QuickViewWidgetBuilder {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class QuickViewWidgetBuilder {
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static QuickViewWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         QuickViewWidget _widget = new QuickViewWidget();
         for (FrameworkNode node : masterNode.getChildNodes()) {
             if (BaseWidget.HandleCommonDefinitionFileConfig(_widget, node)) {
-            } else if (node.getNodeName().equalsIgnoreCase("#comment")) {
-            } else if (node.getNodeName().equalsIgnoreCase("RowWidth")) {
+            } else if ("#comment".equalsIgnoreCase(node.getNodeName())) {
+            } else if ("RowWidth".equalsIgnoreCase(node.getNodeName())) {
                 String str = node.getTextContent();
                 try {
                     _widget.setRowWidth(Integer.parseInt(str));
@@ -47,19 +47,19 @@ public class QuickViewWidgetBuilder {
                     LOGGER.severe("Invalid <RowWidth> in QuickViewWidget Widget Definition File : " + str);
                     return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("EvenBackgroundStyle")) {
+            } else if ("EvenBackgroundStyle".equalsIgnoreCase(node.getNodeName())) {
                 _widget.setEvenBackgroundStyle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("EvenIDStyle")) {
+            } else if ("EvenIDStyle".equalsIgnoreCase(node.getNodeName())) {
                 _widget.setEvenIDStyle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("EvenDataStyle")) {
+            } else if ("EvenDataStyle".equalsIgnoreCase(node.getNodeName())) {
                 _widget.setEvenDataStyle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("OddBackgroundStyle")) {
+            } else if ("OddBackgroundStyle".equalsIgnoreCase(node.getNodeName())) {
                 _widget.setOddBackgroundStyle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("OddIDStyle")) {
+            } else if ("OddIDStyle".equalsIgnoreCase(node.getNodeName())) {
                 _widget.setOddIDStyle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("OddDataStyle")) {
+            } else if ("OddDataStyle".equalsIgnoreCase(node.getNodeName())) {
                 _widget.setOddDataStyle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("Order")) {
+            } else if ("Order".equalsIgnoreCase(node.getNodeName())) {
                 String strVal = node.getTextContent();
                 if (strVal.equalsIgnoreCase(QuickViewWidget.SortMode.Ascending.toString())) {
                     _widget.setSortMode(QuickViewWidget.SortMode.Ascending);
@@ -78,6 +78,9 @@ public class QuickViewWidgetBuilder {
 
         }
         return _widget;
+    }
+
+    private QuickViewWidgetBuilder() {
     }
 
 }

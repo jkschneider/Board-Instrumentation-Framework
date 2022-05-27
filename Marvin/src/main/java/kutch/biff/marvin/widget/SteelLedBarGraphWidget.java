@@ -23,7 +23,6 @@ package kutch.biff.marvin.widget;
 
 import eu.hansolo.enzo.led.Led;
 import eu.hansolo.enzo.ledbargraph.LedBargraph;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
@@ -43,7 +42,7 @@ public class SteelLedBarGraphWidget extends BaseWidget {
     private boolean _ShowPeakValue;
     private Pane _Pane;
 
-    private LedBargraph _BarGraph;
+    private LedBargraph barGraph;
 
     public SteelLedBarGraphWidget() {
         _Orientation = Orientation.VERTICAL;
@@ -53,8 +52,8 @@ public class SteelLedBarGraphWidget extends BaseWidget {
         _ShowPeakValue = true;
         _Pane = new Pane();
 
-        _BarGraph = new LedBargraph();
-        _BarGraph.setValue(0);
+        barGraph = new LedBargraph();
+        barGraph.setValue(0);
         setDefaultIsSquare(false);
     }
 
@@ -64,35 +63,32 @@ public class SteelLedBarGraphWidget extends BaseWidget {
         if (false == SetupBarGraph()) {
             return false;
         }
-        _Pane.getChildren().add(_BarGraph);
+        _Pane.getChildren().add(barGraph);
         ConfigureAlignment();
         SetupPeekaboo(dataMgr);
-        pane.add(_BarGraph, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        pane.add(barGraph, getColumn(), getRow(), getColumnSpan(), getRowSpan());
         // pane.add(_Pane, getColumn(), getRow(),getRowSpan(),getColumnSpan());
 
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue<?> o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
+            }
 
-                double newDialValue = 0;
-                String strVal = newVal.toString();
+            double newDialValue = 0;
+            String strVal = newVal.toString();
 
-                try {
-                    newDialValue = Double.parseDouble(strVal);
+            try {
+                newDialValue = Double.parseDouble(strVal);
 
-                } catch (NumberFormatException ex) {
-                    LOGGER.severe("Invalid data for LED received: " + strVal);
-                    return;
-                }
+            } catch (NumberFormatException ex) {
+                LOGGER.severe("Invalid data for LED received: " + strVal);
+                return;
+            }
 
-                if (0.0 == newDialValue) {
-                    _BarGraph.setValue(newDialValue);
-                } else {
-                    _BarGraph.setValue(newDialValue / 100);
-                }
+            if (0.0 == newDialValue) {
+                barGraph.setValue(newDialValue);
+            } else {
+                barGraph.setValue(newDialValue / 100);
             }
         });
         SetupTaskAction();
@@ -119,45 +115,45 @@ public class SteelLedBarGraphWidget extends BaseWidget {
     @Override
     public javafx.scene.Node getStylableObject() {
         // return _Pane;
-        return _BarGraph;
+        return barGraph;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
         // return _Pane.getStylesheets();
-        return _BarGraph.getStylesheets();
+        return barGraph.getStylesheets();
     }
 
     public boolean isShowPeakValue() {
         return _ShowPeakValue;
     }
 
-    public void setLedSize(int _LedSize) {
-        this._LedSize = _LedSize;
+    public void setLedSize(int ledSize) {
+        this._LedSize = ledSize;
     }
 
-    public void setLedType(Led.LedType _LedType) {
-        this._LedType = _LedType;
+    public void setLedType(Led.LedType ledType) {
+        this._LedType = ledType;
     }
 
-    public void setNumberOfLeds(int _NumberOfLeds) {
-        this._NumberOfLeds = _NumberOfLeds;
+    public void setNumberOfLeds(int numberOfLeds) {
+        this._NumberOfLeds = numberOfLeds;
     }
 
-    public void setOrientation(Orientation _Orientation) {
-        this._Orientation = _Orientation;
+    public void setOrientation(Orientation orientation) {
+        this._Orientation = orientation;
     }
 
-    public void setShowPeakValue(boolean _ShowPeakValue) {
-        this._ShowPeakValue = _ShowPeakValue;
+    public void setShowPeakValue(boolean showPeakValue) {
+        this._ShowPeakValue = showPeakValue;
     }
 
     private boolean SetupBarGraph() {
-        _BarGraph.setOrientation(_Orientation);
-        _BarGraph.setNoOfLeds(_NumberOfLeds);
-        _BarGraph.setLedSize(_LedSize);
-        _BarGraph.setLedType(_LedType);
-        _BarGraph.setPeakValueVisible(_ShowPeakValue);
+        barGraph.setOrientation(_Orientation);
+        barGraph.setNoOfLeds(_NumberOfLeds);
+        barGraph.setLedSize(_LedSize);
+        barGraph.setLedType(_LedType);
+        barGraph.setPeakValueVisible(_ShowPeakValue);
 
         ConfigureDimentions();
 
@@ -167,7 +163,7 @@ public class SteelLedBarGraphWidget extends BaseWidget {
         }
 
         double newSize = dimension / (getNumberOfLeds());
-        _BarGraph.setLedSize(newSize);
+        barGraph.setLedSize(newSize);
 
         return true;
     }

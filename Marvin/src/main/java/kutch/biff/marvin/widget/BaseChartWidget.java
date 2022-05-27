@@ -21,12 +21,9 @@
  */
 package kutch.biff.marvin.widget;
 
-import static java.lang.Math.abs;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.chart.Axis;
@@ -42,22 +39,30 @@ import kutch.biff.marvin.utility.Utility;
 /**
  * @author Patrick Kutch
  */
-abstract public class BaseChartWidget extends BaseWidget {
+public abstract class BaseChartWidget extends BaseWidget {
 
-    private Chart _chart;
+    private Chart chart;
     // private AreaChart<Number,Number> _chart;
     private final ArrayList<SeriesDataSet> _Series;
     @SuppressWarnings("rawtypes")
     protected Axis _xAxis;
     @SuppressWarnings("rawtypes")
     protected Axis _yAxis;
-    protected String xAxisLabel, yAxisLabel;
-    protected double xAxisMaxCount, yAxisMaxCount;
-    protected double yAxisMaxValue, yAxisMinValue, yAxisMaxValue_Initial, yAxisMinValue_Initial;
+    protected String xAxisLabel;
+    protected String yAxisLabel;
+    protected double xAxisMaxCount;
+    protected double yAxisMaxCount;
+    protected double yAxisMaxValue;
+    protected double yAxisMinValue;
+    protected double yAxisMaxValue_Initial;
+    protected double yAxisMinValue_Initial;
     private boolean _Animated;
-    protected int xAxisMinorTick, yAxisMinorTick;
-    protected double xAxisMajorTick, yAxisMajorTick;
-    protected boolean xAxisTickVisible, yAxisTickVisible;
+    protected int xAxisMinorTick;
+    protected int yAxisMinorTick;
+    protected double xAxisMajorTick;
+    protected double yAxisMajorTick;
+    protected boolean xAxisTickVisible;
+    protected boolean yAxisTickVisible;
     protected HashMap<SeriesDataSet, String> SyncronizeDataSetsMap;
     protected boolean _SynchronizeMulitSourceData;
     protected int MaxSynchronizeMulitSoureDataWait;
@@ -65,8 +70,10 @@ abstract public class BaseChartWidget extends BaseWidget {
     protected HashMap<String, SeriesSet> _SeriesMap;
     protected ArrayList<String> _SeriesOrder;
     protected boolean _HorizontalChart;
-    protected double yAxisMajorTickCount, xAxisMajorTickCount;
-    protected double yAxisMinorTickCount, xAxisMinorTickCount;
+    protected double yAxisMajorTickCount;
+    protected double xAxisMajorTickCount;
+    protected double yAxisMinorTickCount;
+    protected double xAxisMinorTickCount;
     protected boolean _isStackedChart;
 
     public BaseChartWidget() {
@@ -89,7 +96,7 @@ abstract public class BaseChartWidget extends BaseWidget {
         yAxisTickVisible = true;
 
         _Series = new ArrayList<>();
-        _chart = null;
+        chart = null;
         setDefaultIsSquare(false);
         SyncronizeDataSetsMap = null;
         _SynchronizeMulitSourceData = true;
@@ -133,7 +140,7 @@ abstract public class BaseChartWidget extends BaseWidget {
     }
 
     protected void ConfigureSynchronizationForMultiSource() {
-        if (true == _SynchronizeMulitSourceData) {
+        if (_SynchronizeMulitSourceData) {
             SyncronizeDataSetsMap = new HashMap<>();
             ClearSynchronizationForMultiSource();
         }
@@ -168,15 +175,15 @@ abstract public class BaseChartWidget extends BaseWidget {
         _xAxis.setTickLabelsVisible(xAxisTickVisible);
         _yAxis.setTickLabelsVisible(yAxisTickVisible);
 
-        _chart = CreateChartObject();
+        chart = CreateChartObject();
 
         if (getTitle().length() > 0) {
-            _chart.setTitle(getTitle());
+            chart.setTitle(getTitle());
         }
 
         _xAxis.setLabel(xAxisLabel);
         _yAxis.setLabel(yAxisLabel);
-        _chart.setAnimated(_Animated);
+        chart.setAnimated(_Animated);
         yAxisMaxValue_Initial = yAxisMaxValue;
         yAxisMinValue_Initial = yAxisMinValue;
         initialSteppedRangeSetup(yAxisMinValue, yAxisMaxValue);
@@ -185,10 +192,10 @@ abstract public class BaseChartWidget extends BaseWidget {
     abstract Chart CreateChartObject();
 
     protected Chart getChart() {
-        if (null == _chart) {
+        if (null == chart) {
             LOGGER.severe("Accessing chart object before created");
         }
-        return _chart;
+        return chart;
     }
 
     public ArrayList<SeriesDataSet> getSeries() {
@@ -242,7 +249,7 @@ abstract public class BaseChartWidget extends BaseWidget {
     }
 
     public boolean HandleChartSpecificAppSettings(FrameworkNode node) {
-        if (node.getNodeName().equalsIgnoreCase("xAxis")) {
+        if ("xAxis".equalsIgnoreCase(node.getNodeName())) {
             if (node.hasAttribute("Label")) {
                 setxAxisLabel(node.getAttribute("Label"));
             }
@@ -273,33 +280,33 @@ abstract public class BaseChartWidget extends BaseWidget {
             }
             return true;
         }
-        if (node.getNodeName().equalsIgnoreCase("Series")) {
-            String Label;
-            String ID;
+        if ("Series".equalsIgnoreCase(node.getNodeName())) {
+            String label;
+            String id;
             if (node.hasAttribute("Label")) {
-                Label = node.getAttribute("Label");
+                label = node.getAttribute("Label");
             } else {
-                Label = "";
+                label = "";
             }
             if (node.hasAttribute("ID")) {
-                ID = node.getAttribute("ID");
+                id = node.getAttribute("ID");
             } else {
                 // LOGGER.warning("Series declaration for Chart Widget requires an ID");
                 return false;
             }
-            if (_SeriesMap.containsKey(ID.toUpperCase())) {
-                LOGGER.severe("Seried ID must be unique per Bar Chart, repeat found: " + ID);
+            if (_SeriesMap.containsKey(id.toUpperCase())) {
+                LOGGER.severe("Seried ID must be unique per Bar Chart, repeat found: " + id);
                 return false;
             }
-            _SeriesMap.put(ID.toUpperCase(), new SeriesSet(Label));
-            _SeriesOrder.add(ID.toUpperCase());
+            _SeriesMap.put(id.toUpperCase(), new SeriesSet(label));
+            _SeriesOrder.add(id.toUpperCase());
 
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("SeriesSet")) {
+        } else if ("SeriesSet".equalsIgnoreCase(node.getNodeName())) {
             return ReadSeriesSet(node);
         }
 
-        if (node.getNodeName().equalsIgnoreCase("yAxis")) {
+        if ("yAxis".equalsIgnoreCase(node.getNodeName())) {
             if (node.hasAttribute("Label")) {
                 yAxisLabel = node.getAttribute("Label");
             }
@@ -358,21 +365,21 @@ abstract public class BaseChartWidget extends BaseWidget {
      */
     @Override
     public boolean HandleValueRange(FrameworkNode rangeNode) {
-        double Min = -1234.5678;
-        double Max = -1234.5678;
+        double min = -1234.5678;
+        double max = -1234.5678;
         if (rangeNode.hasAttribute("Min")) {
-            Min = rangeNode.getDoubleAttribute("Min", Min);
-            if (Min == -1234.5678) {
+            min = rangeNode.getDoubleAttribute("Min", min);
+            if (min == -1234.5678) {
                 return false;
             }
-            this.yAxisMinValue = Min;
+            this.yAxisMinValue = min;
         }
         if (rangeNode.hasAttribute("Max")) {
-            Max = rangeNode.getDoubleAttribute("Max", Max);
-            if (Max == -1234.5678) {
+            max = rangeNode.getDoubleAttribute("Max", max);
+            if (max == -1234.5678) {
                 return false;
             }
-            this.yAxisMaxValue = Max;
+            this.yAxisMaxValue = max;
         }
         return true;
     }
@@ -436,10 +443,12 @@ abstract public class BaseChartWidget extends BaseWidget {
             }
         }
         for (FrameworkNode node : setNode.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("MinionSrc")) {
+            if ("MinionSrc".equalsIgnoreCase(node.getNodeName())) {
                 Utility.ValidateAttributes(new String[]{"ID", "Namespace", "SeriesID", "Scale"}, node);
 
-                String ID, Namespace, SeriesID;
+                String ID;
+                String namespace;
+                String seriesID;
                 if (node.hasAttribute("ID")) {
                     ID = node.getAttribute("ID");
                 } else {
@@ -447,24 +456,24 @@ abstract public class BaseChartWidget extends BaseWidget {
                     return false;
                 }
                 if (node.hasAttribute("Namespace")) {
-                    Namespace = node.getAttribute("Namespace");
+                    namespace = node.getAttribute("Namespace");
                 } else {
                     LOGGER.severe("Chart SeriesSet defined with invalid MinionSrc - no Namespace");
                     return false;
                 }
                 if (node.hasAttribute("SeriesID")) {
-                    SeriesID = node.getAttribute("SeriesID");
+                    seriesID = node.getAttribute("SeriesID");
                 } else {
                     LOGGER.severe("Chart SeriesSet defined with invalid MinionSrc - no SeriesID");
                     return false;
                 }
-                if (false == _SeriesMap.containsKey(SeriesID.toUpperCase())) {
+                if (false == _SeriesMap.containsKey(seriesID.toUpperCase())) {
                     LOGGER.severe(
                             "Chart SeriesSet defined with invalid MinionSrc - the Series ID has not been defined in a <Series> section. SeriesID="
-                                    + SeriesID);
+                                    + seriesID);
                     return false;
                 }
-                SeriesDataSet objDS = new SeriesDataSet(title, ID, Namespace);
+                SeriesDataSet objDS = new SeriesDataSet(title, ID, namespace);
 
                 if (node.hasAttribute("Scale")) {
                     double scaleVal = node.getDoubleAttribute("Scale", 0);
@@ -475,7 +484,7 @@ abstract public class BaseChartWidget extends BaseWidget {
                     objDS.setScaleValue(scaleVal);
                 }
 
-                _SeriesMap.get(SeriesID.toUpperCase()).AddSeries(objDS);
+                _SeriesMap.get(seriesID.toUpperCase()).AddSeries(objDS);
             }
         }
 
@@ -511,8 +520,8 @@ abstract public class BaseChartWidget extends BaseWidget {
 
     }
 
-    public void setAnimated(boolean _Animated) {
-        this._Animated = _Animated;
+    public void setAnimated(boolean animated) {
+        this._Animated = animated;
     }
 
     public void SetSynchronizeInformation(boolean flag, int timeout) {
@@ -549,27 +558,24 @@ abstract public class BaseChartWidget extends BaseWidget {
 
                 objSeries.getData().add(objChartDataSet);
 
-                dataMgr.AddListener(objDs.getID(), objDs.getNamespace(), new ChangeListener<Object>() {
-                    @Override
-                    public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                        if (IsPaused()) {
-                            return;
-                        }
-                        String strVal = newVal.toString();
-                        double newValue;
-                        try {
-                            newValue = Double.parseDouble(strVal);
-                            newValue *= objDs.getScaleValue();
-                            HandleSteppedRange(newValue);
-                        } catch (NumberFormatException ex) {
-                            LOGGER.severe("Invalid data for Line Chart received: " + strVal);
-                            return;
-                        }
-                        if (isHorizontal()) {
-                            objChartDataSet.XValueProperty().set(newValue);
-                        } else {
-                            objChartDataSet.YValueProperty().set(newValue);
-                        }
+                dataMgr.AddListener(objDs.getID(), objDs.getNamespace(), (ObservableValue<?> o, Object oldVal, Object newVal) -> {
+                    if (IsPaused()) {
+                        return;
+                    }
+                    String strVal = newVal.toString();
+                    double newValue;
+                    try {
+                        newValue = Double.parseDouble(strVal);
+                        newValue *= objDs.getScaleValue();
+                        HandleSteppedRange(newValue);
+                    } catch (NumberFormatException ex) {
+                        LOGGER.severe("Invalid data for Line Chart received: " + strVal);
+                        return;
+                    }
+                    if (isHorizontal()) {
+                        objChartDataSet.XValueProperty().set(newValue);
+                    } else {
+                        objChartDataSet.YValueProperty().set(newValue);
                     }
                 });
 
@@ -579,8 +585,8 @@ abstract public class BaseChartWidget extends BaseWidget {
         }
     }
 
-    public void setxAxis(NumberAxis _xAxis) {
-        this._xAxis = _xAxis;
+    public void setxAxis(NumberAxis xAxis) {
+        this._xAxis = xAxis;
     }
 
     public void setxAxisLabel(String xAxisLabel) {
@@ -611,8 +617,8 @@ abstract public class BaseChartWidget extends BaseWidget {
         this.xAxisTickVisible = xAxisTickVisible;
     }
 
-    public void setyAxis(NumberAxis _yAxis) {
-        this._yAxis = _yAxis;
+    public void setyAxis(NumberAxis yAxis) {
+        this._yAxis = yAxis;
     }
 
     public void setyAxisLabel(String yAxisLabel) {
@@ -672,7 +678,7 @@ abstract public class BaseChartWidget extends BaseWidget {
 
     @Override
     public void UpdateTitle(String strTitle) {
-        _chart.setTitle(strTitle);
+        chart.setTitle(strTitle);
     }
 
     @Override

@@ -36,15 +36,16 @@ import java.util.logging.Logger;
  */
 public class DataSetFileTask extends BaseTask {
     private int _interval;
-    private int _RepeatCount;
-    private String _strFileName;
-    private double _fluxRangeLower, _fluxRangeUpper;
+    private int repeatCount;
+    private String strFileName;
+    private double fluxRangeLower;
+    private double fluxRangeUpper;
 
     public DataSetFileTask(String inpFile, int interval) {
-        _RepeatCount = 0;
-        _strFileName = inpFile;
+        repeatCount = 0;
+        strFileName = inpFile;
         _interval = interval;
-        _fluxRangeLower = _fluxRangeUpper = 0;
+        fluxRangeLower = fluxRangeUpper = 0;
     }
 
     private int HandleDataFile(String inpFile) {
@@ -70,14 +71,14 @@ public class DataSetFileTask extends BaseTask {
                 LOGGER.severe("Invalid datalist DataSetFileTask in file " + inpFile + ". List: " + dataList.toString());
                 continue;
             }
-            String Namespace = dataList[0];
-            String ID = dataList[1];
-            String DataPoints[] = new String[dataList.length - 2];
+            String namespace = dataList[0];
+            String id = dataList[1];
+            String[] dataPoints = new String[dataList.length - 2];
             for (int index = 2; index < dataList.length; index++) {
-                DataPoints[index - 2] = dataList[index];
+                dataPoints[index - 2] = dataList[index];
             }
-            WalkDataListTask dlTask = new WalkDataListTask(Namespace, ID, DataPoints, _interval, _RepeatCount,
-                    _fluxRangeLower, _fluxRangeUpper);
+            WalkDataListTask dlTask = new WalkDataListTask(namespace, id, dataPoints, _interval, repeatCount,
+                    fluxRangeLower, fluxRangeUpper);
             TASKMAN.AddDeferredTaskObject(dlTask);
         }
 
@@ -86,18 +87,18 @@ public class DataSetFileTask extends BaseTask {
 
     @Override
     public void PerformTask() {
-        String fname = getDataValue(_strFileName);
-        fname = convertToFileOSSpecific(_strFileName);
+        String fname = getDataValue(strFileName);
+        fname = convertToFileOSSpecific(strFileName);
         @SuppressWarnings("unused")
         int count = HandleDataFile(fname);
     }
 
     public void setFluxRange(double lower, double upper) {
-        _fluxRangeLower = lower;
-        _fluxRangeUpper = upper;
+        fluxRangeLower = lower;
+        fluxRangeUpper = upper;
     }
 
     public void setRepeatCount(int count) {
-        _RepeatCount = count;
+        repeatCount = count;
     }
 }

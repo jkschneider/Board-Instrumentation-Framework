@@ -32,9 +32,9 @@ class MarvinHtmlLoggerFormatter extends Formatter {
     // helper to format nice timesamp
     public static String getDateStr(LogRecord rec) {
         long milliseconds = rec.getMillis();
-        SimpleDateFormat date_format = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd,yyyy HH:mm");
         Date retVal = new Date(milliseconds);
-        return date_format.format(retVal);
+        return dateFormat.format(retVal);
     }
 
     // Called by Log framework to add an entry
@@ -64,11 +64,12 @@ class MarvinHtmlLoggerFormatter extends Formatter {
         strBuffer.append(getDateStr(record));
         strBuffer.append("</td>");
         strBuffer.append("<td>");
-        String Message = record.getMessage();
+        String message = record.getMessage();
         if (record.getMessage().contains("\n")) {
-            Message = record.getMessage().replaceAll("\n", "<br>");
+            message = record.getMessage().replace("
+", "<br>");
         }
-        strBuffer.append(Message);
+        strBuffer.append(message);
         return strBuffer.toString();
     }
 

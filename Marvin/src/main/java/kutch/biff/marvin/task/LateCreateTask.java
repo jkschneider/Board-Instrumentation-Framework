@@ -28,25 +28,25 @@ import kutch.biff.marvin.widget.widgetbuilder.OnDemandWidgetBuilder;
  * @author Patrick
  */
 public class LateCreateTask extends BaseTask {
-    private final OnDemandWidgetBuilder __builder;
+    private final OnDemandWidgetBuilder builder;
     private final String __Namespace;
-    private final String __ID;
+    private final String __id;
     private final String __Value;
-    private final String __SortStr;
+    private final String sortStr;
 
-    public LateCreateTask(OnDemandWidgetBuilder objBuilder, String Namespace, String ID, String Value, String strSortBy) {
-        __builder = objBuilder;
-        __Namespace = Namespace;
-        __ID = ID;
-        __Value = Value;
-        __SortStr = strSortBy;
+    public LateCreateTask(OnDemandWidgetBuilder objBuilder, String namespace, String id, String value, String strSortBy) {
+        builder = objBuilder;
+        __Namespace = namespace;
+        __id = id;
+        __Value = value;
+        sortStr = strSortBy;
     }
 
     @Override
     public void PerformTask() {
-        if (null != __builder) // is null when a Tab
+        if (null != builder) // is null when a Tab
         {
-            __builder.Build(__Namespace, __ID, __Value, __SortStr);
+            builder.Build(__Namespace, __id, __Value, sortStr);
             Configuration.getConfig().restoreCursor();
         } else {
             LOGGER.severe("LateCreateTask called, but builder was NULL");

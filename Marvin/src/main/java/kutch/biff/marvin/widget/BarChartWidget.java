@@ -21,7 +21,6 @@
  */
 package kutch.biff.marvin.widget;
 
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
@@ -44,12 +43,12 @@ import kutch.biff.marvin.utility.FrameworkNode;
  * @author Patrick Kutch
  */
 public class BarChartWidget extends LineChartWidget {
-    private final CategoryAxis _xAxis;
+    private final CategoryAxis xAxis;
     private XYChart.Series<String, Number> _objSeries;
 
-    public BarChartWidget(boolean Horizontal) {
-        _xAxis = new CategoryAxis();
-        _HorizontalChart = Horizontal;
+    public BarChartWidget(boolean horizontal) {
+        xAxis = new CategoryAxis();
+        _HorizontalChart = horizontal;
         _objSeries = new XYChart.Series<>();
     }
 
@@ -70,9 +69,9 @@ public class BarChartWidget extends LineChartWidget {
 
     private void CreateBarChart() {
         CreateChart();
-        _xAxis.setLabel(getxAxisLabel());
+        xAxis.setLabel(getxAxisLabel());
 
-        _xAxis.setAnimated(false); // for some reason for this chart, it defaults to true!
+        xAxis.setAnimated(false); // for some reason for this chart, it defaults to true!
     }
 
     @SuppressWarnings("unchecked")
@@ -80,40 +79,34 @@ public class BarChartWidget extends LineChartWidget {
     protected Chart CreateChartObject() {
         if (isHorizontal()) {
             getyAxis().setTickLabelRotation(90);
-            return new BarChart<Number, String>(getyAxis(), _xAxis);
+            return new BarChart<>(getyAxis(), xAxis);
         }
 
-        return new BarChart<String, Number>(_xAxis, getyAxis());
+        return new BarChart<>(xAxis, getyAxis());
     }
 
     @SuppressWarnings("unused")
     private void displayLabelForData(XYChart.Data<String, Number> data) {
         final Node node = data.getNode();
         final Text dataText = new Text(data.getYValue() + "");
-        node.parentProperty().addListener(new ChangeListener<Parent>() {
-            @Override
-            public void changed(ObservableValue<? extends Parent> ov, Parent oldParent, Parent parent) {
-                Group parentGroup = (Group) parent;
-                parentGroup.getChildren().add(dataText);
-            }
+        node.parentProperty().addListener((ObservableValue<? extends Parent> ov, Parent oldParent, Parent parent) -> {
+            Group parentGroup = (Group) parent;
+            parentGroup.getChildren().add(dataText);
         });
 
-        node.boundsInParentProperty().addListener(new ChangeListener<Bounds>() {
-            @Override
-            public void changed(ObservableValue<? extends Bounds> ov, Bounds oldBounds, Bounds bounds) {
-                dataText.setLayoutX(Math.round(bounds.getMinX() + bounds.getWidth() / 2 - dataText.prefWidth(-1) / 2));
-                dataText.setLayoutY(Math.round(bounds.getMinY() - dataText.prefHeight(-1) * 0.5));
-            }
+        node.boundsInParentProperty().addListener((ObservableValue<? extends Bounds> ov, Bounds oldBounds, Bounds bounds) -> {
+            dataText.setLayoutX(Math.round(bounds.getMinX() + bounds.getWidth() / 2 - dataText.prefWidth(-1) / 2));
+            dataText.setLayoutY(Math.round(bounds.getMinY() - dataText.prefHeight(-1) * 0.5));
         });
     }
 
     protected CategoryAxis getAxis_X() {
-        return this._xAxis;
+        return this.xAxis;
     }
 
     @Override
     public javafx.scene.Node getStylableObject() {
-        return ((getChart()));
+        return getChart();
     }
 
     @SuppressWarnings("rawtypes")
@@ -124,11 +117,7 @@ public class BarChartWidget extends LineChartWidget {
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode node) {
-        if (true == HandleChartSpecificAppSettings(node)) {
-            return true;
-        }
-
-        return false;
+        return HandleChartSpecificAppSettings(node);
     }
 
     @SuppressWarnings("rawtypes")
@@ -172,10 +161,11 @@ public class BarChartWidget extends LineChartWidget {
                 // displayLabelForData(objData);
                 currSize++;
             }
-        } else
+        } else {
             while (currSize > newSize) {
                 _objSeries.getData().remove(--currSize);
             }
+        }
     }
 
     protected void setupAxis() {
@@ -189,7 +179,7 @@ public class BarChartWidget extends LineChartWidget {
     }
 
     protected void setupListeners(DataManager dataMgr) {
-        if (0 == _SeriesOrder.size()) {
+        if (_SeriesOrder.isEmpty()) {
             setupListenersForSingleSource(dataMgr);
             return;
         }

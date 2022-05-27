@@ -29,9 +29,9 @@ import kutch.biff.marvin.datamanager.DataManager;
 
 public class UpdateProxyTask extends BaseTask {
     private String _ProxyID;
-    private String _NewNamespaceCriterea = null;
-    private String _NewIDCriterea = null;
-    private String _newListEntry = null;
+    private String newNamespaceCriterea;
+    private String newIDCriterea;
+    private String newListEntry;
 
     public UpdateProxyTask(String proxyID) {
         _ProxyID = proxyID;
@@ -40,18 +40,18 @@ public class UpdateProxyTask extends BaseTask {
     @Override
     public void PerformTask() {
         DataManager.getDataManager().UpdateGenerateDatapointProxy(getDataValue(_ProxyID),
-                getDataValue(_NewNamespaceCriterea), getDataValue(_NewIDCriterea), getDataValue(_newListEntry));
+                getDataValue(newNamespaceCriterea), getDataValue(newIDCriterea), getDataValue(newListEntry));
     }
 
     public void setIDMask(String newID) {
-        _NewIDCriterea = newID;
+        newIDCriterea = newID;
     }
 
     public void setListEntry(String newEntry) {
-        _newListEntry = newEntry;
+        newListEntry = newEntry;
     }
 
     public void setNamespaceMask(String newNS) {
-        _NewNamespaceCriterea = newNS;
+        newNamespaceCriterea = newNS;
     }
 }

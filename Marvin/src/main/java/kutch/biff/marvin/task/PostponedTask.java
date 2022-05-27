@@ -29,18 +29,18 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class PostponedTask {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     private ITask _objTask;
-    private double _PerformTime;
+    private double performTime;
 
-    public PostponedTask(ITask objTask, long Period) {
+    public PostponedTask(ITask objTask, long period) {
         if (null == objTask) {
             LOGGER.severe("Invalid Task Object");
             return;
         }
         _objTask = objTask;
-        _PerformTime = System.currentTimeMillis() + Period;
+        performTime = System.currentTimeMillis() + period;
     }
 
     public void Perform() {
@@ -52,10 +52,7 @@ public class PostponedTask {
     }
 
     public boolean ReadyToPerform() {
-        if (System.currentTimeMillis() >= _PerformTime) {
-            return true;
-        }
-        return false;
+        return System.currentTimeMillis() >= performTime;
     }
 
 }

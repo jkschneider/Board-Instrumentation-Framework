@@ -28,6 +28,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import javafx.collections.ObservableList;
+
+import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SingleSelectionModel;
@@ -106,36 +108,36 @@ public class TabWidget extends GridWidget {
     }
 
     private Tab _tab;
-    private GridPane _BaseGridPane; // throw one down in tab to put all the goodies in
+    private GridPane baseGridPane; // throw one down in tab to put all the goodies in
     private boolean _IsVisible;
     private int _TabIndex;
     ScrollPane _ScrollPane;
-    private boolean _UseScrollBars;
+    private boolean useScrollBars;
     private Pane basePane;
-    private StackPane _stackReference;
-    private String _TaskOnActivate;
-    private boolean _IgnoreFirstSelect;
+    private StackPane stackReference;
+    private String taskOnActivate;
+    private boolean ignoreFirstSelect;
 
-    private boolean _CreatedOnDemand;
+    private boolean createdOnDemand;
 
-    private String _OnDemandSortStr;
+    private String onDemandSortStr;
 
     public TabWidget(String tabID) {
         super();
         setMinionID(tabID); // isn't really a minion, just re-using field
-        _BaseGridPane = new GridPane(); // can't rely on super class
+        baseGridPane = new GridPane(); // can't rely on super class
         _tab = new Tab();
         setBaseCSSFilename("TabDefault.css");
         _IsVisible = true;
-        _TaskOnActivate = null;
-        _IgnoreFirstSelect = false;
-        _CreatedOnDemand = false;
-        _OnDemandSortStr = null;
+        taskOnActivate = null;
+        ignoreFirstSelect = false;
+        createdOnDemand = false;
+        onDemandSortStr = null;
         basePane = new Pane();
 
-        _UseScrollBars = CONFIG.getEnableScrollBars();
+        useScrollBars = CONFIG.getEnableScrollBars();
 
-        if (_UseScrollBars) {
+        if (useScrollBars) {
             _ScrollPane = new ScrollPane();
             _ScrollPane.setPannable(true);
             _ScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
@@ -158,29 +160,29 @@ public class TabWidget extends GridWidget {
         setWidth(CONFIG.getCanvasWidth());
         setHeight(CONFIG.getCanvasHeight());
 
-        _BaseGridPane.setPadding(new Insets(getInsetTop(), getInsetRight(), getInsetBottom(), getInsetLeft()));
+        baseGridPane.setPadding(new Insets(getInsetTop(), getInsetRight(), getInsetBottom(), getInsetLeft()));
 
-        boolean fSuccess = super.Create(_BaseGridPane, dataMgr);
-        if (true == fSuccess) {
+        boolean fSuccess = super.Create(baseGridPane, dataMgr);
+        if (fSuccess) {
             _tab.setText(getTitle());
             _tab.setClosable(false);
 
             // basePane.setStyle("-fx-background-color:yellow");
-            _stackReference = new StackPane(); // for back filler when translating
+            stackReference = new StackPane(); // for back filler when translating
 //            _stackReference.setStyle("-fx-background-color:red");
 
             getGridPane().setAlignment(getPosition());
 
             // stackReference.getChildren().add(this.getGridPane());
-            basePane.getChildren().add(_stackReference);
-            basePane.getChildren().add(_BaseGridPane);
+            basePane.getChildren().add(stackReference);
+            basePane.getChildren().add(baseGridPane);
 
-            _stackReference.prefWidthProperty().bind(CONFIG.getCurrentWidthProperty());
-            _stackReference.prefHeightProperty().bind(CONFIG.getCurrentHeightProperty());
-            _stackReference.prefHeightProperty().bind(basePane.heightProperty());
+            stackReference.prefWidthProperty().bind(CONFIG.getCurrentWidthProperty());
+            stackReference.prefHeightProperty().bind(CONFIG.getCurrentHeightProperty());
+            stackReference.prefHeightProperty().bind(basePane.heightProperty());
 
-            if (_UseScrollBars) {
-                _ScrollPane.setContent(_BaseGridPane);
+            if (useScrollBars) {
+                _ScrollPane.setContent(baseGridPane);
                 _ScrollPane.setFitToWidth(true);
                 _ScrollPane.setFitToHeight(true);
 
@@ -193,7 +195,7 @@ public class TabWidget extends GridWidget {
 
             }
 
-            new TranslationCalculator(_stackReference, _BaseGridPane, CONFIG.getScaleProperty(), getPosition()); // handles
+            new TranslationCalculator(stackReference, baseGridPane, CONFIG.getScaleProperty(), getPosition()); // handles
             // all
             // the
             // resizing/scaling
@@ -209,16 +211,16 @@ public class TabWidget extends GridWidget {
     }
 
     public boolean getCreatedOnDemand() {
-        return _CreatedOnDemand;
+        return createdOnDemand;
     }
 
     @Override
     protected GridPane getGridPane() {
-        return _BaseGridPane;
+        return baseGridPane;
     }
 
     public String getOnDemandSortBy() {
-        return _OnDemandSortStr;
+        return onDemandSortStr;
     }
 
     @Override
@@ -249,27 +251,27 @@ public class TabWidget extends GridWidget {
             return false;
         }
         for (FrameworkNode node : doc.getChildNodes()) {
-            if (node.getNodeName().equalsIgnoreCase("#Text") || node.getNodeName().equalsIgnoreCase("#Comment")) {
+            if ("#Text".equalsIgnoreCase(node.getNodeName()) || "#Comment".equalsIgnoreCase(node.getNodeName())) {
                 continue;
             }
 
-            if (node.getNodeName().equalsIgnoreCase("Title")) {
+            if ("Title".equalsIgnoreCase(node.getNodeName())) {
                 setTitle(node.getTextContent());
-            } else if (node.getNodeName().equalsIgnoreCase("Peekaboo")) {
+            } else if ("Peekaboo".equalsIgnoreCase(node.getNodeName())) {
                 if (!HandlePeekaboo(this, node)) {
                     return false;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("StyleOverride")) {
+            } else if ("StyleOverride".equalsIgnoreCase(node.getNodeName())) {
                 if (false == WidgetBuilder.HandleStyleOverride(this, node)) {
                     return false;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("ClickThroughTransparent")) {
+            } else if ("ClickThroughTransparent".equalsIgnoreCase(node.getNodeName())) {
                 SetClickThroughTransparentRegion(node.getBooleanValue());
                 if (node.hasAttribute("Propagate") && node.getBooleanAttribute("Propagate")) {
                     setExplicitPropagate(true);
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Widget") || node.getNodeName().equalsIgnoreCase("Grid")
-                    || node.getNodeName().equalsIgnoreCase("DynamicGrid")) {
+            } else if ("Widget".equalsIgnoreCase(node.getNodeName()) || "Grid".equalsIgnoreCase(node.getNodeName())
+                    || "DynamicGrid".equalsIgnoreCase(node.getNodeName())) {
                 Widget widget = WidgetBuilder.Build(node);
 
                 if (null != widget) {
@@ -277,26 +279,26 @@ public class TabWidget extends GridWidget {
                 } else {
                     return false;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("GridMacro")
-                    || node.getNodeName().equalsIgnoreCase("MacroGrid")) {
+            } else if ("GridMacro".equalsIgnoreCase(node.getNodeName())
+                    || "MacroGrid".equalsIgnoreCase(node.getNodeName())) {
                 if (!WidgetBuilder.ReadGridMacro(node)) {
                     return false;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("For")) {
+            } else if ("For".equalsIgnoreCase(node.getNodeName())) {
                 List<Widget> repeatList = WidgetBuilder.BuildRepeatList(node);
                 if (null == repeatList) {
                     return false;
                 }
                 _Widgets.addAll(repeatList);
-            } else if (node.getNodeName().equalsIgnoreCase("TaskList")) {
+            } else if ("TaskList".equalsIgnoreCase(node.getNodeName())) {
                 ConfigurationReader.ReadTaskList(node);
-            } else if (node.getNodeName().equalsIgnoreCase("GenerateDataPoint")) {
+            } else if ("GenerateDataPoint".equalsIgnoreCase(node.getNodeName())) {
                 if (!ConfigurationReader.ReadGenerateDataPoints(node)) {
                     // return null;
                 }
-            } else if (node.getNodeName().equalsIgnoreCase("Prompt")) {
+            } else if ("Prompt".equalsIgnoreCase(node.getNodeName())) {
                 ConfigurationReader.ReadPrompt(node);
-            } else if (node.getNodeName().equalsIgnoreCase("AliasList")) {
+            } else if ("AliasList".equalsIgnoreCase(node.getNodeName())) {
                 // already deal with someplace else
             } else if (false == HandleWidgetSpecificSettings(node)) {
                 LOGGER.warning("Unknown Entry: " + node.getNodeName() + " in Tab ID= " + getMinionID());
@@ -311,18 +313,18 @@ public class TabWidget extends GridWidget {
         if (getHeight() == 0 && this.getHeightPercentOfParentGrid() == 0) {
             setHeightPercentOfParentGrid(100);
         }
-        if (null != _TaskOnActivate) {
+        if (null != taskOnActivate) {
             if (_tab.isSelected()) {
-                _IgnoreFirstSelect = true; // 1st tab will get the selection changed notification on startup, ignore it
+                ignoreFirstSelect = true; // 1st tab will get the selection changed notification on startup, ignore it
             }
-            _tab.setOnSelectionChanged(e ->
+            _tab.setOnSelectionChanged((Event e) ->
             {
                 if (_tab.isSelected()) {
-                    if (!_IgnoreFirstSelect) {
-                        TASKMAN.PerformTask(_TaskOnActivate);
+                    if (!ignoreFirstSelect) {
+                        TASKMAN.PerformTask(taskOnActivate);
                     }
                 }
-                _IgnoreFirstSelect = false;
+                ignoreFirstSelect = false;
             });
         }
 
@@ -338,15 +340,15 @@ public class TabWidget extends GridWidget {
     }
 
     public void setCreatedOnDemand() {
-        _CreatedOnDemand = true;
+        createdOnDemand = true;
     }
 
     public void setOnActivateTask(String taskID) {
-        _TaskOnActivate = taskID;
+        taskOnActivate = taskID;
     }
 
     public void setOnDemandSortBy(String sortStr) {
-        _OnDemandSortStr = sortStr;
+        onDemandSortStr = sortStr;
     }
 
     public void setVisible(boolean _IsVisible) {

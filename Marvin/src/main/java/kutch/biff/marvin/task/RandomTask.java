@@ -33,44 +33,44 @@ public class RandomTask extends BaseTask {
         public double Weight;
     }
 
-    private final TaskManager TASKMAN = TaskManager.getTaskManager();
+    private final TaskManager taskman = TaskManager.getTaskManager();
 
-    private ArrayList<RandomSet> _TaskList;
-    private boolean _WieghtAdjusted;
+    private ArrayList<RandomSet> taskList;
+    private boolean wieghtAdjusted;
 
     public RandomTask() {
-        _TaskList = new ArrayList<>();
-        _WieghtAdjusted = false;
+        taskList = new ArrayList<>();
+        wieghtAdjusted = false;
     }
 
     public void AddTask(String strTaskID, double weight) {
         RandomSet objSet = new RandomSet();
         objSet.TaskID = strTaskID;
         objSet.Weight = weight;
-        _TaskList.add(objSet);
+        taskList.add(objSet);
     }
 
     private void AdjustWeight() {
-        if (_WieghtAdjusted) {
+        if (wieghtAdjusted) {
             return;
         }
-        _WieghtAdjusted = true;
+        wieghtAdjusted = true;
         double totalWeight = 0.0d;
         int notWeightedCount = 0;
-        for (RandomSet objRandomSet : _TaskList) {
+        for (RandomSet objRandomSet : taskList) {
             totalWeight += objRandomSet.Weight;
             if (0 == objRandomSet.Weight) {
                 notWeightedCount++;
             }
         }
         if (notWeightedCount > 0) {
-            double DefaultWeight = (101.0d - totalWeight) / notWeightedCount;
-            if (DefaultWeight < 1.0d) {
-                DefaultWeight = 1.0d;
+            double defaultWeight = (101.0d - totalWeight) / notWeightedCount;
+            if (defaultWeight < 1.0d) {
+                defaultWeight = 1.0d;
             }
-            for (RandomSet objRandomSet : _TaskList) {
+            for (RandomSet objRandomSet : taskList) {
                 if (0 == objRandomSet.Weight) {
-                    objRandomSet.Weight = DefaultWeight;
+                    objRandomSet.Weight = defaultWeight;
                 }
             }
         }
@@ -81,21 +81,21 @@ public class RandomTask extends BaseTask {
     public void PerformTask() {
         double totalWeight = 0.0d;
         AdjustWeight();
-        for (RandomSet objRandomSet : _TaskList) {
+        for (RandomSet objRandomSet : taskList) {
             totalWeight += objRandomSet.Weight;
         }
 // Now choose a random item
         int randomIndex = -1;
         double random = Math.random() * totalWeight;
-        for (int index = 0; index < _TaskList.size(); ++index) {
-            random -= _TaskList.get(index).Weight;
+        for (int index = 0; index < taskList.size(); ++index) {
+            random -= taskList.get(index).Weight;
             if (random <= 0.0d) {
                 randomIndex = index;
                 break;
             }
         }
-        String strTaskToRun = _TaskList.get(randomIndex).TaskID;
-        TASKMAN.PerformTask(strTaskToRun);
+        String strTaskToRun = taskList.get(randomIndex).TaskID;
+        taskman.PerformTask(strTaskToRun);
     }
 
 }

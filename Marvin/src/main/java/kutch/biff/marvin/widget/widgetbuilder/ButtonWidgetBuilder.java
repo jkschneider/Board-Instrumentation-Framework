@@ -33,9 +33,9 @@ import kutch.biff.marvin.widget.ToggleButtonWidget;
 /**
  * @author Patrick Kutch
  */
-public class ButtonWidgetBuilder {
+public final class ButtonWidgetBuilder {
     @SuppressWarnings("unused")
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static ButtonWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         ButtonWidget btnWidget = new ButtonWidget();
@@ -65,5 +65,8 @@ public class ButtonWidgetBuilder {
             }
         }
         return btnWidget;
+    }
+
+    private ButtonWidgetBuilder() {
     }
 }

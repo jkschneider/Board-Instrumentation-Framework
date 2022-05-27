@@ -25,10 +25,8 @@ import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -53,10 +51,10 @@ import kutch.biff.marvin.widget.BaseWidget;
 /**
  * @author Patrick Kutch
  */
-public class AboutBox {
+public final class AboutBox {
     private static Pane Setup(Stage stage) {
         // TaskManager TASKMAN = TaskManager.getTaskManager();
-        ConfigurationReader CONFIG = ConfigurationReader.GetConfigReader();
+        ConfigurationReader config = ConfigurationReader.GetConfigReader();
 
         GridPane grid = new GridPane();
         URL resource = AboutBox.class.getResource("About.png");
@@ -65,85 +63,79 @@ public class AboutBox {
 
         ImageView aboutImg = new ImageView(img);
 
-        Button OKBtn = new Button("OK");
-        Label By = new Label("by");
-        Label Author = new Label("Patrick Kutch");
-        Label With = new Label("with Brian Johnson");
-        Label With2 = new Label("and Michael Shearer");
+        Button oKBtn = new Button("OK");
+        Label by = new Label("by");
+        Label author = new Label("Patrick Kutch");
+        Label with = new Label("with Brian Johnson");
+        Label with2 = new Label("and Michael Shearer");
 
-        Label Where = new Label("https://github.com/PatrickKutch");
+        Label where = new Label("https://github.com/PatrickKutch");
 
-        Label DataCount = new Label(
+        Label dataCount = new Label(
                 "Datapoints: " + Integer.toString(DataManager.getDataManager().NumberOfRegisteredDatapoints()));
 
-        Author.setAlignment(Pos.CENTER);
-        GridPane.setHalignment(Author, HPos.CENTER);
-        GridPane.setHalignment(By, HPos.CENTER);
-        GridPane.setHalignment(With, HPos.CENTER);
-        GridPane.setHalignment(With2, HPos.CENTER);
-        GridPane.setHalignment(Where, HPos.CENTER);
+        author.setAlignment(Pos.CENTER);
+        GridPane.setHalignment(author, HPos.CENTER);
+        GridPane.setHalignment(by, HPos.CENTER);
+        GridPane.setHalignment(with, HPos.CENTER);
+        GridPane.setHalignment(with2, HPos.CENTER);
+        GridPane.setHalignment(where, HPos.CENTER);
 
-        Label VerLabel = new Label(Version.getVersion());
-        Label Widgets = new Label("Number of Widgets - " + Integer.toString(BaseWidget.getWidgetCount()));
-        Label Tasks = new Label("Number of Tasks - " + Integer.toString(BaseTask.getTaskCount()));
+        Label verLabel = new Label(Version.getVersion());
+        Label widgets = new Label("Number of Widgets - " + Integer.toString(BaseWidget.getWidgetCount()));
+        Label tasks = new Label("Number of Tasks - " + Integer.toString(BaseTask.getTaskCount()));
         long freeMem = Runtime.getRuntime().freeMemory();
         long totalMem = Runtime.getRuntime().maxMemory();
         long usedMem = totalMem - freeMem;
         usedMem /= 1024.0;
-        String MBMemStr = NumberFormat.getNumberInstance(Locale.US).format(usedMem / 1024);
-        Label MemUsage = new Label("Mem usage (MB) - " + MBMemStr);
+        String mBMemStr = NumberFormat.getNumberInstance(Locale.US).format(usedMem / 1024);
+        Label memUsage = new Label("Mem usage (MB) - " + mBMemStr);
 
         int newBottom = 1;
         grid.setAlignment(Pos.CENTER);
         grid.add(aboutImg, 1, newBottom++);
-        grid.add(By, 1, newBottom++);
-        grid.add(Author, 1, newBottom++);
-        grid.add(With, 1, newBottom++);
-        grid.add(With2, 1, newBottom++);
-        grid.add(Where, 1, newBottom++);
+        grid.add(by, 1, newBottom++);
+        grid.add(author, 1, newBottom++);
+        grid.add(with, 1, newBottom++);
+        grid.add(with2, 1, newBottom++);
+        grid.add(where, 1, newBottom++);
         grid.add(new Label(" "), 1, newBottom++);
-        if (CONFIG.getConfiguration().GetApplicationID().length() > 0) {
-            Label ID = new Label("ID : " + CONFIG.getConfiguration().GetApplicationID());
-            grid.add(ID, 1, newBottom++);
+        if (config.getConfiguration().GetApplicationID().length() > 0) {
+            Label id = new Label("ID : " + config.getConfiguration().GetApplicationID());
+            grid.add(id, 1, newBottom++);
         }
-        grid.add(VerLabel, 1, newBottom++);
-        grid.add(Widgets, 1, newBottom++);
-        grid.add(Tasks, 1, newBottom++);
-        grid.add(DataCount, 1, newBottom++);
-        grid.add(MemUsage, 1, newBottom++);
-        GridPane.setHalignment(OKBtn, HPos.CENTER);
+        grid.add(verLabel, 1, newBottom++);
+        grid.add(widgets, 1, newBottom++);
+        grid.add(tasks, 1, newBottom++);
+        grid.add(dataCount, 1, newBottom++);
+        grid.add(memUsage, 1, newBottom++);
+        GridPane.setHalignment(oKBtn, HPos.CENTER);
         // grid.add(new Label(" "), 1, newBottom++);
         newBottom = AboutBox.SetupExtraInfoPane(grid, newBottom++, 1);
 
-        Slider objSlider = new Slider(.25, 3, CONFIG.getConfiguration().getScaleFactor());
-        objSlider.valueProperty().bindBidirectional(CONFIG.getConfiguration().getScaleProperty());
+        Slider objSlider = new Slider(.25, 3, config.getConfiguration().getScaleFactor());
+        objSlider.valueProperty().bindBidirectional(config.getConfiguration().getScaleProperty());
         grid.add(objSlider, 1, newBottom++);
         objSlider.setVisible(false);
 
-        aboutImg.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.isShiftDown()) {
-                    objSlider.setVisible(true);
-                }
+        aboutImg.setOnMouseClicked((MouseEvent event) -> {
+            if (event.isShiftDown()) {
+                objSlider.setVisible(true);
             }
         });
 
-        grid.add(OKBtn, 1, newBottom);
+        grid.add(oKBtn, 1, newBottom);
 
         grid.setStyle(
                 "-fx-padding: 5; -fx-background-color: cornsilk; -fx-border-width:5; -fx-border-color: linear-gradient(to bottom, chocolate, derive(chocolate, 50%));");
 
-        OKBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent t) {
-                stage.close();
-            }
+        oKBtn.setOnAction((ActionEvent t) -> {
+            stage.close();
         });
 
         // place on correct screen.
-        int xPos = (int) (CONFIG.getConfiguration().getPrimaryScreen().getVisualBounds().getMinX());
-        int yPos = (int) (CONFIG.getConfiguration().getPrimaryScreen().getVisualBounds().getMinY());
+        int xPos = (int) (config.getConfiguration().getPrimaryScreen().getVisualBounds().getMinX());
+        int yPos = (int) (config.getConfiguration().getPrimaryScreen().getVisualBounds().getMinY());
         stage.setX(xPos);
         stage.setY(yPos);
         stage.centerOnScreen(); // and center it.
@@ -176,17 +168,13 @@ public class AboutBox {
         scalingString += String.format("%.2f", CONFIG.getConfiguration().getScaleFactor());
         lblScaling = new Label(scalingString);
 
-        CONFIG.getConfiguration().getScaleProperty().addListener(new ChangeListener<Number>() // when the scale changes
-        {
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number number2) {
-                String scalingString = "Scaling: ";
-                if (CONFIG.getConfiguration().isAutoScale()) {
-                    scalingString += "[AutoScale] ";
-                }
-                scalingString += String.format("%.2f", CONFIG.getConfiguration().getScaleFactor());
-                lblScaling.setText(scalingString);
+        CONFIG.getConfiguration().getScaleProperty().addListener((ObservableValue<? extends Number> observableValue, Number number, Number number2) -> {
+            String scalingString = "Scaling: ";
+            if (CONFIG.getConfiguration().isAutoScale()) {
+                scalingString += "[AutoScale] ";
             }
+            scalingString += String.format("%.2f", CONFIG.getConfiguration().getScaleFactor());
+            lblScaling.setText(scalingString);
         });
 
         lblAppDimensions = new Label("Screen Size: " + Integer.toString(appWidth) + "x" + Integer.toString(appHeight));
@@ -211,5 +199,8 @@ public class AboutBox {
 
         dialog.setScene(scene);
         dialog.showAndWait();
+    }
+
+    private AboutBox() {
     }
 }

@@ -21,8 +21,6 @@
  */
 package kutch.biff.marvin;
 
-import static java.lang.Math.abs;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -84,8 +82,8 @@ import kutch.biff.marvin.widget.Widget;
  * @author Patrick.Kutch@gmail.com
  */
 public class Marvin extends Application {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private static TabPane _objTabPane = null;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static TabPane objTabPane;
 
     public static void DumpThreads(boolean showStack) {
         showStack = false;
@@ -98,7 +96,7 @@ public class Marvin extends Application {
         for (Thread entry : threadArray) {
             // info is name,priority,threadgroup
             dumpString += "\t" + entry.toString() + " -- " + entry.getState().toString() + "\n";
-            if (true == showStack) {
+            if (showStack) {
                 for (StackTraceElement element : entry.getStackTrace()) {
                     dumpString += "\t\t" + element.toString() + "\n";
                 }
@@ -110,7 +108,7 @@ public class Marvin extends Application {
     // returns the base tab pane - used for dynamic tabs in debug mode
     @SuppressWarnings("exports")
     public static TabPane GetBaseTabPane() {
-        return _objTabPane;
+        return objTabPane;
     }
 
     public static void main(final String[] args) {
@@ -135,45 +133,45 @@ public class Marvin extends Application {
         System.exit(1);
     }
 
-    private DataManager _DataMgr;
+    private DataManager dataMgr;
     private ConfigurationReader _Config;
-    private Configuration appConfig = null;
-    private Server _receiveServer;
-    private AnimationTimer _animationTimer;
+    private Configuration appConfig;
+    private Server receiveServer;
+    private AnimationTimer animationTimer;
 
-    private Heartbeat _Heartbeat;
+    private Heartbeat heartbeat;
     private long lastTimerCall;
-    private TabPane _TestPane;
-    private long TimerInterval = 2500; // nanoseconds 1ms = 1000000 ns
-    private long MemoryUsageReportingInterval = 10000; // 10 secs
-    private long LastMemoryUsageReportingTime = 0;
-    private boolean ReportMemoryUsage = false;
+    private TabPane testPane;
+    private long timerInterval = 2500; // nanoseconds 1ms = 1000000 ns
+    private long memoryUsageReportingInterval = 10000; // 10 secs
+    private long lastMemoryUsageReportingTime;
+    private boolean reportMemoryUsage;
 
     private String strOldSuffix = "dummy";
-    private int SplashWait = 5000;
-    private int NoSplashWait = 800;
+    private int splashWait = 5000;
+    private int noSplashWait = 800;
     private Stage _stage;
-    private final TaskManager TASKMAN = TaskManager.getTaskManager();
-    private String ConfigFilename = "Application.xml";
-    private String LogFileName = "MarvinLog.html";
-    private boolean ShowHelp = false;
+    private final TaskManager taskman = TaskManager.getTaskManager();
+    private String configFilename = "Application.xml";
+    private String logFileName = "MarvinLog.html";
+    private boolean showHelp;
     @SuppressWarnings("unused")
-    private boolean ShowVersion = false;
-    private boolean ShowSplash = true;
+    private boolean showVersion;
+    private boolean showSplash = true;
     @SuppressWarnings("unused")
-    private boolean RunInDebugger = false;
-    private boolean enforceMediaSupport = false;
-    private boolean dumpAlias = false;
-    private boolean dumpWidgetInfo = false;
-    private String altSplash = null;
-    private MarvinLocalData objLocalMarvinData = null;
+    private boolean runInDebugger;
+    private boolean enforceMediaSupport;
+    private boolean dumpAlias;
+    private boolean dumpWidgetInfo;
+    private String altSplash;
+    private MarvinLocalData objLocalMarvinData;
 
-    private MySplash _Splash;
+    private MySplash splash;
 
-    private boolean _CheckForSizeProblems = true;
+    private boolean checkForSizeProblems = true;
 
     @SuppressWarnings("unused")
-    private boolean _SizeCheckWindowShowing = false;
+    private boolean sizeCheckWindowShowing;
 
     private long BeginLoadProcess() {
         long start = System.currentTimeMillis();
@@ -185,8 +183,8 @@ public class Marvin extends Application {
             return 0;
         }
 
-        TASKMAN.setDataMgr(_DataMgr); // kludgy I know, I know. I hang my head in shame
-        appConfig = _Config.ReadAppConfigFile(ConfigFilename);
+        taskman.setDataMgr(dataMgr); // kludgy I know, I know. I hang my head in shame
+        appConfig = _Config.ReadAppConfigFile(configFilename);
 
         if (null != appConfig) {
             appConfig.setEnforceMediaSupport(enforceMediaSupport);
@@ -194,19 +192,19 @@ public class Marvin extends Application {
                 AliasMgr.getAliasMgr().DumpTop();
             }
 
-            _receiveServer = new Server(_DataMgr);
+            receiveServer = new Server(dataMgr);
         }
         return System.currentTimeMillis() - start;
     }
 
     private void BeginServerEtc() {
         LOGGER.info("Starting Server");
-        _receiveServer.Start();
+        receiveServer.Start();
 
         TaskManager.getTaskManager().PerformOnStartupTasks(); // perform any tasks designated to be run on startup
-        _Heartbeat = new Heartbeat(_Config.getConfiguration().getHeartbeatInterval()); // every n seconds TODO: make
+        heartbeat = new Heartbeat(_Config.getConfiguration().getHeartbeatInterval()); // every n seconds TODO: make
         // configurable
-        _Heartbeat.Start();
+        heartbeat.Start();
         if (_Config.getConfiguration().getMarvinLocalDatafeed()) {
             objLocalMarvinData = new MarvinLocalData(1);
         }
@@ -219,9 +217,9 @@ public class Marvin extends Application {
 
         for (int iIndex = 0; iIndex < parameters.size(); iIndex++) {
             String param = parameters.get(iIndex);
-            if (param.equalsIgnoreCase("-log")) {
+            if ("-log".equalsIgnoreCase(param)) {
                 if (iIndex + 1 < parameters.size()) {
-                    LogFileName = parameters.get(++iIndex);
+                    logFileName = parameters.get(++iIndex);
                 } else {
                     System.out.println(
                             "-log command line option given, but no filename provided.  Defaulting to MarvinLog.html");
@@ -234,15 +232,12 @@ public class Marvin extends Application {
     @SuppressWarnings("unused")
     private void checkSize(Stage stage, Scene scene, GridPane objGridPane) {
         stage.centerOnScreen();
-        double BorderWidth = abs((scene.getWidth() - stage.getWidth()) / 2);
-        _Config.getConfiguration().setAppBorderWidth(BorderWidth);
-
-        double height;// = _TestPane.getHeight(); // tab + borders
-        if (null != _Config.getConfiguration().getMenuBar() && true == _Config.getConfiguration().getShowMenuBar()) {
-            height = _TestPane.getHeight() + _Config.getConfiguration().getMenuBar().getHeight(); // menu + borders +
+        double borderWidth = abs((scene.getWidth() - stage.getWidth()) / 2);
+        _Config.getConfiguration().setAppBorderWidth(borderWidth);// = _TestPane.getHeight(); // tab + borders
+        if (null != _Config.getConfiguration().getMenuBar() && _Config.getConfiguration().getShowMenuBar()) { // menu + borders +
         }
 
-        objGridPane.getChildren().remove(_TestPane);
+        objGridPane.getChildren().remove(testPane);
     }
 
     private void DisableWebCerts() {
@@ -302,7 +297,7 @@ public class Marvin extends Application {
                 }
             }
             if (dumpWidgetInfo) {
-                LOGGER.config("External Grid/Tab usage file from " + ConfigFilename + "\n"
+                LOGGER.config("External Grid/Tab usage file from " + configFilename + "\n"
                         + kutch.biff.marvin.widget.widgetbuilder.WidgetBuilder.GetFileTree());
             }
         }
@@ -321,9 +316,9 @@ public class Marvin extends Application {
         }
         _Config.getConfiguration().setAppStage(stage);
 
-        if (null == _objTabPane) {
-            _objTabPane = new TabPane();
-            _objTabPane.setSide(_Config.getConfiguration().getSide());
+        if (null == objTabPane) {
+            objTabPane = new TabPane();
+            objTabPane.setSide(_Config.getConfiguration().getSide());
         }
         GridPane sceneGrid = new GridPane();
 
@@ -343,11 +338,11 @@ public class Marvin extends Application {
             appConfig.setHeight(appHeight);
         }
 
-        sceneGrid.add(_objTabPane, 0, 1);
+        sceneGrid.add(objTabPane, 0, 1);
         // sceneGrid.setStyle("-fx-background-color:red;");
         SetupSizeCheckPane(sceneGrid);
         // sceneGrid.setMaxHeight(340);
-        if (null != _Config.getConfiguration().getMenuBar() && true == _Config.getConfiguration().getShowMenuBar()) {
+        if (null != _Config.getConfiguration().getMenuBar() && _Config.getConfiguration().getShowMenuBar()) {
             // vbox.getChildren().add(_Config.getConfiguration().getMenuBar());
             GridPane.setHalignment(_Config.getConfiguration().getMenuBar(), HPos.LEFT);
             GridPane.setValignment(_Config.getConfiguration().getMenuBar(), VPos.TOP);
@@ -360,20 +355,20 @@ public class Marvin extends Application {
         _Config.getConfiguration().setAppScene(scene);
         _Config.getConfiguration().getCurrentHeightProperty().bind(scene.heightProperty());
         _Config.getConfiguration().getCurrentWidthProperty().bind(scene.widthProperty());
-        _objTabPane.prefWidthProperty().bind(scene.widthProperty());
+        objTabPane.prefWidthProperty().bind(scene.widthProperty());
 
-        _objTabPane.prefHeightProperty().bind(scene.heightProperty());
+        objTabPane.prefHeightProperty().bind(scene.heightProperty());
 
         SetAppStyle(scene.getStylesheets());
 
-        if (false == SetupGoodies(_objTabPane)) {
+        if (false == SetupGoodies(objTabPane)) {
             JOptionPane.showMessageDialog(null, "Error loading Configuation. \nCheck log file.", "Configuration Error",
                     JOptionPane.ERROR_MESSAGE);
             Platform.exit();
             return;
         }
 
-        if (false == _receiveServer.Setup(_Config.getConfiguration().getAddress(),
+        if (false == receiveServer.Setup(_Config.getConfiguration().getAddress(),
                 _Config.getConfiguration().getPort())) {
             JOptionPane.showMessageDialog(null, "Error setting up Network Configuation. \nCheck log file.",
                     "Configuration Error", JOptionPane.ERROR_MESSAGE);
@@ -389,7 +384,7 @@ public class Marvin extends Application {
         stage.setHeight(appHeight);
         stage.setWidth(appWidth);
 
-        if (true == ShowHelp) {
+        if (showHelp) {
             DisplayHelp();
         }
 
@@ -399,13 +394,13 @@ public class Marvin extends Application {
 
         _stage = stage;
 
-        TimerInterval = _Config.getConfiguration().getTimerInterval();
-        lastTimerCall = System.currentTimeMillis() + TimerInterval;
-        LastMemoryUsageReportingTime = lastTimerCall;
+        timerInterval = _Config.getConfiguration().getTimerInterval();
+        lastTimerCall = System.currentTimeMillis() + timerInterval;
+        lastMemoryUsageReportingTime = lastTimerCall;
 
         strOldSuffix = "dummy";
 
-        _animationTimer = new AnimationTimer() // can't update the Widgets outside of GUI thread, so this is a little
+        animationTimer = new AnimationTimer() // can't update the Widgets outside of GUI thread, so this is a little
                 // worker to do so
         {
             boolean Showing = false;
@@ -417,14 +412,14 @@ public class Marvin extends Application {
                     return;
                 }
 
-                if (!Showing && _Splash.isSplashClosed()) { // will only happen once
+                if (!Showing && splash.isSplashClosed()) { // will only happen once
                     try {
                         Showing = true;
 
                         Thread.currentThread().setName("Animation Timer Thread");
                         SetupDebugToolTips();
                         BeginServerEtc();
-                        _Splash.appVisible();
+                        splash.appVisible();
                     } catch (Exception e) {
                         StringWriter strWriter = new StringWriter();
                         PrintWriter pntWriter = new PrintWriter(strWriter);
@@ -439,8 +434,8 @@ public class Marvin extends Application {
                 }
                 boolean refreshRequested = config.refreshRequested();
 
-                if (refreshRequested || System.currentTimeMillis() > lastTimerCall + TimerInterval) {
-                    _DataMgr.PerformUpdates();
+                if (refreshRequested || System.currentTimeMillis() > lastTimerCall + timerInterval) {
+                    dataMgr.PerformUpdates();
                     config.DetermineMemorex();
                     if (!strOldSuffix.equals(config.TitleSuffix)) // title could be 'recorded' 'lived'
                     {
@@ -452,29 +447,29 @@ public class Marvin extends Application {
                     if (!refreshRequested) {
                         lastTimerCall = System.currentTimeMillis();
                     }
-                } else if (ReportMemoryUsage
-                        && System.currentTimeMillis() > LastMemoryUsageReportingTime + MemoryUsageReportingInterval) {
-                    LastMemoryUsageReportingTime = System.currentTimeMillis();
+                } else if (reportMemoryUsage
+                        && System.currentTimeMillis() > lastMemoryUsageReportingTime + memoryUsageReportingInterval) {
+                    lastMemoryUsageReportingTime = System.currentTimeMillis();
                     long freeMem = Runtime.getRuntime().freeMemory();
                     long totalMem = Runtime.getRuntime().maxMemory();
                     long usedMem = totalMem - freeMem;
                     usedMem /= 1024.0;
-                    String MBMemStr = NumberFormat.getNumberInstance(Locale.US).format(usedMem / 1024);
+                    String mBMemStr = NumberFormat.getNumberInstance(Locale.US).format(usedMem / 1024);
                     // String BytesStr = NumberFormat.getNumberInstance(Locale.US).format(usedMem);
                     // int qSize = DataManager.getDataManager().getQueuedSize();
                     // LOGGER.info("Used Memory: " + MBMemStr + " MB. Outstanding DataPoints: " +
                     // Integer.toString(qSize));
-                    LOGGER.info("Used Memory: " + MBMemStr);
+                    LOGGER.info("Used Memory: " + mBMemStr);
                 }
             }
         };
 
-        int waitBeforeRun = ShowSplash ? SplashWait : NoSplashWait;
+        int waitBeforeRun = showSplash ? splashWait : noSplashWait;
         new java.util.Timer().schedule(// Start goodies in a few seconds
                 new java.util.TimerTask() {
                     @Override
                     public void run() {
-                        _animationTimer.start();
+                        animationTimer.start();
                         this.cancel();
                     }
                 }, waitBeforeRun);
@@ -489,83 +484,83 @@ public class Marvin extends Application {
     public void init() {
         CheckForLogFileName();
         try {
-            MarvinLogger.setup(LogFileName);
+            MarvinLogger.setup(logFileName);
             MarvinLogger.setDebugLevel(Level.SEVERE);
         } catch (IOException e) {
             e.printStackTrace();
         }
         ParseCommandLineArgs();
-        if (true == ShowHelp) {
+        if (showHelp) {
             return;
         }
 
-        _Splash = new MySplash(ShowSplash, altSplash);
+        splash = new MySplash(showSplash, altSplash);
     }
 
     private void ParseCommandLineArgs() {
         Parameters params = getParameters();
         List<String> parameters = params.getRaw();
         int verboseLevel = 0;
-        String AliasFileCompare = "-aliasfile=";
+        String aliasFileCompare = "-aliasfile=";
 
         for (int iIndex = 0; iIndex < parameters.size(); iIndex++) {
             String param = parameters.get(iIndex);
-            if (param.equalsIgnoreCase("-i")) {
+            if ("-i".equalsIgnoreCase(param)) {
                 if (iIndex + 1 < parameters.size()) {
-                    ConfigFilename = parameters.get(++iIndex);
+                    configFilename = parameters.get(++iIndex);
                 } else {
                     LOGGER.severe(
                             "-i command line option given, but no filename provided.  Defaulting to Application.xml");
                 }
-            } else if (param.equalsIgnoreCase("-log")) // already handled elsewhere, but do it again for fun
+            } else if ("-log".equalsIgnoreCase(param)) // already handled elsewhere, but do it again for fun
             {
                 if (iIndex + 1 < parameters.size()) {
-                    LogFileName = parameters.get(++iIndex);
+                    logFileName = parameters.get(++iIndex);
                 } else {
                     LOGGER.severe(
                             "-log command line option given, but no filename provided.  Defaulting to MarvinLog.html");
                 }
-            } else if (param.equalsIgnoreCase("-AltSplash")) // already handled elsewhere, but do it again for fun
+            } else if ("-AltSplash".equalsIgnoreCase(param)) // already handled elsewhere, but do it again for fun
             {
                 if (iIndex + 1 < parameters.size()) {
                     altSplash = parameters.get(++iIndex);
                 } else {
                     LOGGER.severe("-AltSplash command line option given, but no filename provided.");
                 }
-            } else if (param.equalsIgnoreCase("-v")) {
+            } else if ("-v".equalsIgnoreCase(param)) {
                 verboseLevel = 1;
-            } else if (param.equalsIgnoreCase("-vv")) {
+            } else if ("-vv".equalsIgnoreCase(param)) {
                 verboseLevel = 2;
-            } else if (param.equalsIgnoreCase("-vvv")) {
+            } else if ("-vvv".equalsIgnoreCase(param)) {
                 verboseLevel = 3;
-            } else if (param.equalsIgnoreCase("-vvvv")) {
+            } else if ("-vvvv".equalsIgnoreCase(param)) {
                 verboseLevel = 4;
                 // ReportMemoryUsage = true; // super verbose mode, show memory usage
-            } else if (param.equalsIgnoreCase("-enforceMediaSupport")) {
+            } else if ("-enforceMediaSupport".equalsIgnoreCase(param)) {
                 enforceMediaSupport = true;
-            } else if (param.equalsIgnoreCase("-dumpalias")) {
+            } else if ("-dumpalias".equalsIgnoreCase(param)) {
                 dumpAlias = true;
-            } else if (param.equalsIgnoreCase("-dumpwidgetinfo")) {
+            } else if ("-dumpwidgetinfo".equalsIgnoreCase(param)) {
                 dumpWidgetInfo = true;
-            } else if (param.length() > AliasFileCompare.length()
-                    && param.substring(0, AliasFileCompare.length()).equalsIgnoreCase(AliasFileCompare)) {
+            } else if (param.length() > aliasFileCompare.length()
+                    && param.substring(0, aliasFileCompare.length()).equalsIgnoreCase(aliasFileCompare)) {
                 AliasMgr.getAliasMgr().LoadAliasFile(param);
-            } else if (param.equalsIgnoreCase("-?")) {
-                ShowHelp = true;
-            } else if (param.equalsIgnoreCase("-help")) {
-                ShowHelp = true;
-            } else if (param.equalsIgnoreCase("-version")) {
-                ShowVersion = true;
-            } else if (param.equalsIgnoreCase("-ns")) // don't show splash
+            } else if ("-?".equalsIgnoreCase(param)) {
+                showHelp = true;
+            } else if ("-help".equalsIgnoreCase(param)) {
+                showHelp = true;
+            } else if ("-version".equalsIgnoreCase(param)) {
+                showVersion = true;
+            } else if ("-ns".equalsIgnoreCase(param)) // don't show splash
             {
-                ShowSplash = false;
-            } else if (param.equalsIgnoreCase("-db")) // don't show splash
+                showSplash = false;
+            } else if ("-db".equalsIgnoreCase(param)) // don't show splash
             {
-                RunInDebugger = true;
-                ShowSplash = false;
-            } else if (param.equalsIgnoreCase("-nosplash")) // don't show splash
+                runInDebugger = true;
+                showSplash = false;
+            } else if ("-nosplash".equalsIgnoreCase(param)) // don't show splash
             {
-                ShowSplash = false;
+                showSplash = false;
             } else {
                 LOGGER.severe("Unknown command line parameter: " + param);
             }
@@ -577,17 +572,17 @@ public class Marvin extends Application {
 
         if (0 == verboseLevel) {
             MarvinLogger.setDebugLevel(Level.SEVERE);
-            _CheckForSizeProblems = false;
+            checkForSizeProblems = false;
         }
 
         switch (verboseLevel) {
             case 1:
                 MarvinLogger.setDebugLevel(Level.WARNING);
-                _CheckForSizeProblems = false;
+                checkForSizeProblems = false;
                 break;
             case 2:
                 MarvinLogger.setDebugLevel(Level.INFO);
-                _CheckForSizeProblems = false;
+                checkForSizeProblems = false;
                 break;
             case 3:
                 MarvinLogger.setDebugLevel(Level.CONFIG);
@@ -600,7 +595,7 @@ public class Marvin extends Application {
         }
     }
 
-    private boolean SetAppStyle(ObservableList<String> StyleSheets) {
+    private boolean SetAppStyle(ObservableList<String> styleSheets) {
         if (null != _Config.getConfiguration().getCSSFile()) {
             String osIndepFN = BaseWidget.convertToFileOSSpecific(_Config.getConfiguration().getCSSFile());
 
@@ -611,7 +606,7 @@ public class Marvin extends Application {
 
             if (null != strCSS) {
                 try {
-                    if (false == StyleSheets.add(strCSS)) {
+                    if (false == styleSheets.add(strCSS)) {
                         LOGGER.severe(
                                 "Problems with application stylesheet: " + _Config.getConfiguration().getCSSFile());
                         return false;
@@ -634,7 +629,7 @@ public class Marvin extends Application {
         }
 
         // check if a widget is bigger than it's parent grid - not working yet
-        if (_CheckForSizeProblems) {
+        if (checkForSizeProblems) {
             for (int iIndex = 0; iIndex < _Config.getTabs().size(); iIndex++) {
                 _Config.getTabs().get(iIndex).CheckSizingBounds(1);
             }
@@ -642,22 +637,22 @@ public class Marvin extends Application {
     }
 
     private boolean SetupGoodies(TabPane pane) {
-        boolean RetVal = true;
+        boolean retVal = true;
         long startTime = System.currentTimeMillis();
         if (null == _Config.getTabs()) {
             return false;
         }
 
         for (int iIndex = 0; iIndex < _Config.getTabs().size(); iIndex++) {
-            if (false == _Config.getTabs().get(iIndex).Create(pane, _DataMgr, iIndex)) {
-                RetVal = false;
+            if (false == _Config.getTabs().get(iIndex).Create(pane, dataMgr, iIndex)) {
+                retVal = false;
                 break;
             }
         }
-        if (true == RetVal) {
+        if (retVal) {
             for (int iIndex = 0; iIndex < _Config.getTabs().size(); iIndex++) {
                 if (false == _Config.getTabs().get(iIndex).PerformPostCreateActions(null, false)) {
-                    RetVal = false;
+                    retVal = false;
                     break;
                 }
             }
@@ -680,7 +675,7 @@ public class Marvin extends Application {
         long elapsed = System.currentTimeMillis() - startTime;
         LOGGER.info("Time taken to initialize all widgets: " + Long.toString(elapsed) + "ms.");
 
-        return RetVal;
+        return retVal;
     }
 
     /**
@@ -690,19 +685,19 @@ public class Marvin extends Application {
      * @param basePlane
      */
     private void SetupSizeCheckPane(GridPane basePlane) {
-        _TestPane = new TabPane();
-        Tab T = new Tab();
-        T.setText("Test");
-        _TestPane.getTabs().add(T);
-        _TestPane.setVisible(false);
+        testPane = new TabPane();
+        Tab t = new Tab();
+        t.setText("Test");
+        testPane.getTabs().add(t);
+        testPane.setVisible(false);
 
-        basePlane.add(_TestPane, 2, 2);
+        basePlane.add(testPane, 2, 2);
     }
 
     @SuppressWarnings("exports")
     @Override
     public void start(Stage stage) throws Exception {
-        _DataMgr = new DataManager();
+        dataMgr = new DataManager();
 
         if (false == testAppSize(stage)) {
             stage.close();
@@ -723,12 +718,12 @@ public class Marvin extends Application {
         if (null != objLocalMarvinData) {
             objLocalMarvinData.Shutdown();
         }
-        if (null != _receiveServer) {
-            _receiveServer.Stop();
+        if (null != receiveServer) {
+            receiveServer.Stop();
         }
 
-        if (null != _Heartbeat) {
-            _Heartbeat.Stop();
+        if (null != heartbeat) {
+            heartbeat.Stop();
         }
         /*
          * if (null != _animationTimer) { _animationTimer.stop(); }
@@ -804,7 +799,7 @@ public class Marvin extends Application {
         if (null == _Config) {
             return false;
         }
-        final Configuration basicConfig = _Config.ReadStartupInfo(ConfigFilename);
+        final Configuration basicConfig = _Config.ReadStartupInfo(configFilename);
 
         if (null == basicConfig) {
             return false;
@@ -881,11 +876,8 @@ public class Marvin extends Application {
                         basicConfig.setCanvasHeight(cvHeight);
 
                         stage.setIconified(true);
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                FinishLoad(stage);
-                            }
+                        Platform.runLater(() -> {
+                            FinishLoad(stage);
                         });
                     }
                 });

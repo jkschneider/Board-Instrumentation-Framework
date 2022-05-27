@@ -31,19 +31,19 @@ import kutch.biff.marvin.logger.MarvinLogger;
 /**
  * @author Patrick
  */
-public class GridMacroMgr {
-    private final static GridMacroMgr _Mgr = new GridMacroMgr();
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+public final class GridMacroMgr {
+    private static final GridMacroMgr _Mgr = new GridMacroMgr();
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
     public static GridMacroMgr getGridMacroMgr() {
         return _Mgr;
     }
 
     @SuppressWarnings("rawtypes")
-    private final ArrayList<Map> _GridMacroList;
+    private final ArrayList<Map> gridMacroList;
 
     private GridMacroMgr() {
-        _GridMacroList = new ArrayList<>();
+        gridMacroList = new ArrayList<>();
     }
 
     public boolean AddGridMacro(String nameMacro, FrameworkNode macroNode) {
@@ -56,7 +56,7 @@ public class GridMacroMgr {
             return false;
         }
         @SuppressWarnings("unchecked")
-        Map<String, FrameworkNode> map = _GridMacroList.get(0);
+        Map<String, FrameworkNode> map = gridMacroList.get(0);
         map.put(nameMacro.toUpperCase(), macroNode);
 
         return true;
@@ -64,7 +64,7 @@ public class GridMacroMgr {
 
     public FrameworkNode getGridMacro(String strMacro) {
         String strName = strMacro.toUpperCase();
-        for (Map<?, ?> map : _GridMacroList) {
+        for (Map<?, ?> map : gridMacroList) {
             if (map.containsKey(strName)) {
                 return (FrameworkNode) map.get(strName);
             }
@@ -75,7 +75,7 @@ public class GridMacroMgr {
 
     public boolean macroExists(String strMacro) {
         String strName = strMacro.toUpperCase();
-        for (Map<?, ?> map : _GridMacroList) {
+        for (Map<?, ?> map : gridMacroList) {
             if (map.containsKey(strName)) {
                 return true;
             }
@@ -84,11 +84,11 @@ public class GridMacroMgr {
     }
 
     public void PopGridMacroList() {
-        _GridMacroList.remove(0);
+        gridMacroList.remove(0);
     }
 
     public void PushGridMacroList() {
-        _GridMacroList.add(0, new HashMap<>()); // put in position 0
+        gridMacroList.add(0, new HashMap<>()); // put in position 0
 
     }
 }

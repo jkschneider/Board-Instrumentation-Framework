@@ -27,9 +27,12 @@ import kutch.biff.marvin.widget.FileWriterWidget;
 /**
  * @author Patrick
  */
-public class FileWriterWidgetBuilder {
+public final class FileWriterWidgetBuilder {
     public static FileWriterWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         return new FileWriterWidget();
+    }
+
+    private FileWriterWidgetBuilder() {
     }
 
 }

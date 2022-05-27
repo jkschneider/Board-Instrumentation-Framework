@@ -34,49 +34,49 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class Server {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
 
-    private DatagramSocket _socket;
-    private ReceiveThreadMgr _RecvThreadMgr;
-    private Thread _Thread;
-    private DataManager _DataManager;
+    private DatagramSocket socket;
+    private ReceiveThreadMgr recvThreadMgr;
+    private Thread thread;
+    private DataManager dataManager;
 
-    public Server(DataManager DM) {
-        _socket = null;
-        _RecvThreadMgr = null;
-        _DataManager = DM;
+    public Server(DataManager dm) {
+        socket = null;
+        recvThreadMgr = null;
+        dataManager = dm;
     }
 
-    public boolean Setup(String IpAddr, int Port) {
+    public boolean Setup(String ipAddr, int port) {
         InetAddress address;
         try {
-            address = InetAddress.getByName(IpAddr);
+            address = InetAddress.getByName(ipAddr);
         } catch (UnknownHostException ex) {
-            LOGGER.severe("Problem setting up network - likely something wrong with Address or Port: " + IpAddr + ":"
-                    + Integer.toString(Port));
+            LOGGER.severe("Problem setting up network - likely something wrong with Address or Port: " + ipAddr + ":"
+                    + Integer.toString(port));
             return false;
         }
 
         try {
-            _socket = new DatagramSocket(Port, address);
-            _socket.setSoTimeout(10);
+            socket = new DatagramSocket(port, address);
+            socket.setSoTimeout(10);
         } catch (SocketException ex) {
             LOGGER.severe(
-                    "Problem setting up network - likely something already using port: " + Integer.toString(Port));
+                    "Problem setting up network - likely something already using port: " + Integer.toString(port));
             return false;
         }
         return true;
     }
 
     public void Start() {
-        _RecvThreadMgr = new ReceiveThreadMgr(_socket, _DataManager);
-        _Thread = new Thread(_RecvThreadMgr, "Receve Thread Manager Worker");
-        _Thread.start();
+        recvThreadMgr = new ReceiveThreadMgr(socket, dataManager);
+        thread = new Thread(recvThreadMgr, "Receve Thread Manager Worker");
+        thread.start();
     }
 
     public void Stop() {
-        if (null != _RecvThreadMgr) {
-            _RecvThreadMgr.Stop();
+        if (null != recvThreadMgr) {
+            recvThreadMgr.Stop();
         }
     }
 }

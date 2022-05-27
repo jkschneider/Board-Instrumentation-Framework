@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.layout.GridPane;
 import javafx.util.Pair;
@@ -54,28 +53,28 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
     private SortMode _SortMode = SortMode.Descending;
     private int _RowWidth = 5;
     private String _EvenBackgroundStyle = "-fx-background-color:green";
-    private String _EvenStyle;
-    private String _EvenStyleID = "";
+    private String evenStyle;
+    private String evenStyleID = "";
 
-    private String _OddBackgroundStyle = "fx-background-color:grey";
-    private String _OddStyle;
-    private String _OddStyleID = "";
+    private String oddBackgroundStyle = "fx-background-color:grey";
+    private String oddStyle;
+    private String oddStyleID = "";
 
     //    private GridWidget _GridWidget;
-    private List<Pair<String, SteelLCDWidget>> _DataPoint; // Minion ID, LCDWidget
+    private List<Pair<String, SteelLCDWidget>> dataPoint; // Minion ID, LCDWidget
     private DataManager _dataMgr;
     // private int _hGap, _vGap;
-    private HashMap<String, String> _ExclusionList;
-    private HashMap<String, String> _DataPointMap;
-    private AtomicInteger _SortCount;
+    private HashMap<String, String> exclusionList;
+    private HashMap<String, String> dataPointMap;
+    private AtomicInteger sortCount;
 
     public QuickViewLCDWidget() {
-        _DataPoint = new ArrayList<>();
+        dataPoint = new ArrayList<>();
 //        _hGap = -1;
 //        _vGap = -1;
-        _ExclusionList = new HashMap<>(); // For those we do not want to show
-        _DataPointMap = new HashMap<>(); // for quick lookup as new data comes in
-        _SortCount = new AtomicInteger();
+        exclusionList = new HashMap<>(); // For those we do not want to show
+        dataPointMap = new HashMap<>(); // for quick lookup as new data comes in
+        sortCount = new AtomicInteger();
     }
 
     @Override
@@ -93,27 +92,24 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
             getGridPane().setVgap(getvGap());
         }
 
-        dataMgr.AddWildcardListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
+        dataMgr.AddWildcardListener(getMinionID(), getNamespace(), (ObservableValue<?> o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
+            }
+            String strVal = newVal.toString();
+            String[] parts = strVal.split(":");
+            if (parts.length > 1) {
+                String id = parts[0];
+                String Value = parts[1];
+                if (dataPointMap.containsKey(id.toLowerCase())) {
+                    return; // already made one for this!
                 }
-                String strVal = newVal.toString();
-                String[] parts = strVal.split(":");
-                if (parts.length > 1) {
-                    String ID = parts[0];
-                    String Value = parts[1];
-                    if (_DataPointMap.containsKey(ID.toLowerCase())) {
-                        return; // already made one for this!
-                    }
-                    if (_ExclusionList.containsKey(ID.toLowerCase())) {
-                        return; // not wanted
-                    }
-                    _DataPointMap.put(ID.toLowerCase(), ID); // add the key to the map don't care about the stored
-                    // value, just the key
-                    CreateDataWidget(ID, Value); // didn't find it, so go make one
+                if (exclusionList.containsKey(id.toLowerCase())) {
+                    return; // not wanted
                 }
+                dataPointMap.put(id.toLowerCase(), id); // add the key to the map don't care about the stored
+                // value, just the key
+                CreateDataWidget(id, Value); // didn't find it, so go make one
             }
         });
         SetupPeekaboo(dataMgr);
@@ -144,7 +140,7 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
         objWidget.Create(getGridPane(), _dataMgr);
         objWidget.PerformPostCreateActions(getParentGridWidget(), false);
 
-        _DataPoint.add(new Pair<>(ID.toUpperCase(), objWidget));
+        dataPoint.add(new Pair<>(ID.toUpperCase(), objWidget));
         SetupSort();
 
         return objWidget;
@@ -152,8 +148,8 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
 
     @Override
     public String[] GetCustomAttributes() {
-        String[] Attributes = {"hgap", "vgap"};
-        return Attributes;
+        String[] attributes = {"hgap", "vgap"};
+        return attributes;
     }
 
     public String getEvenBackgroundStyle() {
@@ -161,23 +157,23 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
     }
 
     public String getEvenStyle() {
-        return _EvenStyle;
+        return evenStyle;
     }
 
     public String getEvenStyleID() {
-        return _EvenStyleID;
+        return evenStyleID;
     }
 
     public String getOddEvenBackgroundStyle() {
-        return _OddBackgroundStyle;
+        return oddBackgroundStyle;
     }
 
     public String getOddStyle() {
-        return _OddStyle;
+        return oddStyle;
     }
 
     public String getOddStyleID() {
-        return _OddStyleID;
+        return oddStyleID;
     }
 
     // @Override
@@ -197,7 +193,7 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
 
     public int getSortCount() {
         synchronized (this) {
-            return _SortCount.get();
+            return sortCount.get();
         }
     }
 
@@ -223,7 +219,7 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
                 LOGGER.warning("vgap for QuickViewWidget invalid: " + widgetNode.getAttribute("vgap") + ".  Ignoring");
             }
         }
-        if (true == widgetNode.hasAttribute("Align")) {
+        if (widgetNode.hasAttribute("Align")) {
             String str = widgetNode.getAttribute("Align");
             setAlignment(str);
         }
@@ -232,7 +228,7 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode node) {
-        if (node.getNodeName().equalsIgnoreCase("RowWidth")) {
+        if ("RowWidth".equalsIgnoreCase(node.getNodeName())) {
             String str = node.getTextContent();
             try {
                 setRowWidth(Integer.parseInt(str));
@@ -240,27 +236,27 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
             } catch (NumberFormatException ex) {
                 LOGGER.severe("Invalid <RowWidth> in QuickViewLCDWidget Widget Definition File : " + str);
             }
-        } else if (node.getNodeName().equalsIgnoreCase("EvenBackgroundStyle")) {
+        } else if ("EvenBackgroundStyle".equalsIgnoreCase(node.getNodeName())) {
             setEvenBackgroundStyle(node.getTextContent());
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("EvenStyle")) {
+        } else if ("EvenStyle".equalsIgnoreCase(node.getNodeName())) {
             String ID = "";
             if (node.hasAttribute("ID")) {
                 ID = node.getAttribute("ID");
             }
             setEvenStyle(ID, node.getTextContent());
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("OddBackgroundStyle")) {
+        } else if ("OddBackgroundStyle".equalsIgnoreCase(node.getNodeName())) {
             setOddBackgroundStyle(node.getTextContent());
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("OddStyle")) {
+        } else if ("OddStyle".equalsIgnoreCase(node.getNodeName())) {
             String ID = "";
             if (node.hasAttribute("ID")) {
                 ID = node.getAttribute("ID");
             }
             setOddStyle(ID, node.getTextContent());
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("Order")) {
+        } else if ("Order".equalsIgnoreCase(node.getNodeName())) {
             String strVal = node.getTextContent();
             if (strVal.equalsIgnoreCase(QuickViewWidget.SortMode.Ascending.toString())) {
                 setSortMode(QuickViewLCDWidget.SortMode.Ascending);
@@ -272,17 +268,17 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
                 LOGGER.warning("Invalid <Order> Tag in QuickViewLCDWidget Widget File. " + strVal);
             }
             return true;
-        } else if (node.getNodeName().equalsIgnoreCase("ExcludeList")) {
+        } else if ("ExcludeList".equalsIgnoreCase(node.getNodeName())) {
             String strVal = node.getTextContent();
             for (String exVal : strVal.split(":")) {
                 String strClean = exVal.replaceAll("\\s+", ""); // get rid of invalid chars
                 LOGGER.info("Addeding QuickViewWidget Exclusion: " + strClean);
-                _ExclusionList.put(strClean.toLowerCase(), "Not Needed");
+                exclusionList.put(strClean.toLowerCase(), "Not Needed");
             }
             for (String exVal : strVal.split(";")) {
                 String strClean = exVal.replaceAll("\\s+", ""); // get rid of invalid chars
                 LOGGER.info("Addeding QuickViewWidget Exclusion: " + strClean);
-                _ExclusionList.put(strClean.toLowerCase(), "Not Needed");
+                exclusionList.put(strClean.toLowerCase(), "Not Needed");
             }
             return true;
         }
@@ -292,7 +288,7 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
 
     private int incrementSortCount() {
         synchronized (this) {
-            return _SortCount.incrementAndGet();
+            return sortCount.incrementAndGet();
         }
     }
 
@@ -304,45 +300,45 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
         }
     }
 
-    public void setEvenBackgroundStyle(String _EvenBackgroundStyle) {
-        this._EvenBackgroundStyle = _EvenBackgroundStyle;
+    public void setEvenBackgroundStyle(String evenBackgroundStyle) {
+        this._EvenBackgroundStyle = evenBackgroundStyle;
     }
 
-    public void setEvenStyle(String ID, String File) {
-        _EvenStyleID = ID;
-        _EvenStyle = File;
+    public void setEvenStyle(String ID, String file) {
+        evenStyleID = ID;
+        evenStyle = file;
     }
 
     private void setIncrementSortCount(int newVal) {
         synchronized (this) {
-            _SortCount.set(newVal);
+            sortCount.set(newVal);
         }
     }
 
-    public void setOddBackgroundStyle(String _OddEvenBackgroundStyle) {
-        this._OddBackgroundStyle = _OddEvenBackgroundStyle;
+    public void setOddBackgroundStyle(String oddEvenBackgroundStyle) {
+        this.oddBackgroundStyle = oddEvenBackgroundStyle;
     }
 
     public void setOddStyle(String ID, String File) {
-        _OddStyleID = ID;
-        _OddStyle = File;
+        oddStyleID = ID;
+        oddStyle = File;
     }
 
-    public void setRowWidth(int _RowWidth) {
-        this._RowWidth = _RowWidth;
+    public void setRowWidth(int rowWidth) {
+        this._RowWidth = rowWidth;
     }
 
-    public void setSortMode(SortMode _SortMode) {
-        this._SortMode = _SortMode;
+    public void setSortMode(SortMode sortMode) {
+        this._SortMode = sortMode;
     }
 
     private void SetStyle(boolean Odd, SteelLCDWidget objWidget) {
         if (Odd) {
-            objWidget.setBaseCSSFilename(_OddStyle);
-            objWidget.setStyleID(_OddStyleID);
+            objWidget.setBaseCSSFilename(oddStyle);
+            objWidget.setStyleID(oddStyleID);
         } else {
-            objWidget.setBaseCSSFilename(_EvenStyle);
-            objWidget.setStyleID(_EvenStyleID);
+            objWidget.setBaseCSSFilename(evenStyle);
+            objWidget.setStyleID(evenStyleID);
         }
         objWidget.ApplyCSS();
         objWidget.ApplyOverrides();
@@ -364,7 +360,7 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
      */
     private void Sort() {
         if (getSortMode() == SortMode.Ascending) {
-            Collections.sort(_DataPoint, new Comparator<Pair<String, SteelLCDWidget>>() {
+            Collections.sort(dataPoint, new Comparator<Pair<String, SteelLCDWidget>>() {
                 @Override
                 public int compare(Pair<String, SteelLCDWidget> s1, Pair<String, SteelLCDWidget> s2) // do alphabetical
                 // sort
@@ -374,7 +370,7 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
                 }
             });
         } else if (getSortMode() == SortMode.Descending) {
-            Collections.sort(_DataPoint, new Comparator<Pair<String, SteelLCDWidget>>() {
+            Collections.sort(dataPoint, new Comparator<Pair<String, SteelLCDWidget>>() {
                 @Override
                 public int compare(Pair<String, SteelLCDWidget> s1, Pair<String, SteelLCDWidget> s2) // do alphabetical
                 // sort
@@ -391,7 +387,7 @@ public class QuickViewLCDWidget extends GridWidget implements IQuickViewSort {
 
         getGridPane().getChildren().clear();
 
-        for (Pair<String, SteelLCDWidget> pair : _DataPoint) {
+        for (Pair<String, SteelLCDWidget> pair : dataPoint) {
             SteelLCDWidget objLCD = pair.getValue();
 
             objLCD.setRow(row);

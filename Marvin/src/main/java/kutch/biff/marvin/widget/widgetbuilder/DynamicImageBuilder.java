@@ -29,9 +29,12 @@ import kutch.biff.marvin.widget.DynamicImageWidget;
 /**
  * @author Patrick Kutch
  */
-public class DynamicImageBuilder {
+public final class DynamicImageBuilder {
     public static DynamicImageWidget Build(FrameworkNode masterNode, String widgetDefFilename) {
         DynamicImageWidget _widget = new DynamicImageWidget();
         return (DynamicImageWidget) ParseXML(_widget, masterNode);
+    }
+
+    private DynamicImageBuilder() {
     }
 }

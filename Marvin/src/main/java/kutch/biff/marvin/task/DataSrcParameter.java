@@ -31,15 +31,16 @@ import kutch.biff.marvin.logger.MarvinLogger;
  * @author Patrick Kutch
  */
 public class DataSrcParameter extends Parameter {
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private final String _Namespace, _ID;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private final String _Namespace;
+    private final String _id;
     private final DataManager _DataMgr;
 
-    public DataSrcParameter(String Namespace, String ID, DataManager DataMgr) {
-        _Namespace = Namespace;
-        _ID = ID;
-        _DataMgr = DataMgr;
-        if (null == _ID) {
+    public DataSrcParameter(String namespace, String id, DataManager dataMgr) {
+        _Namespace = namespace;
+        _id = id;
+        _DataMgr = dataMgr;
+        if (null == _id) {
             LOGGER.severe("Task <Param> using Namespace and ID does not have an ID");
         }
         if (null == _Namespace) {
@@ -52,7 +53,7 @@ public class DataSrcParameter extends Parameter {
 
     @Override
     public String toString() {
-        if (null == _ID) {
+        if (null == _id) {
             LOGGER.severe("Task <Param> using Namespace and ID does not have an ID");
             return null;
         }
@@ -60,9 +61,9 @@ public class DataSrcParameter extends Parameter {
             LOGGER.severe("Task <Param> using Namespace and ID does not have a Namespace");
             return null;
         }
-        String data = _DataMgr.GetValue(_ID, _Namespace);
+        String data = _DataMgr.GetValue(_id, _Namespace);
         if (null == data) {
-            LOGGER.severe("Task <Param> with Namespace:ID of " + _Namespace + ":" + _ID
+            LOGGER.severe("Task <Param> with Namespace:ID of " + _Namespace + ":" + _id
                     + " is still unknown (has not been received from datasrc yet.");
         }
         return data;

@@ -23,7 +23,6 @@ package kutch.biff.marvin.widget;
 
 import java.io.File;
 
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
@@ -39,12 +38,13 @@ import kutch.biff.marvin.utility.Utility;
  * @author Patrick Kutch
  */
 public class ButtonWidget extends BaseWidget {
-    private Button _Button;
+    private Button button;
     protected String _ImageFileName;
-    protected double _ImageWidthConstraint, _ImageHeightConstraint;
+    protected double _ImageWidthConstraint;
+    protected double _ImageHeightConstraint;
 
     public ButtonWidget() {
-        _Button = new Button();
+        button = new Button();
         _ImageFileName = null;
         _ImageWidthConstraint = 0;
         _ImageHeightConstraint = 0;
@@ -65,19 +65,14 @@ public class ButtonWidget extends BaseWidget {
             return false;
         }
         pane.add(getButton(), getColumn(), getRow(), getColumnSpan(), getRowSpan());
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                onChange(o, oldVal, newVal);
-            }
-        });
+        dataMgr.AddListener(getMinionID(), getNamespace(), this::onChange);
 
         SetupTaskAction();
         return ApplyCSS();
     }
 
     protected ButtonBase getButton() {
-        return _Button;
+        return button;
     }
 
     @Override
@@ -92,7 +87,7 @@ public class ButtonWidget extends BaseWidget {
 
     @Override
     public boolean HandleWidgetSpecificSettings(FrameworkNode widgetNode) {
-        if (widgetNode.getNodeName().equalsIgnoreCase("Image")) {
+        if ("Image".equalsIgnoreCase(widgetNode.getNodeName())) {
             setImageFileName(widgetNode.getTextContent());
 
             Utility.ValidateAttributes(new String[]{"Height", "Width"}, widgetNode);
@@ -128,8 +123,8 @@ public class ButtonWidget extends BaseWidget {
         getButton().disableProperty().set(!enabled);
     }
 
-    public void setImageFileName(String _ImageFileName) {
-        this._ImageFileName = _ImageFileName;
+    public void setImageFileName(String imageFileName) {
+        this._ImageFileName = imageFileName;
     }
 
     private boolean SetupImage() {

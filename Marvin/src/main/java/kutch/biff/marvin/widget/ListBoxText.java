@@ -21,7 +21,6 @@
  */
 package kutch.biff.marvin.widget;
 
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,14 +33,14 @@ import kutch.biff.marvin.datamanager.DataManager;
  * @author Patrick.Kutch@gmail.com
  */
 public class ListBoxText extends BaseWidget {
-    private ListView<String> _listView;
+    private ListView<String> listView;
     ObservableList<String> _list;
 
     public ListBoxText() {
         setDefaultIsSquare(false);
 
         _list = FXCollections.observableArrayList();
-        _listView = new ListView<>(_list);
+        listView = new ListView<>(_list);
     }
 
     public void addEntry(String strNewEntry) {
@@ -55,17 +54,14 @@ public class ListBoxText extends BaseWidget {
         ConfigureAlignment();
         SetupPeekaboo(dataMgr);
 
-        pane.add(_listView, getColumn(), getRow(), getColumnSpan(), getRowSpan());
-        dataMgr.AddListener(getMinionID(), getNamespace(), new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> o, Object oldVal, Object newVal) {
-                if (IsPaused()) {
-                    return;
-                }
-
-                String TextString = newVal.toString();
-                addEntry(TextString);
+        pane.add(listView, getColumn(), getRow(), getColumnSpan(), getRowSpan());
+        dataMgr.AddListener(getMinionID(), getNamespace(), (ObservableValue<?> o, Object oldVal, Object newVal) -> {
+            if (IsPaused()) {
+                return;
             }
+
+            String textString = newVal.toString();
+            addEntry(textString);
         });
 
         SetupTaskAction();
@@ -75,12 +71,12 @@ public class ListBoxText extends BaseWidget {
 
     @Override
     public Node getStylableObject() {
-        return _listView;
+        return listView;
     }
 
     @Override
     public ObservableList<String> getStylesheets() {
-        return _listView.getStylesheets();
+        return listView.getStylesheets();
     }
 
     @Override

@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Side;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
@@ -48,29 +47,34 @@ import kutch.biff.marvin.task.TaskManager;
  */
 public class Configuration {
 
-    private final static Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
-    private static Configuration _Config = null;
+    private static final Logger LOGGER = Logger.getLogger(MarvinLogger.class.getName());
+    private static Configuration config;
 
     public static Configuration getConfig() {
-        return _Config;
+        return config;
     }
 
-    private boolean _DebugMode = false;
-    private boolean _KioskMode = false;
-    private String _Address = null;
-    private int _port = 0;
-    private String _AppTitle = null;
-    private String _CSSFile = null;
-    private int _insetTop, _insetBottom, _insetLeft, _insetRight;
-    private boolean _legacyInsetMode;
-    private Scene _appScene;
-    private SimpleDoubleProperty _ScaleProperty;
-    private SimpleDoubleProperty _CurrWidthProperty;
-    private SimpleDoubleProperty _CurrHeightProperty;
+    private boolean _DebugMode;
+    private boolean _KioskMode;
+    private String _Address;
+    private int _port;
+    private String _AppTitle;
+    private String cSSFile;
+    private int _insetTop;
+    private int _insetBottom;
+    private int _insetLeft;
+    private int _insetRight;
+    private boolean legacyInsetMode;
+    private Scene appScene;
+    private SimpleDoubleProperty scaleProperty;
+    private SimpleDoubleProperty currWidthProperty;
+    private SimpleDoubleProperty currHeightProperty;
     //    private double _topOffset, _bottomOffset;
     private boolean _AutoScale;
-    private int _Width, _Height;
-    private int _CreationWidth, _CreationHeight;
+    private int _Width;
+    private int _Height;
+    private int _CreationWidth;
+    private int _CreationHeight;
     public String TitleSuffix;
     private MenuBar _MenuBar;
     boolean _AllowTasks;
@@ -78,35 +82,36 @@ public class Configuration {
     boolean fAboutCreated;
     private int HeartbeatInterval;
     private TabPane _Pane;
-    private long _GuiTimerUpdateInterval;
+    private long guiTimerUpdateInterval;
     private Stage _AppStage;
     private double _AppBorderWidth;
-    private double _LastLiveDataReceived;
-    private double _LastRecordedDataReceived;
-    private String _ApplicationID;
+    private double lastLiveDataReceived;
+    private double lastRecordedDataReceived;
+    private String applicationID;
     private Side _Side;
     private boolean _IgnoreWebCerts;
     private int _MaxPacketSize;
     private boolean _EnableScrollBars;
-    private ArrayList<OscarBullhorn> _OscarBullhornList;
+    private ArrayList<OscarBullhorn> oscarBullhornList;
     private boolean _MarvinLocalDatafeed;
-    private boolean _ShuttingDown;
+    private boolean shuttingDown;
     private Screen _PrimaryScreen;
     private boolean _PrimaryScreenDetermined;
-    private int _CanvasWidth, _CanvasHeight;
+    private int _CanvasWidth;
+    private int _CanvasHeight;
     private boolean _RunInDebugger;
     private boolean _EnforceMediaSupport;
-    private Cursor _prevCursor = null;
-    private int _BusyCursorRequestCount;
-    private boolean _DoNotReportAliasErrors;
-    private boolean _ImmediateRefreshRequsted;
+    private Cursor prevCursor;
+    private int busyCursorRequestCount;
+    private boolean doNotReportAliasErrors;
+    private boolean immediateRefreshRequsted;
 
     public Configuration() {
         _insetTop = 0;
         _insetBottom = 0;
         _insetLeft = 0;
         _insetRight = 0;
-        _legacyInsetMode = false;
+        legacyInsetMode = false;
         _AutoScale = false;
         _Width = 0;
         _Height = 0;
@@ -119,29 +124,29 @@ public class Configuration {
         fAboutCreated = false;
         HeartbeatInterval = 5; // 5 secs
         _AppBorderWidth = 8;
-        _GuiTimerUpdateInterval = 350;
-        _ScaleProperty = new SimpleDoubleProperty(1.0);
-        _CurrWidthProperty = new SimpleDoubleProperty();
-        _CurrHeightProperty = new SimpleDoubleProperty();
+        guiTimerUpdateInterval = 350;
+        scaleProperty = new SimpleDoubleProperty(1.0);
+        currWidthProperty = new SimpleDoubleProperty();
+        currHeightProperty = new SimpleDoubleProperty();
         Configuration._Config = this;
         _IgnoreWebCerts = false;
-        _ApplicationID = "";
+        applicationID = "";
         _Side = Side.TOP;
         _PrimaryScreen = Screen.getPrimary();
         _PrimaryScreenDetermined = false;
-        _ShuttingDown = false;
+        shuttingDown = false;
 
-        _LastLiveDataReceived = 0;
-        _LastRecordedDataReceived = 0;
+        lastLiveDataReceived = 0;
+        lastRecordedDataReceived = 0;
         _MaxPacketSize = 16 * 1024;
         _EnableScrollBars = false;
-        _OscarBullhornList = new ArrayList<>();
+        oscarBullhornList = new ArrayList<>();
         _MarvinLocalDatafeed = false;
         _RunInDebugger = false;
-        _appScene = null;
-        _BusyCursorRequestCount = 0;
-        _ImmediateRefreshRequsted = false;
-        _DoNotReportAliasErrors = false;
+        appScene = null;
+        busyCursorRequestCount = 0;
+        immediateRefreshRequsted = false;
+        doNotReportAliasErrors = false;
     }
 
     void AddAbout() {
@@ -149,50 +154,47 @@ public class Configuration {
         MenuItem item = new MenuItem("About");
         fAboutCreated = true;
 
-        item.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent t) {
-                AboutBox.ShowAboutBox();
-            }
+        item.setOnAction((ActionEvent t) -> {
+            AboutBox.ShowAboutBox();
         });
         objMenu.getItems().add(item);
         _MenuBar.getMenus().add(objMenu);
     }
 
     public boolean DoNotReportAliasErrors() {
-        return _DoNotReportAliasErrors;
+        return doNotReportAliasErrors;
     }
 
     public void SetDoNotReportAliasErrors(boolean newVal) {
-        _DoNotReportAliasErrors = newVal;
+        doNotReportAliasErrors = newVal;
     }
 
-    public void addOscarBullhornEntry(String address, int Port, String Key) {
-        OscarBullhorn objBH = new OscarBullhorn(address, Port, Key);
-        _OscarBullhornList.add(objBH);
-        TaskManager TASKMAN = TaskManager.getTaskManager();
-        if (false == TASKMAN.TaskExists("OscarBullhornTask")) // go create a task on startup to send the announcements
+    public void addOscarBullhornEntry(String address, int port, String key) {
+        OscarBullhorn objBH = new OscarBullhorn(address, port, key);
+        oscarBullhornList.add(objBH);
+        TaskManager taskman = TaskManager.getTaskManager();
+        if (false == taskman.TaskExists("OscarBullhornTask")) // go create a task on startup to send the announcements
         {
-            TASKMAN.AddOnStartupTask("OscarBullhornTask", new OscarBullhornTask());
+            taskman.AddOnStartupTask("OscarBullhornTask", new OscarBullhornTask());
         }
     }
 
     public void DetermineMemorex() {
         double timeCompare = 10000; // 10 seconds
         double currTime = System.currentTimeMillis();
-        boolean Live = false;
-        boolean Recorded = false;
-        if (_LastLiveDataReceived + timeCompare > currTime) {
-            Live = true;
+        boolean live = false;
+        boolean recorded = false;
+        if (lastLiveDataReceived + timeCompare > currTime) {
+            live = true;
         }
-        if (_LastRecordedDataReceived + timeCompare > currTime) {
-            Recorded = true;
+        if (lastRecordedDataReceived + timeCompare > currTime) {
+            recorded = true;
         }
-        if (Live && Recorded) {
+        if (live && recorded) {
             TitleSuffix = " {Live and Recorded}";
-        } else if (Live) {
+        } else if (live) {
             TitleSuffix = " {Live}";
-        } else if (Recorded) {
+        } else if (recorded) {
             TitleSuffix = " {Recorded}";
         } else {
             TitleSuffix = "";
@@ -222,11 +224,11 @@ public class Configuration {
     }
 
     public String GetApplicationID() {
-        return _ApplicationID;
+        return applicationID;
     }
 
     public Scene getAppScene() {
-        return _appScene;
+        return appScene;
     }
 
     public Stage getAppStage() {
@@ -254,15 +256,15 @@ public class Configuration {
     }
 
     public String getCSSFile() {
-        return _CSSFile;
+        return cSSFile;
     }
 
     public SimpleDoubleProperty getCurrentHeightProperty() {
-        return _CurrHeightProperty;
+        return currHeightProperty;
     }
 
     public SimpleDoubleProperty getCurrentWidthProperty() {
-        return _CurrWidthProperty;
+        return currWidthProperty;
     }
 
     public boolean getEnableScrollBars() {
@@ -306,7 +308,7 @@ public class Configuration {
     }
 
     public boolean getLegacyInsetMode() {
-        return _legacyInsetMode;
+        return legacyInsetMode;
     }
 
     public boolean getMarvinLocalDatafeed() {
@@ -325,7 +327,7 @@ public class Configuration {
     }
 
     public ArrayList<OscarBullhorn> getOscarBullhornList() {
-        return _OscarBullhornList;
+        return oscarBullhornList;
     }
 
     public TabPane getPane() {
@@ -341,11 +343,11 @@ public class Configuration {
     }
 
     public double getScaleFactor() {
-        return _ScaleProperty.getValue();
+        return scaleProperty.getValue();
     }
 
     public DoubleProperty getScaleProperty() {
-        return _ScaleProperty;
+        return scaleProperty;
     }
 
     public boolean getShowMenuBar() {
@@ -357,7 +359,7 @@ public class Configuration {
     }
 
     public long getTimerInterval() {
-        return _GuiTimerUpdateInterval;
+        return guiTimerUpdateInterval;
     }
 
     public int getWidth() {
@@ -381,47 +383,47 @@ public class Configuration {
     }
 
     public void OnLiveDataReceived() {
-        _LastLiveDataReceived = System.currentTimeMillis();
+        lastLiveDataReceived = System.currentTimeMillis();
     }
 
     public void OnRecordedDataReceived() {
-        _LastRecordedDataReceived = System.currentTimeMillis();
+        lastRecordedDataReceived = System.currentTimeMillis();
     }
 
     public boolean refreshRequested() {
-        if (_ImmediateRefreshRequsted) {
-            _ImmediateRefreshRequsted = false;
+        if (immediateRefreshRequsted) {
+            immediateRefreshRequsted = false;
             return true;
         }
         return false;
     }
 
     public void requestImmediateRefresh() {
-        _ImmediateRefreshRequsted = true;
+        immediateRefreshRequsted = true;
     }
 
     public void restoreCursor() {
-        _BusyCursorRequestCount--;
-        if (_BusyCursorRequestCount < 1) {
-            getAppScene().setCursor(_prevCursor);
-            _prevCursor = null;
+        busyCursorRequestCount--;
+        if (busyCursorRequestCount < 1) {
+            getAppScene().setCursor(prevCursor);
+            prevCursor = null;
         }
     }
 
-    public void setAddress(String _Address) {
-        this._Address = _Address;
+    public void setAddress(String address) {
+        this._Address = address;
     }
 
-    public void setAllowTasks(boolean _AllowTasks) {
-        this._AllowTasks = _AllowTasks;
+    public void setAllowTasks(boolean allowTasks) {
+        this._AllowTasks = allowTasks;
     }
 
-    public void setAppBorderWidth(double _AppBorderWidth) {
-        this._AppBorderWidth = _AppBorderWidth;
+    public void setAppBorderWidth(double appBorderWidth) {
+        this._AppBorderWidth = appBorderWidth;
     }
 
     public void SetApplicationID(String newID) {
-        _ApplicationID = newID;
+        applicationID = newID;
     }
 
     public void setAppScene(Scene scene) {
@@ -429,70 +431,70 @@ public class Configuration {
             LOGGER.severe("setScene received a NULL argument");
             return;
         }
-        _appScene = scene;
+        appScene = scene;
     }
 
-    public void setAppStage(Stage _AppStage) {
-        this._AppStage = _AppStage;
+    public void setAppStage(Stage appStage) {
+        this._AppStage = appStage;
     }
 
-    public void setAppTitle(String _AppTitle) {
-        this._AppTitle = _AppTitle;
+    public void setAppTitle(String appTitle) {
+        this._AppTitle = appTitle;
     }
 
-    public void setAutoScale(boolean _AutoScale) {
-        this._AutoScale = _AutoScale;
+    public void setAutoScale(boolean autoScale) {
+        this._AutoScale = autoScale;
     }
 
-    public void setCanvasHeight(int _CanvasHeight) {
-        this._CanvasHeight = _CanvasHeight;
+    public void setCanvasHeight(int canvasHeight) {
+        this._CanvasHeight = canvasHeight;
     }
 
-    public void setCanvasWidth(int _CanvasWidth) {
-        this._CanvasWidth = _CanvasWidth;
+    public void setCanvasWidth(int canvasWidth) {
+        this._CanvasWidth = canvasWidth;
     }
 
-    public void setCreationHeight(int _CreationHeight) {
-        this._CreationHeight = _CreationHeight;
+    public void setCreationHeight(int creationHeight) {
+        this._CreationHeight = creationHeight;
     }
 
-    public void setCreationWidth(int _CreationWidth) {
-        this._CreationWidth = _CreationWidth;
+    public void setCreationWidth(int creationWidth) {
+        this._CreationWidth = creationWidth;
     }
 
-    public void setCSSFile(String _CSSFie) {
-        this._CSSFile = _CSSFie;
+    public void setCSSFile(String cSSFie) {
+        this.cSSFile = cSSFie;
     }
 
     public void setCursorToWait() {
-        if (_BusyCursorRequestCount++ == 0) {
-            _prevCursor = getAppScene().getCursor();
+        if (busyCursorRequestCount++ == 0) {
+            prevCursor = getAppScene().getCursor();
             getAppScene().setCursor(Cursor.WAIT);
         }
     }
 
-    public void setDebugMode(boolean DebugMode) {
-        this._DebugMode = DebugMode;
+    public void setDebugMode(boolean debugMode) {
+        this._DebugMode = debugMode;
     }
 
-    public void setEnableScrollBars(boolean _EnableScrollBars) {
-        this._EnableScrollBars = _EnableScrollBars;
+    public void setEnableScrollBars(boolean enableScrollBars) {
+        this._EnableScrollBars = enableScrollBars;
     }
 
-    public void setEnforceMediaSupport(boolean _EnforceMediaSupport) {
-        this._EnforceMediaSupport = _EnforceMediaSupport;
+    public void setEnforceMediaSupport(boolean enforceMediaSupport) {
+        this._EnforceMediaSupport = enforceMediaSupport;
     }
 
-    public void setHeartbeatInterval(int HeartbeatInterval) {
-        this.HeartbeatInterval = HeartbeatInterval;
+    public void setHeartbeatInterval(int heartbeatInterval) {
+        this.HeartbeatInterval = heartbeatInterval;
     }
 
-    public void setHeight(int _Height) {
-        this._Height = _Height;
+    public void setHeight(int height) {
+        this._Height = height;
     }
 
-    public void setIgnoreWebCerts(boolean _IgnoreWebCerts) {
-        this._IgnoreWebCerts = _IgnoreWebCerts;
+    public void setIgnoreWebCerts(boolean ignoreWebCerts) {
+        this._IgnoreWebCerts = ignoreWebCerts;
     }
 
     public void setInsetBottom(int insetBottom) {
@@ -523,75 +525,75 @@ public class Configuration {
         }
     }
 
-    public void setKioskMode(boolean _KioskMode) {
-        this._KioskMode = _KioskMode;
+    public void setKioskMode(boolean kioskMode) {
+        this._KioskMode = kioskMode;
     }
 
     public void setLegacyInsetMode(boolean fVal) {
-        _legacyInsetMode = fVal;
+        legacyInsetMode = fVal;
     }
 
-    public void setMarvinLocalDatafeed(boolean _MarvinLocalDatafeed) {
-        this._MarvinLocalDatafeed = _MarvinLocalDatafeed;
+    public void setMarvinLocalDatafeed(boolean marvinLocalDatafeed) {
+        this._MarvinLocalDatafeed = marvinLocalDatafeed;
     }
 
-    public void setMaxPacketSize(int _MaxPacketSize) {
-        this._MaxPacketSize = _MaxPacketSize;
+    public void setMaxPacketSize(int maxPacketSize) {
+        this._MaxPacketSize = maxPacketSize;
     }
 
-    public void setMenuBar(MenuBar _MenuBar) {
-        this._MenuBar = _MenuBar;
+    public void setMenuBar(MenuBar menuBar) {
+        this._MenuBar = menuBar;
     }
 
-    public void setPane(TabPane _Pane) {
-        this._Pane = _Pane;
+    public void setPane(TabPane pane) {
+        this._Pane = pane;
     }
 
-    public void setPort(int _port) {
-        this._port = _port;
+    public void setPort(int port) {
+        this._port = port;
     }
 
-    public void setPrimaryScreen(Screen _PrimaryScreen) {
-        this._PrimaryScreen = _PrimaryScreen;
+    public void setPrimaryScreen(Screen primaryScreen) {
+        this._PrimaryScreen = primaryScreen;
         setPrimaryScreenDetermined(true);
     }
 
-    public void setPrimaryScreenDetermined(boolean _PrimaryScreenDetermined) {
-        this._PrimaryScreenDetermined = _PrimaryScreenDetermined;
+    public void setPrimaryScreenDetermined(boolean primaryScreenDetermined) {
+        this._PrimaryScreenDetermined = primaryScreenDetermined;
     }
 
-    public void setRunInDebugger(boolean _RunInDebugger) {
-        this._RunInDebugger = _RunInDebugger;
+    public void setRunInDebugger(boolean runInDebugger) {
+        this._RunInDebugger = runInDebugger;
     }
 
-    public void setScaleFactor(double _ScaleFactor) {
-        LOGGER.config("Setting Application Scale Factor to: " + Double.toString(_ScaleFactor));
+    public void setScaleFactor(double scaleFactor) {
+        LOGGER.config("Setting Application Scale Factor to: " + Double.toString(scaleFactor));
 
-        _ScaleProperty.setValue(_ScaleFactor);
+        scaleProperty.setValue(scaleFactor);
     }
 
-    public void setShowMenuBar(boolean _ShowMenuBar) {
-        this._ShowMenuBar = _ShowMenuBar;
+    public void setShowMenuBar(boolean showMenuBar) {
+        this._ShowMenuBar = showMenuBar;
     }
 
-    public void setSide(Side _Side) {
-        this._Side = _Side;
+    public void setSide(Side side) {
+        this._Side = side;
     }
 
     public void setTerminating() {
-        _ShuttingDown = true;
+        shuttingDown = true;
     }
 
     public void setTimerInterval(long newVal) {
-        _GuiTimerUpdateInterval = newVal;
+        guiTimerUpdateInterval = newVal;
     }
 
-    public void setWidth(int _Width) {
-        this._Width = _Width;
+    public void setWidth(int width) {
+        this._Width = width;
     }
 
     public boolean terminating() {
-        return _ShuttingDown;
+        return shuttingDown;
     }
 
 }

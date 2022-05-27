@@ -31,24 +31,24 @@ import kutch.biff.marvin.widget.GridWidget;
  */
 public class DynamicGrid extends GridWidget {
 
-    private DynamicTransition _objTransition;
+    private DynamicTransition objTransition;
 
     public DynamicGrid() {
         super();
-        _objTransition = new DynamicTransition(DynamicTransition.Transition.NONE);
+        objTransition = new DynamicTransition(DynamicTransition.Transition.NONE);
     }
 
     public Color getBackgroundColorForTransition() {
-        return _objTransition.getSnapshotColor();
+        return objTransition.getSnapshotColor();
     }
 
     public DynamicTransition getTransition(DynamicGrid objFrom, GridPane parent) {
-        _objTransition.Transition(objFrom, this, parent);
-        return _objTransition;
+        objTransition.Transition(objFrom, this, parent);
+        return objTransition;
     }
 
     public DynamicTransition ReadTransitionInformation(FrameworkNode baseNode) {
-        _objTransition = DynamicTransition.ReadTransitionInformation(baseNode);
-        return _objTransition;
+        objTransition = DynamicTransition.ReadTransitionInformation(baseNode);
+        return objTransition;
     }
 }

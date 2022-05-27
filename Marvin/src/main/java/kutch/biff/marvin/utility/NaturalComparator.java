@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class NaturalComparator implements Comparator<String> {
-    private static String _MatchPattern = "(\\-?\\d+\\.\\d+)|(\\-?\\.\\d+)|(\\-?\\d+)";
+    private static String matchPattern = "(\\-?\\d+\\.\\d+)|(\\-?\\.\\d+)|(\\-?\\d+)";
 
     @Override
     public int compare(String strFirstString, String strSecondString) {
@@ -43,7 +43,7 @@ public class NaturalComparator implements Comparator<String> {
             String token1 = parts1.get(index);
             String token2 = parts2.get(index);
 
-            if (token1.matches(_MatchPattern) && token2.matches(_MatchPattern)) {
+            if (token1.matches(matchPattern) && token2.matches(matchPattern)) {
                 delta = (int) Math.signum(Double.parseDouble(token1) - Double.parseDouble(token2));
             } else {
                 delta = token1.compareToIgnoreCase(token2);
@@ -61,7 +61,7 @@ public class NaturalComparator implements Comparator<String> {
         Scanner scanner = new Scanner(strString);
         int index = 0;
         String number = null;
-        while ((number = scanner.findInLine(_MatchPattern)) != null) {
+        while ((number = scanner.findInLine(matchPattern)) != null) {
             int indexOfNumber = strString.indexOf(number, index);
             if (indexOfNumber > index) {
                 tokenList.add(strString.substring(index, indexOfNumber));
